@@ -1,0 +1,252 @@
+# std-makefile-defs: Common definitions for Makefiles
+
+# This file is part of LIBCUTIL.
+# 
+# LIBCUTIL is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# LIBCUTIL is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public License
+# along with LIBCUTIL.  If not, see <http://www.gnu.org/licenses/>.
+# 
+# Copyright 2007-2014 ja
+
+
+ifeq ($(RPATH),)
+# Relative path to other libraries
+RPATH:= ..
+endif
+
+ifeq ($(RMODE),)
+# Default is debug mode (not release mode)
+RMODE:= debug
+endif
+
+
+########################################
+###### LINUX/I386 TARGET
+########################################
+ifeq ($(TARGET),LINUX)
+ECHO=  echo
+BISON= bison
+FLEX=  flex
+TSUF   := 
+EXESUF := 
+COPTADD  = -DLINUX -DLINUX_RUN -fPIC -isystem /usr/include/gtkmm-2.4
+
+GTKREV  = 3.0
+#2.4
+GTK_DIR= `pkg-config --cflags gtkmm-$(GTKREV)`
+GTK_LIB= `pkg-config --libs gtkmm-$(GTKREV) gthread-2.0`
+# -lgthread-2.0   
+PRS_LIB=  -ly -lfl
+LOPTADD   := -lrt
+else
+########################################
+###### LINUX/PPC TARGET
+########################################
+ifeq ($(TARGET),PPC)
+ECHO=  echo -e
+BISON= bison
+FLEX=  flex
+# Powerpc toolchain path not specified ?
+ifeq ($(PPC_PATH),)
+PPC_PATH = /home/jar/bsp/QorIQ-DPAA-SDK-20110609-systembuilder/freescale-2010.09/bin
+endif
+# GCC=   $(PPC_PATH)/powerpc-linux-gnu-gcc
+# GPP=   $(PPC_PATH)/powerpc-linux-gnu-g++
+TSUF := -ppc
+EXESUF := 
+COPTADD= -DLINUX -DLINUX_RUN -fPIC
+
+GTKREV  =0
+PRS_LIB=  -ly -lfl
+#/usr/lib/liby.a /usr/lib/libfl.a
+LOPTADD   := -lrt
+else
+########################################
+###### WIN32 TARGET
+########################################
+ECHO= echo -e
+TARGET= WIN
+BISON= c:/GnuWin32/bin/bison.exe
+FLEX= c:/GnuWin32/bin/flex.exe
+TSUF := 
+EXESUF := .exe
+COPTADD= -DWIN  -isystem c:/GTK/include/gtkmm-2.4 -Ic:/GnuWin32/include -D_USE_MATH_DEFINES
+GTKREV  =3.0
+GTK_DIR= `pkg-config --cflags gtkmm-$(GTKREV)`
+GTK_LIB= `pkg-config --libs gtkmm-$(GTKREV)` -lgthread-2.0  
+PRS_LIB= C:/MinGW3/lib/liby.a C:/MinGW3/lib/libfl.a -ly -lfl
+
+LOPTADD := -lws2_32 -lwinmm  -lpng -LC:/GnuWin32/lib
+
+ifeq ($(RMODE),debug)
+else
+LOPTADD := $(LOPTADD) -mwindows
+endif
+
+endif
+endif
+
+
+GENERAL_BUILD_DIR := ./build
+BUILD_DIR   := $(GENERAL_BUILD_DIR)/$(RMODE)$(TSUF)
+
+INCDIR := $(ADDITIONNAL_INC_DIRS) -I$(BUILD_DIR) -Iinclude $(GTK_DIR) $(LEX_DIR)
+
+# Library to build
+CURRENT_LIB_BASE= $(BUILD_DIR)/lib-base.a
+CURRENT_LIB     = $(BUILD_DIR)/lib.a
+
+
+SOURCES          := $(SOURCES_BASE) $(SOURCES_EXT) $(SOURCES_GTK)
+OBJECTFILES      := $(patsubst %,$(BUILD_DIR)/%.o,$(SOURCES))
+OBJECTFILES_BASE := $(patsubst %,$(BUILD_DIR)/%.o,$(SOURCES_BASE))
+EXEFILES         := $(patsubst %,$(BUILD_DIR)/%.exe,$(EXECS))
+
+EXT_LIBS        := $(patsubst %,%/build/$(RMODE)$(TSUF)/lib.a,$(EXTERNAL_LIBS))
+
+# directories to locate the source (for make usage)
+
+VPATH_SRC  := $(BUILD_DIR) ./src ./src/test ./include $(ADDITIONNAL_SRC_DIRS)
+#VPATH_DATA := data $(RPATH)/libcutil/data  $(ADDITIONNAL_DATA_DIRS)
+#VPATH_IMG  := $(patsubst %,%/img,$(VPATH_DATA))
+
+
+vpath %.h   $(VPATH_SRC)
+vpath %.cc  $(VPATH_SRC)
+vpath %.c   $(VPATH_SRC)
+vpath %.lex $(VPATH_SRC)
+vpath %.y   $(VPATH_SRC)
+
+# Model files to copy from libcutil
+MODEL_FILES := std-lang.xml std-schema.xml view-schema.xml $(XML_FILES) $(DATA_FILES)
+
+IMG_FILES := edit16.gif  gtk-go-down16.png  gtk-go-up16.png  mod16.png  open16.gif $(IMG_FILES)
+
+IMG_FILES   := $(patsubst %,$(BUILD_DIR)/data/img/%,$(IMG_FILES))
+MODEL_FILES := $(patsubst %,$(BUILD_DIR)/data/%,$(MODEL_FILES))
+
+#####################################################################
+## Compiler options                                                ##
+#####################################################################
+COPT = $(COPTADD) -Wall -MMD -MP -MF $(BUILD_DIR)/.dep/$(@F).d -Wno-write-strings -DBT_SOCKET_DISABLE=0 $(ADDITIONNAL_COPT) $(INCDIR)
+
+ifeq ($(RMODE),debug)
+COPT += -g -O1 -DDEBUG_MODE 
+#-O1 
+else
+COPT += -O3 -DRELEASE_MODE 
+endif
+
+CPPFLAGS += $(COPT)
+CFLAGS   += $(COPT)
+CXXFLAGS += $(COPT) -std=c++0x
+
+#####################################################################
+## Linker options                                                  ##
+#####################################################################
+
+# External libraries
+ELIBS   := $(CURRENT_LIB) $(EXT_LIBS)
+
+LDFLAGS+= $(ELIBS) $(LOPTADD) $(GTK_LIB) $(PRS_LIB) $(ADDITIONNAL_LOPT)
+
+ifeq ($(RMODE),release)
+LDFLAGS+= $(LOPT) -Wl,-s
+endif
+
+#####################################################################
+## Production rules                                                ##
+#####################################################################
+
+.PHONY : clean distclean check-dirs data-update
+
+# Default targets
+all:   check-dirs data-update $(FIRST_TARGETS) $(ADDITIONNAL_OBJS) $(CURRENT_LIB) $(CURRENT_LIB_BASE)  $(EXEFILES) $(ADDITIONNAL_TARGETS)
+# $(MODEL_FILES) $(IMG_FILES) $(EXEFILES) $(ADDITIONNAL_TARGETS)
+
+base: check-dirs data-update $(CURRENT_LIB_BASE)
+
+libs: check-dirs $(CURRENT_LIB) $(CURRENT_LIB_BASE) 
+
+display:
+	@$(ECHO) "Liste des dépendances pour les exécutables: $(ELIBS)"
+
+check-dirs:
+	@test -d $(GENERAL_BUILD_DIR) || mkdir $(GENERAL_BUILD_DIR)
+	@test -d $(BUILD_DIR) || mkdir $(BUILD_DIR)
+	@test -d $(BUILD_DIR)/.dep || mkdir $(BUILD_DIR)/.dep
+	@test -d $(BUILD_DIR)/data || mkdir $(BUILD_DIR)/data
+	@test -d $(BUILD_DIR)/data/img || mkdir $(BUILD_DIR)/data/img
+
+data-update:
+	@echo "Updating data files..."
+	@$(foreach DDIR,$(EXTERNAL_LIBS), sh -c "if [ -d $(DDIR)/data ] ; then cp -r -f -u $(DDIR)/data $(BUILD_DIR) ; fi";)
+	@if [ -d ./data ] ; then cp -r -f -u ./data $(BUILD_DIR) ; fi
+
+
+##################################
+# Implicit rules
+##################################
+
+$(BUILD_DIR)/%o : %cc
+	@$(ECHO) "Compiling c++ file \033[1m$<\033[0m..."
+	@$(CXX) -c $(CXXFLAGS) $< -o $@
+
+$(BUILD_DIR)/%o : %c
+	@$(ECHO) "Compiling c file \033[1m$<\033[0m..."
+	@$(CC) -c $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/%.exe:  $(BUILD_DIR)/%.o $(ELIBS)
+	@$(ECHO) "Building executable \033[34m$@\033[0m..."
+	@$(CXX) $< $(LDFLAGS) -o $@
+
+
+##################################
+# Libraries
+##################################
+lib: $(CURRENT_LIB)
+
+$(CURRENT_LIB): $(OBJECTFILES)
+	@$(ECHO) "Building project library: \033[1m$@\033[0m..."
+	@ar rvs $@ $(OBJECTFILES) $(ADDITIONNAL_OBJS) >> /dev/null
+
+$(CURRENT_LIB_BASE): $(OBJECTFILES_BASE)
+	@$(ECHO) "Building reduced library: \033[31m$@\033[0m..."
+	@ar rvs $@ $(OBJECTFILES_BASE)  >> /dev/null
+
+
+##################################
+# Misc. targets
+##################################
+usage:
+	@$(ECHO) "\033[1mMakefile usage:\033[0m"
+	@$(ECHO) ""
+	@$(ECHO) "make"
+	@$(ECHO) "  -> Build for default target (mingw/windows) and default mode (debug)"
+	@$(ECHO) ""
+	@$(ECHO) "make TARGET=linux|win|ppc RMODE=debug|release"
+	@$(ECHO) "  -> Build for specific target and mode."
+	@$(ECHO) ""
+
+clean:
+	@echo "Cleaning..."
+	@- $(RM) -f $(ADDITIONNAL_CLEAN) $(ADDITIONNAL_TARGETS)
+	@- $(RM) -rf ./log.txt ./theme-sel.txt
+	@- $(RM) -rf $(GENERAL_BUILD_DIR)
+
+distclean: clean
+
+# Auto-generate source files dependencies.
+-include $(shell mkdir $(BUILD_DIR)/.dep 2>/dev/null) $(wildcard $(BUILD_DIR)/.dep/*)
+
+
+

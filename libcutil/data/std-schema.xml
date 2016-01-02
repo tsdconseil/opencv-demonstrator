@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!-- This file is part of LIBCUTIL.
+  --
+  -- LIBCUTIL is free software: you can redistribute it and/or modify
+  -- it under the terms of the GNU Lesser General Public License as published by
+  -- the Free Software Foundation, either version 3 of the License, or
+  -- (at your option) any later version.
+  
+  -- LIBCUTIL is distributed in the hope that it will be useful,
+  -- but WITHOUT ANY WARRANTY; without even the implied warranty of
+  -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  -- GNU Lesser General Public License for more details.
+  --
+  -- You should have received a copy of the GNU Lesser General Public License
+  -- along with LIBCUTIL.  If not, see <http://www.gnu.org/licenses/>.
+  --
+  -- Copyright 2007-2011 J. A. -->
+
+<schema name="wp6-model" root="schema">
+
+<node name="schema" fr="Schéma" icon="mod16.png">
+  <description lang="en">Self-schema of schemas.</description>
+  <sub type="node"/>
+  <attribute type="string" name="root" fr="Section racine"/>
+  <attribute type="string" name="name" fr="Nom" hidden="true"/>
+  <attribute type="string" name="fr" fr="En français" hidden="true"/>
+  <attribute type="string" name="filename" hidden="true" volatile="true"/>
+</node>
+
+<node name="node" fr="Noeud" en="Node" icon="open16.gif">
+  <attribute type="string" name="inherits" hidden="true"/>
+  <attribute type="string" name="name" fr="Nom"/>
+  <attribute type="string" name="fr" fr="En français" en="In french"/>
+  <attribute type="string" name="en" en="In english" fr="En anglais"/>
+  <attribute type="string" name="icon" fr="Icône" hidden="true"/>
+  <sub type="attribute"/>
+  <sub type="sub"/>
+  <sub type="sub-node"/>
+  <sub type="command"/>
+  <sub type="description"/>
+  <sub type="ref"/>
+</node>
+
+<node name="ref" fr="Référence" en="Reference">
+  <ref name="type" type="node" path="../.."/>
+  <attribute name="path" type="string" fr="Chemin" en="Path"/>
+  <attribute type="string" name="name" fr="Nom"/>
+  <attribute type="string" name="fr" fr="En français"/>
+  <attribute type="string" name="en" en="name" fr="En anglais"/>
+</node>
+
+<node name="sub-node" en="Sub-node" fr="Sous-noeud" icon="open16.gif">
+  <attribute type="string" name="inherits" hidden="true"/>
+  <attribute type="string" name="name" fr="Nom"/>
+  <attribute type="string" name="fr" fr="En français"/>
+  <attribute type="string" name="en" en="name" fr="En anglais" hidden="false"/>
+  <attribute type="string" name="icon" fr="Icône" hidden="true"/>
+  <attribute type="string" name="key" fr="Clé primaire (optionnel)" en="Primary key (optional)"/>
+  
+  <sub type="attribute"/>
+  <sub type="sub"/>
+  <sub type="sub-node"/>
+  <sub type="description"/>
+  <sub type="command"/>
+  
+  <attribute name="min"     type="int" default="-1" signed="true" fr="Cardinalité min." min="-1">
+    <description lang="fr">Nombre minimal d'instances de cette section. La valeur -1 signifie qu'il n'y a pas de nombre minimal d'instances pour cette section.</description>
+    <match value="-1" name="Unspecified" fr="Non spécifié"/>
+  </attribute>
+  <attribute name="max"     type="int" default="-1" signed="true" fr="Cardinalité max." min="-1">
+    <description lang="fr">Nombre maximal d'instances de cette sections. La valeur -1 signifie qu'il n'y a pas de limite au nombre maximal d'instances.</description>
+  </attribute>
+  <attribute name="tabular" type="boolean" default="false" hidden="true"/>
+  <attribute name="default" type="int" default="0" fr="Nombre d'instances par défaut"/>
+  <attribute name="sub-readonly" type="boolean" default="false" fr="Structure modifiable par l'utilisateur">
+    <description>L'utilisateur peut ajouter / retirer des éléments</description>
+  </attribute>
+  <attribute name="show-header" type="boolean" default="true" hidden="true"/>
+</node>
+
+
+<node name="sub" fr="Composition" en="Composition">
+  <attribute name="type"    type="string" fr="Type d'aggrégat"/>
+  <attribute name="fr"    type="string" fr="En français"/>
+  <attribute name="en"    type="string"/>
+  <attribute name="min"     type="int" default="-1" signed="true" fr="Nombre minimal d'instances"/>
+  <attribute name="max"     type="int" default="-1" signed="true" fr="Nombre maximal d'instances"/>
+  <attribute name="default" type="int" default="0" fr="Nombre d'instances par défaut"/>
+  <attribute name="sub-readonly" type="boolean" default="false" fr="Structure modifiable par l'utilisateur">
+    <description>L'utilisateur peut ajouter / retirer des éléments</description>
+  </attribute>
+  <attribute type="string" name="key" fr="Clé primaire (optionnel)" en="Primary key (optional)"/>
+  <sub type="description"/>
+</node>
+
+
+<node name="choice" fr="Choix" en="Choice">
+  <sub-element name="choice-item" fr="Choix">
+    <attribute name="type" fr="Type" en="Type" type="string"/>
+  </sub-element>
+</node>
+
+<node name="attribute" fr="Attribut" icon="edit16.gif">
+  <attribute type="string" name="name" fr="nom"/>
+  <attribute type="string"  name="fr" fr="En français" en="In french"/>
+  <attribute type="string"  name="en" fr="En anglais" en="In english"/>
+  <attribute type="string" name="type" default="int" constraints="int|string|float|boolean|folder|ip|blob">
+    <match value="int" name="int" fr="Entier"/>
+    <match value="string" name="string" fr="Chaine de caractères"/>
+    <match value="float" name="float" fr="Flottant"/>
+    <match value="boolean" name="boolean" fr="Bouléen"/>
+    <match value="folder" name="folder" fr="Dossier"/>
+    <match value="ip" name="ip" fr="Adresse IP"/>
+    <match value="blob" name="blob" fr="Données non formatées"/>
+  </attribute>
+  
+  <attribute type="string" name="path" volatile="true" hidden="true"/>
+  <attribute type="string" name="bin-path" volatile="true" hidden="true"/>
+  
+  <attribute type="int"     name="size"    default="1" fr="Taille" unit="octets"/>
+  <attribute type="string"  name="unit"    fr="Unité" require="type=int|float"/>
+  <attribute type="string"  name="default" fr="Valeur par défaut"/>
+  <attribute type="string"  name="min"     fr="Valeur minimale" require="type=int|float" default=""/>
+  <attribute type="string"  name="max"     fr="Valeur maximale" require="type=int|float" default=""/>
+  <attribute type="string"  name="constraints" fr="Contraintes"/>
+  <attribute type="boolean" name="signed"  fr="Signé" require="type=int|float" default="false"/>
+  <attribute type="boolean" name="hexa"    require="type=int" fr="Affichage en hexadécimal" default="false"/>
+  <attribute type="string"  name="require" fr="Condition de validité"/>
+  <attribute type="boolean" name="hidden"  default="false" hidden="true"/> 
+  <attribute type="boolean" name="formatted-text" default="false" hidden="true"/>
+  
+  <sub type="match" display-tree="true"        display-tab="false" display-resume="value,name"/>
+  <sub type="description"/>
+  <!--<attribute type="string" name="callback" hidden="true"/>-->
+  <attribute type="boolean" name="readonly" default="false" fr="En lecture seule"/>
+  <attribute type="boolean" name="bytes" default="false" require="type=int" fr="Affichage sous la forme de plusieurs octets"/>
+  <attribute type="boolean" name="instrument"  fr="Instrument de mesure" default="false"/>
+  <attribute type="int" name="digits"  require="instrument=true" fr="Nombre de digits à afficher" default="0"/>
+</node>
+
+<node name="command" fr="Commande">
+  <description lang="fr"></description>
+  <attribute type="string" name="name"/>
+  <attribute type="string" name="fr"/>
+  <attribute type="string" name="en" hidden="true"/>
+  <sub type="description"/>
+  <sub-node min="0" max="1" name="input" fr="Paramètres d'entrée">
+    <description>Paramètres d'entrée de la commande.</description>
+    <sub type="attribute"/>
+    <sub type="sub"/>
+    <sub type="sub-node"/>
+  </sub-node>
+  
+  <sub-node min="0" max="1" name="partial" fr="Résultats intermédiaires">
+    <sub type="attribute"/>
+    <sub type="sub"/>
+    <sub type="sub-node"/>
+  </sub-node>
+  
+  <sub-node min="0" max="1" name="output" fr="Paramètres de sortie">
+    <description>Paramètres de sortie de la commande.</description>
+    <sub type="attribute"/>
+    <sub type="sub"/>
+    <sub type="sub-node"/>
+  </sub-node>
+</node>
+
+
+<node name="match" fr="Enumération">
+  <description lang="fr">Définit un élement d'énumération (association clé / description).</description>
+  <attribute type="string" name="value" fr="valeur"/>
+  <attribute type="string" name="name"  fr="identifiant"/>
+  <attribute type="string" name="fr"    fr="en français" en="in french"/>
+  <attribute type="string" name="en"    fr="en anglais" en="in english"/>
+  <sub type="description"/>
+  <attribute type="string" name="schema" fr="Schéma spécifique (optionnel)"/>
+</node>
+
+<node name="description">
+  <attribute type="string" name="lang" fr="Langue" en="Language" constraints="en|fr|de" default="fr">
+    <match value="en" name="en" fr="Anglais" en="English"/>
+    <match value="fr" name="fr" fr="Français" en="French" de="Françösich"/>
+    <match value="de" name="de" fr="Allemand" en="German" de="Deutsch"/> 
+  </attribute>
+  <attribute type="string" name="content" fr="Contenu" en="Content" formatted-text="true"/>
+</node>
+
+<node name="date">
+  <attribute type="int" size="2" name="day" min="1" max="31"/>
+  <attribute type="int" size="2" name="month" min="1" max="12"/>
+  <attribute type="int" size="4" signed="true" name="year"/>
+</node>
+
+<node name="time">
+  <attribute type="int" name="second" min="0" max="59"/>
+  <attribute type="int" name="minute" min="0" max="59"/>
+  <attribute type="int" name="hour"   min="0" max="23"/>
+</node>
+
+
+</schema>

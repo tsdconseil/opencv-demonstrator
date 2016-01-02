@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!-- This file is part of LIBCUTIL.
+  --
+  -- LIBCUTIL is free software: you can redistribute it and/or modify
+  -- it under the terms of the GNU Lesser General Public License as published by
+  -- the Free Software Foundation, either version 3 of the License, or
+  -- (at your option) any later version.
+  
+  -- LIBCUTIL is distributed in the hope that it will be useful,
+  -- but WITHOUT ANY WARRANTY; without even the implied warranty of
+  -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  -- GNU Lesser General Public License for more details.
+  --
+  -- You should have received a copy of the GNU Lesser General Public License
+  -- along with LIBCUTIL.  If not, see <http://www.gnu.org/licenses/>.
+  --
+  -- Copyright 2007-2011 J. A. -->
+
+<schema root = "view"
+        name = "view">
+  
+  <include-schema  path="data/std-schema.xml"/>
+  
+  <!-- TODO:
+    --  -> paramètres liés (e.g. options en fonction du type de...)
+    --> -> choice/choice-item -> à merger avec les sub dépendant d'un prm ????
+  
+  <node name = "view"
+        fr   = "Vue"
+        en   = "View">
+     <sub type = "widget" 
+          fr   = "Widget racine" 
+          min="1" max="1"/> 
+  </node>
+  
+  <node name="widget">
+    <attribute name="id" type="string" fr="Identifiant (optionnel)">
+      <description>Identifiant qui peut être utilisé dans le code spécifique pour retrouver dynamiquement le widget.</description>
+    </attribute>
+    <attribute name="pack" type="string" constraints="shrink|expand" default="shrink"/>
+    <attribute name="pos-end" type="boolean" default="false"/>
+    <attribute name="model" type="string"/>
+    <attribute name="id" type="string"/>
+    <attribute name="type" 
+               type="string" 
+               constraints="null|panel|field|field-list|indicator|button|border-layout|grid-layout|fixed-layout|trig-layout|notebook|pane|image|label|custom|button-box"
+               default="auto">
+      <match value="auto"/>
+      <match value="null-widget"    schema="null-widget"/>
+      <match value="panel"          schema="panel"/>
+      <match value="field-view"     schema="field-view"/>
+      <match value="field-list"     schema="field-list"/>
+      <match value="indicator"      schema="indicator"/>
+      <match value="button"         schema="button"/>
+      <match value="border-layout"  schema="border-layout"/>
+      <match value="grid-layout"    schema="grid-layout"/>
+      <match value="fixed-layout"   schema="fixed-layout"/>
+      <match value="trig-layout"    schema="trig-layout"/>
+      <match value="notebook"       schema="notebook"/>
+      <match value="pane"           schema="pane"/>
+      <match value="image"          schema="image"/>
+      <match value="label"          schema="label"/>
+      <match value="list-layout"    schema="list-layout"/>
+      <match value="vbox"           schema="box"/>
+      <match value="hbox"           schema="box"/>
+      <match value="button-box"     schema="button-box"/>
+    </attribute>
+    <sub type="list-layout" min="0" max="1"/>
+    <sub type="box" min="0" max="1"/>
+    <sub type="button-box" min="0" max="1"/>
+    <sub type="field-list" min="0" max="1"/>
+    <sub type="field-view" min="0" max="1"/>
+    <sub type="notebook" min="0" max="1"/>
+  </node>
+  
+  <node name="box">
+    <sub type="widget"/>
+  </node>
+  
+  <node name="label">
+    
+  </node>
+  
+  <node name="null-widget" fr="Widget vide">
+  </node>
+  
+  <node name     = "image">
+    <attribute name = "path" 
+               fr   ="Chemin"
+               type = "file"/>
+  </node>
+  
+  <node name="indicator" fr="Indicateur">
+  
+  </node>
+  
+  <node name = "pane" fr="Séparation">
+    <attribute name        = "dir"
+               type        = "string"
+               default     = "H"
+               constraints = "H|V">
+      <match value = "V"
+             name  = "V"
+             fr    = "Vertical"/>
+      <match value = "H"
+             name  = "H"
+             fr    = "Horizontal"/>
+    </attribute>
+    <description >Séparateur vertical ou horizontal</description>
+    <sub type="widget" min="2" max="2"/>
+  </node>
+  
+  <node name="notebook">
+    <sub type="notebook-page"/>
+  </node>
+  
+  <node name="notebook-page" inherits="localized">
+    <sub type="widget" min="0" max="1"/>
+  </node>
+
+  <node name="border-layout" fr="Mise en page de type Bordure">
+    <sub name="north"  type="widget"  min="0" max="1"/>
+    <sub name="south"  type="widget"  min="0" max="1"/>
+    <sub name="east"   type="widget"  min="0" max="1"/>
+    <sub name="west"   type="widget"  min="0" max="1"/>
+    <sub name="center" type="widget"  min="0" max="1"/>
+  </node>
+  
+  <node name="trig-layout" fr="Mise en page de type 3">
+    <sub name="left"    type="widget"  min="0" max="1"/>
+    <sub name="right"   type="widget"  min="0" max="1"/>
+    <sub name="bottom"  type="widget"  min="0" max="1"/>
+  </node>
+  
+  <node name="list-layout">
+    <attribute name="ncols" type="int" default="2"/>
+    <attribute name="path" type="string"/>
+    <attribute name="child-type" type="string"/>
+    <sub type="bouton"/>
+  </node>
+  
+  <node name="button-box">
+    <sub type="bouton"/>
+  </node>
+  
+  <node name="bouton" inherits="localized">
+    <attribute name="require-sel" type="boolean" default="false"/>
+    <attribute name="default"     type="boolean" default="false"/>
+  </node>
+  
+  <node name="grid-layout" fr="Grille">
+    <attribute name="nrows" type="int" fr="Nombre de lignes"/>
+    <attribute name="ncols" type="int" fr="Nombre de colonnes"/>
+    <sub-element name="grid-widget">
+      <attribute name="col" type="int"/>
+      <attribute name="row" type="int"/>
+      <sub type="widget" min="1" max="1" merge="true"/>
+    </sub-element>
+  </node>
+  
+  <node name="fixed-layout" fr="Mise en page fixée">
+    <sub-element name="fixed-widget">
+      <attribute name="x" type="float"/>
+      <attribute name="y" type="float"/>
+      <sub type="widget" min="1" max="1" merge="true"/>
+    </sub-element>
+  </node>
+
+  <node name="button" fr="Bouton">
+    <ref type="command" name="command" fr="Commande associée"/>
+  </node>
+  
+  <node name = "field-view" 
+        fr   = "Champ"
+        en   = "Field view">
+    <attribute name="model" type="string" fr="Chemin vers le modèle" en="Model"/>
+    <attribute name="ctrl-id" type="string" fr="Chemin vers le contrôleur" en="Control id"/>
+    <attribute name="editable" type="boolean" fr="Editable" default="true"/>
+    <attribute name="type"  type="int" min="0" max="5" default="0">
+      <match value="0" fr="Automatique"/>
+      <match value="1" fr="Combo box"/>
+      <match value="2" fr="Check box"/>
+      <match value="3" fr="Entry"/>
+      <match value="4" fr="Radio"/>
+    </attribute>
+    <attribute name="ndigits" type="int" fr="Nombre de chiffres significatifs" default="5"/>
+  </node>
+  
+  
+  <!--<node name = "field-view" 
+        fr   = "Champ"
+        en   = "Field">
+    <attribute name="model" type="string" fr="Modèle associé" en="Model"/>
+
+  </node>-->
+       
+  <node name     = "field-list"
+        fr       = "Liste de champs"
+        en       = "Field list">
+    <attribute name="title" type="string" fr="Titre (optionnel)" en="Title (optional)"/>
+    <sub type="field-view"/>
+    <!--<sub type = "widget" name="field-view"/>-->
+  </node>
+  
+  <node name = "localized">
+      <attribute type="string" name="name" fr="Nom"/>
+      <attribute type="string" name="fr" fr="En français"/>
+      <attribute type="string" name="en" en="name" fr="En anglais" hidden="false"/>
+  </node>
+  
+  <node name     = "panel" fr="Panneau">
+    <attribute name        = "border"
+               type        = "string"
+               constraints = "none|up|down"
+               default="none"/>
+    <attribute name = "background-image"
+               type = "file"/>
+    <attribute name = "name"
+               type = "string"/>
+    <attribute name = "fr"
+               type = "string"/>
+    <attribute name = "en"
+               type = "string"/>
+<description >Panneau d'IHM.</description>
+  </node>
+  
+</schema>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<schema name="model-editor" root="model-editor">
+
+
+<node name="model-editor" fr="Paramètres">
+  <attribute name="last-file" type="string" hidden="true"/>
+  <attribute name="last-schema" type="string" hidden="true"/>
+</node>
+</schema>
+
+
+
