@@ -4,7 +4,7 @@ OpenCV demonstrator
 
 ## Introduction
 
-The original **OpenCV demonstrator (GUI)** was written by Julien Arzi, and released at
+The original **OpenCV demonstrator (GUI)** was written by Julien A. (www.tsdconseil.fr), and released at
 [TSD Conseil](http://www.tsdconseil.fr/log/opencv/demo/index-en.html). This GitHub repository was created
 from the original source code. The purpose of this GitHub repository is to enable open source contributions
 for the original **OpenCV demonstrator (GUI)**. With the help of the OpenCV community we can make a very
@@ -21,7 +21,7 @@ the **opencv-demonstrator-data** project into the folder `ocvdemo/data`. You can
     $ git clone https://github.com/tsdconseil/opencv-demonstrator-data.git data
 
 Second, at this stage, the build instruction are located in the file [README.txt](README.txt). The file was written
-by Julien Arzi (original author). In the near future, more detailed and thorough instructions will be written.
+by Julien A. (www.tsdconseil.fr). In the near future, more detailed and thorough instructions will be written.
 
 
 ## Road map
