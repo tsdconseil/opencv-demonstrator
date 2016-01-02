@@ -1,0 +1,2 @@
+# opencv-demonstrator
+OpenCV demonstrator
