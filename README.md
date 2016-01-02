@@ -39,4 +39,5 @@ by Julien Arzi (original author). In the near future, more detailed and thorough
 
 ## License
 
-The software is provided according to the GNU Lesser General Public License (LGPL) version 3. Please see [LICENSE](LICENSE).
+The software is provided according to the GNU Lesser General Public License (LGPL) version 3. Please see
+[LICENSE](LICENSE).
