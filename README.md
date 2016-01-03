@@ -28,9 +28,11 @@ by Julien A. (www.tsdconseil.fr). In the near future, more detailed and thorough
 
 - clean up source code
 - write detailed and thorough build instructions for Windows, Linux, and Mac OSX
-- create separate build scripts (makefiles) for Windows, Linux, and Mac OSX
+- create separate build targets for Windows, Linux, and Mac OSX
 - provide `deb` and `rpm` installation packages for Linux distributions
 - provide a `brew` installation package for Mac OSX
+- improve i18n support (switch to full UTF-8)
+- add Russian translations
 - better documentation
 - increase coverage of OpenCV functions
 - tests
