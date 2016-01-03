@@ -20,8 +20,9 @@ the **opencv-demonstrator-data** project into the folder `ocvdemo/data`. You can
     $ cd PATH_TO_SRC/opencv-demonstrator/ocvdemo
     $ git clone https://github.com/tsdconseil/opencv-demonstrator-data.git data
 
-Second, at this stage, the build instruction are located in the file [README.txt](README.txt). The file was written
-by Julien A. (www.tsdconseil.fr). In the near future, more detailed and thorough instructions will be written.
+Second, at this stage, the build instruction are located in the file
+[doc/build-instructions.md](doc/build-instructions.md). In the near future, more detailed and thorough instructions
+will be written.
 
 
 ## Road map
