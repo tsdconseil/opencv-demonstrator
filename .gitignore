@@ -27,8 +27,5 @@
 *.out
 *.app
 
-# Exclude the data directory which contains assets. It is a separate Git repo.
-ocvdemo/data/*
-
 # Eclude the build folder.
 ocvdemo/build/*

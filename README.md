@@ -13,16 +13,8 @@ exciting product!
 
 ## Setup
 
-First, make sure you get the data (images, videos) for this project. It is a separate GitHub project, located
-at [opencv-demonstrator-data](https://github.com/tsdconseil/opencv-demonstrator-data). Put the content's of
-the **opencv-demonstrator-data** project into the folder `ocvdemo/data`. You can do this with a simple command:
-
-    $ cd PATH_TO_SRC/opencv-demonstrator/ocvdemo
-    $ git clone https://github.com/tsdconseil/opencv-demonstrator-data.git data
-
-Second, at this stage, the build instruction are located in the file
-[doc/build-instructions.md](doc/build-instructions.md). In the near future, more detailed and thorough instructions
-will be written.
+Te build instruction are located in the file [doc/build-instructions.md](doc/build-instructions.md). In the near future,
+more detailed and thorough instructions will be written.
 
 
 ## Road map
