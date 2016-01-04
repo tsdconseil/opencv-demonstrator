@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <!-- Démonstrateur OpenCV :
-  -- Spécification de l'interface homme - machine.
-  -- Copyright 2015 J.A. / http://www.tsdconseil.fr
-  -- Project web page: http://www.tsdconseil.fr/log/opencv/demo/index-en.html -->
+     Spécification de l'interface homme - machine.
+     Copyright 2015 J.A. / http://www.tsdconseil.fr
+     Project web page: http://www.tsdconseil.fr/log/opencv/demo/index-en.html 
+  -->
 
 <schema root = "ocvdemo"
         name = "ocvdemo">
@@ -559,9 +560,9 @@ The principle is to localize the initial seeds positions for the watershed algor
   
   <node name="dft">
     <description lang="fr">Cette démonstration de la TFD (transformée de Fourier Discrète) est fondée sur l'exemple discrete_fourier_transform.cpp inclu dans OpenCV.
-    </descritpion>
+    </description>
       <description lang="en">This demonstration of the DFT (Discret Fourier Transform) is based on the sample discrete_fourier_transform.cpp included in OpenCV.
-    </descritpion>
+    </description>
   </node>
   
   <node name="disp-map">  
@@ -575,13 +576,13 @@ The principle is to localize the initial seeds positions for the watershed algor
 Notez comme les lignes droites sont améliorées (comparer les bords du damier sur les deux images).
 
 Cette démonstration est fondée sur l'exemple calibration.cpp inclu dans OpenCV et l'image utilisée est prise du même exemple.
-    </descritpion>
+    </description>
       <description lang="en">This little demonstration enables to test the camera calibration functions included in OpenCV. To simplify, only one image is used to compute the camera matrix, but the results could be more accurate with more than one image.
 
 Note how the line are improved (look at the edge of the chessboard on both images).
 
 This demonstration is based on the sample calibration.cpp included in OpenCV, and the image is taken from the same sample.
-    </descritpion>
+    </description>
     
     <attribute name="sel"
     fr="Type de coins"
