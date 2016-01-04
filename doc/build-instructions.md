@@ -76,7 +76,7 @@ Notes:
 - These instructions were tested on:
   *  **`Debian GNU/Linux 8 (jessie)`**
   * **`Ubuntu 14.04.3`**
-  * **`Linux Mint 17.1 KDE`**.
+  * **`Linux Mint 17.1 KDE`**
 - While calling ocvdemo.exe, you can add the "-vv" option to see the debug traces on the terminal.
 - The ".exe" extension may seem useless on Linux, but it's because the same Makefile is used on Windows and Linux. In
 the future, it should be removed under Linux!
