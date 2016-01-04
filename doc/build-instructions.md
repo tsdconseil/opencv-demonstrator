@@ -1,33 +1,29 @@
 # Build instructions
 
+## Build instructions for Windows
 
-## Project directories
-
-Source file are organized in 3 main folders:
-
- - ocvdemo: OpenCV demonstrator project
- - ocvext:  Some additional image processing routine (Deriche gradient and Hough transform)
- - libcutil: Helper classes to generate a MMI from a XML file
-
-
-## BUILD INSTRUCTIONS FOR WINDOWS
-(1) Ensure that the following packages are already installed:
+### Step 1 - Installing (and if needed building) required dependencies
+Ensure that the following packages are already installed:
   - MINGW (with GCC version >= 4.6.2)
   - MSYS
   - bison
   - flex
   - libgtkmm-3.0-dev
   - OpenCV 3.0
+  - git
 
-Important note: the difficulty of installing this various libraries on Windows should not be underestimated...
+**Important note:** the difficulty of installing this various libraries on Windows should not be underestimated, especially *one should check the compatibility of it's GCC (MINGW) version with the GTK DLLs*.
 
-(2) Open a MSYS terminal, go at the folder where you extracted the sources, and follow Linux build instructions.
+### Step 2 - Building the OpenCV demonstrator
+Open a MSYS terminal, and follow Linux build instructions (from step 2 as described below).
 
 
-## BUILD INSTRUCTIONS FOR LINUX (UBUNTU)
+## Build instruction for Linux (Ubuntu)
 
 These instructions will download **opencv-3.0.0**, **opencv_contrib-3.0.0**, and **OpenCV demonstrator (GUI)** into the
 folder **`~/build_from_source`**. Feel free to use another folder, if you wish.
+
+### Step 1 - Building and installing OpenCV 3.0 (dev)
 
 ```
 $ cd ~/
@@ -61,31 +57,39 @@ $ make --jobs=4
 $ sudo make install
 $ sudo ldconfig
 $ cd ~/build_from_source
+```
+
+### Step 2 - Building the OpenCV demonstrator
+
+```
 $ git clone https://github.com/tsdconseil/opencv-demonstrator.git
-$ cd opencv-demonstrator/libcutil
+$ cd opencv-demonstrator
 $ export TARGET=LINUX
-$ make
-$ cd ../ocvext
-$ make
-$ cd ../ocvdemo
 $ make
 ```
 
-Notes:
+### Step 3 - Checking that the demonstrator works
 
+The demonstrator executable is located in (from the download directory) `ocvdemo/build/debug/ocvdemo.exe`.
+To work correcly, it is necessary to run it from the `ocvdemo` folder:
+
+```
+$ cd ocvdemo
+$ ./build/debug/ocvdemo.exe
+```
+
+Notes:
+- While calling ocvdemo.exe, you can add the `-vv` option to see the debug traces on the terminal.
+- The `.exe` extension may seem useless on Linux, but it's because the same Makefile is used on Windows and Linux. In the future, it should be removed under Linux!
+- You must be in the ocvdemo folder when calling `ocvdemo.exe`, because it will look for constant data files (xml, images) relative to this folder.
+
+
+
+## Platforms where the build has been successfully done
 - These instructions were tested on:
   *  **`Debian GNU/Linux 8 (jessie)`**
   * **`Ubuntu 14.04.3`**
   * **`Linux Mint 17.1 KDE`**
-- While calling ocvdemo.exe, you can add the "-vv" option to see the debug traces on the terminal.
-- The ".exe" extension may seem useless on Linux, but it's because the same Makefile is used on Windows and Linux. In
-the future, it should be removed under Linux!
-- You must be in the ocvdemo folder when calling ocvdemo.exe, because it will look for constant data files (xml, images)
-relative to this folder.
-- Only when this folder does not exist, then the application will look in the "/usr/share/ocvdemo/data/" folder for the
-constant data files. But the data files should have been copied there through the installer / .deb package (which is not
-written).
-- There is another data folder that will be used by the application, where user specific files will be stored
-(application journal, application configuration, language selection). This folder may be:
-  * ~/.ocvdemo on Linux, where ~/ is the current user home folder.
-  * c:/appdata/.../current user/.../roaming/ocvdemo on Windows (the exact path is dependent on Windows version).
+  * **`Windows 7`** (although we cannot yet describe a repeatable, systematic and scriptable procedure to install all the required packages on this platform)  
+
+

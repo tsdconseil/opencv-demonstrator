@@ -5,17 +5,17 @@
 
 ## Introduction
 
-The original **OpenCV demonstrator (GUI)** was written by Julien A. (www.tsdconseil.fr), and released at
-[TSD Conseil](http://www.tsdconseil.fr/log/opencv/demo/index-en.html). This GitHub repository was created
-from the original source code. The purpose of this GitHub repository is to enable open source contributions
-for the original **OpenCV demonstrator (GUI)**. With the help of the OpenCV community we can make a very
+This open source **OpenCV demonstrator (GUI)**, originally developped by [TSD Conseil](http://www.tsdconseil.fr), is now through this GitHub repository opened to user contributions. With the help of the OpenCV community we can make a very
 exciting product!
+
+Screenshots and stable binary releases are available on the [official OpenCV demonstrator web page](http://www.tsdconseil.fr/log/opencv/demo/index-en.html).
 
 
 ## Setup
 
-Te build instruction are located in the file [doc/build-instructions.md](doc/build-instructions.md). In the near future,
-more detailed and thorough instructions will be written.
+If you just want to try OpenCV without having to write any line of code, or if you want to just test the OpenCV demonstrator, you can simply download and install the lastest stable binary package, which can be found on the [OpenCV demonstrator web page](http://www.tsdconseil.fr/log/opencv/demo/index-en.html) (for now only Windows binary installer is available, but a `.deb` should be available soon).
+
+If you want to build the demonstrator from the source code, please follow the build  instructions that are located in the file [doc/build-instructions.md](doc/build-instructions.md).
 
 
 ## Road map
