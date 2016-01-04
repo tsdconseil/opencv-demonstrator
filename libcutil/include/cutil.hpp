@@ -418,6 +418,9 @@ public:
     /** German */
     LANG_DE   = 4,
 
+    /** Russian */
+    LANG_RU   = 5,
+
     /** Unspecified language */
     LANG_UNKNOWN = 255
   } Language;
@@ -445,6 +448,8 @@ public:
 
   /** @brief Parse language string ("fr" -> LANG_FR, "en" -> LANG_EN, ...) */
   static Language parse_language(std::string id);
+  static std::string language_id(Language l);
+  static std::vector<Language> language_list();
 
   std::string to_string() const;
 private:

@@ -928,7 +928,7 @@ int FileSchema::from_xml(const MXml &xm)
     std::string path = lst[i]->getAttribute("path").toString();
 
     MXml xm;
-    if(xm.from_file(utils::get_fixed_data_path() + PATH_SEP + path))
+    if(xm.from_file_with_pugixml(utils::get_fixed_data_path() + PATH_SEP + path))
     {
       log.anomaly("Failed to load include schema @%s.", path.c_str());
       continue;
@@ -987,7 +987,7 @@ int FileSchema::from_file(std::string filename)
 {
   MXml xm;
 
-  if(xm.from_file(filename))
+  if(xm.from_file_with_pugixml(filename))
     return -1;
 
   return from_xml(xm);
@@ -3119,18 +3119,20 @@ std::string Node::get_identifier(bool disp_type, bool bold) const
   
   if(!disp_type)
   {
-    if((langue.current_language.compare("fr") == 0) && has_attribute("fr") && (get_attribute_as_string("fr").size() > 0))
+    auto lgs = Localized::language_list();
+
+    for(auto lg: lgs)
     {
-      return get_attribute_as_string("fr");
+      auto id = Localized::language_id(lg);
+      //printf("Check: %s.\n", id.c_str());
+      if((langue.current_language.compare(id) == 0) 
+	 && has_attribute(id) && (get_attribute_as_string(id).size() > 0))
+	return get_attribute_as_string(id);
     }
-    if((langue.current_language.compare("en") == 0) && has_attribute("en") && (get_attribute_as_string("en").size() > 0))
-    {
+
+    // Default to english if available and no other translation available
+    if(has_attribute("en") && (get_attribute_as_string("en").size() > 0))
       return get_attribute_as_string("en");
-    }
-    if((langue.current_language.compare("de") == 0) && has_attribute("de") && (get_attribute_as_string("de").size() > 0))
-    {
-      return get_attribute_as_string("de");
-    }
     return get_attribute_as_string("name");
   }
 
@@ -5091,7 +5093,7 @@ Node Node::create_ram_node(NodeSchema *schema, std::string filename)
     schema->log.trace("Loading data tree from XML file [%s]...", filename.c_str());
 
     //schema->verbose("xml parsing..");
-    if(mx.from_file(filename))
+    if(mx.from_file_with_pugixml(filename))
     {
       res.log.anomaly("Parse error while parsing %s.", filename.c_str());
       return res;

@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Démonstrateur OpenCV :
-     Spécification de l'interface homme - machine.
+<!-- DÃ©monstrateur OpenCV :
+     SpÃ©cification de l'interface homme - machine.
      Copyright 2015 J.A. / http://www.tsdconseil.fr
      Project web page: http://www.tsdconseil.fr/log/opencv/demo/index-en.html 
   -->
@@ -9,23 +9,23 @@
 <schema root = "ocvdemo"
         name = "ocvdemo">
         
-  <include-schema  path="std-schema.xml"/>  
+  <include-schema  path="std-schema.xml"/>
   
-  <!-- Paramètres généraux -->
-  <node name="global-schema" fr="Paramètres" en="Configuration">
+  <!-- ParamÃ¨tres gÃ©nÃ©raux -->
+  <node name="global-schema" fr="ParamÃ¨tres" en="Configuration">
   
     <attribute name="langue" type="int" fr="Langue / Sprache / Langage" 
-               en="Langage" de="Sprache" min="0" max="1"
-               default="1">
-      <match value="0" name="Français" fr="Français"/>
-      <match value="1" name="English" fr="English"/>
-      <match value="2" name="Deutsch" fr="Deutsch"/>
+               en="Langage" de="Sprache" min="0" max="3" default="1">
+      <match value="0" name="FranÃ§ais" fr="FranÃ§ais" en="French"/>
+      <match value="1" name="English" fr="Anglais" en="English"/>
+      <match value="2" name="Deutsch" fr="Allemand" en="German" de="Deutsch"/>
+      <match value="3" name="Russian" fr="Russe" en="Russian"/>
     </attribute>
   
-    <attribute name="sel" type="int" fr="Type d'entrée" en="Input type" min="0" max="2" default="0">
-      <match value="0" name="def" fr="Image par défaut" en="Default image"/>
-      <match value="1" name="file" fr="Fichier image / vidéo" en="Image or video file" schema="file-schema"/>
-      <match value="2" name="cam" fr="Caméra USB" en="Webcam"/><!-- schema="cam-schema" -->
+    <attribute name="sel" type="int" fr="Type d'entrÃ©e" en="Input type" min="0" max="2" default="0">
+      <match value="0" name="def" fr="Image par dÃ©faut" en="Default image"/>
+      <match value="1" name="file" fr="Fichier image / vidÃ©o" en="Image or video file" schema="file-schema"/>
+      <match value="2" name="cam" fr="CamÃ©ra USB" en="Webcam"/><!-- schema="cam-schema" -->
     </attribute>
     <sub type="file-schema" min="1" max="1"/>
     <!--<sub type="cam-schema" min="1" max="1"/>-->
@@ -39,7 +39,7 @@
   </node>
   
   <node name="cam-schema">
-    <attribute name="idx" fr="Numéro de caméra" en="Camera number" min="0" max="2"/>
+    <attribute name="idx" fr="NumÃ©ro de camÃ©ra" en="Camera number" min="0" max="2"/>
   </node>
   
   <node name = "ocv-demo">
@@ -49,8 +49,10 @@
   
   <node name = "localized">
       <attribute type="string" name="name" fr="Nom"/>
-      <attribute type="string" name="fr" fr="En français"/>
+      <attribute type="string" name="fr" fr="En franÃ§ais"/>
       <attribute type="string" name="en" en="name" fr="En anglais" hidden="false"/>
+      <attribute type="string" name="de"/>
+      <attribute type="string" name="ru"/>
       <sub type="description"/>
   </node>
         
@@ -78,7 +80,7 @@
         
   <!-- To deprecate -->
   <node name = "ocvdemo"
-        fr   = "Démonstration OpenCV" 
+        fr   = "DÃ©monstration OpenCV" 
         display-tree="true"
         en   = "OpenCV demonstration">
         
@@ -99,12 +101,12 @@
   </node>
   
   <node name = "filtrage">
-    <description lang="fr">Cette démonstration vous permet d'essayer quelques filtre linéaires (moyenne mobile, gaussien) et non linéaires (médian, bilatéral), sur une image dont le niveau de bruit est réglable (bruit poivre et sel, et bruit blanc gaussien).</description>
+    <description lang="fr">Cette dÃ©monstration vous permet d'essayer quelques filtre linÃ©aires (moyenne mobile, gaussien) et non linÃ©aires (mÃ©dian, bilatÃ©ral), sur une image dont le niveau de bruit est rÃ©glable (bruit poivre et sel, et bruit blanc gaussien).</description>
     <description lang="en">This demonstration enables you to try some linear (moving average, gaussian) and non linear (median, bilateral) filters, on image with tunable level of noise (white noise and salt and pepper noise).</description>
     <attribute name="gaussian" fr="Bruit blanc gaussien" en="Gaussian white noise" type="boolean" default="false"/>
     <attribute name="sigma" require="gaussian=true" en="Standard deviation" fr="Ecart type" type="float" default="20"/>
     <attribute name="sp" fr="Bruit poivre et sel" en="Salt and pepper noise" type="boolean" default="true"/>
-    <attribute name="p" require="sp=true" fr="Probabilité" en="Probability" type="float" default="0.1"/>
+    <attribute name="p" require="sp=true" fr="ProbabilitÃ©" en="Probability" type="float" default="0.1"/>
     <attribute name="sigma2" require="sp=true" fr="Ecart-type" en="Standard deviation" type="float" default="100"/>
     <attribute name = "sel" 
                type = "int" 
@@ -113,8 +115,8 @@
                default="2">
        <match value="0" name="ma" fr="Moyenne mobile" en="Moving average" schema="ma"/>
        <match value="1" name="gaussian" fr="Gaussien" en="Gaussian" schema="gaussian"/>
-       <match value="2" name="median" fr="Médian" en="Median" schema="median"/>
-       <match value="3" name="bilateral" fr="Bilatéral" en="Bilateral" schema="bilateral"/>
+       <match value="2" name="median" fr="MÃ©dian" en="Median" schema="median"/>
+       <match value="3" name="bilateral" fr="BilatÃ©ral" en="Bilateral" schema="bilateral"/>
     </attribute>
      
     <sub type="ma" min="1" max="1"/>
@@ -145,15 +147,15 @@
      <attribute name="sigma-space" fr="Ecart-type espace" en="Standard deviation (space)" type="float" default="20"/>
   </node>
   
-  <node name = "morpho" fr="Opérateurs morphologiques" en="Morphological operations">
-    <description lang="fr">Cette démonstration vous permet d'essayer divers opérateurs morphologiques (dilatation, érosion, fermeture, ouverture, gradient, etc.), avec différentes formes et tailles de noyaux.
+  <node name = "morpho" fr="OpÃ©rateurs morphologiques" en="Morphological operations">
+    <description lang="fr">Cette dÃ©monstration vous permet d'essayer divers opÃ©rateurs morphologiques (dilatation, Ã©rosion, fermeture, ouverture, gradient, etc.), avec diffÃ©rentes formes et tailles de noyaux.
     
-Les opération morphologiques ont beaucoup d'applications ; elles sont notamment utilisées pour réduire l'impact du bruit et sélectionner la dimension des objets d'intérêt avant une segmentation d'image.</description>  
+Les opÃ©ration morphologiques ont beaucoup d'applications ; elles sont notamment utilisÃ©es pour rÃ©duire l'impact du bruit et sÃ©lectionner la dimension des objets d'intÃ©rÃªt avant une segmentation d'image.</description>  
     
     <description lang="en">This demonstration enables you to try several morphological operators (dilatation, erosion, closing, opening, gradient, etc.), with different kernel shapes and sizes.
 
 Morphological operations have many applications ; they are in particular used to reduce the impact of noise and to select the dimension of the interest objects before applying an image segmentation.</description>
-    <attribute name="type" fr="Opérateur" en="Operator" type="int" min="0" max="5" default="1">
+    <attribute name="type" fr="OpÃ©rateur" en="Operator" type="int" min="0" max="5" default="1">
       <match value="0" fr="Dilatation"/>
       <match value="1" fr="Erosion"/>
       <match value="2" fr="Ouverture" en="Opening"/>
@@ -165,7 +167,7 @@ Morphological operations have many applications ; they are in particular used to
     </attribute>
     
     <attribute name="kernel" fr="Type de noyau" en="Kernel type" type="int" min="0" max="2" default="2">
-      <match value="0" fr="Carré" en="Square"/>
+      <match value="0" fr="CarrÃ©" en="Square"/>
       <match value="1" fr="Croix" en="Cross"/>
       <match value="2" fr="Disque" en="Disc"/>
     </attribute>
@@ -175,9 +177,9 @@ Morphological operations have many applications ; they are in particular used to
   </node>
   
   <node name = "gradient" fr="gradient">
-<description lang="fr">Le gradient consiste à calculer les dérivées partielles d'une image (suivant les dimensions x et y). Du fait que les contours des objets se manifestent par des gradients élevés, le calcul du gradient a beaucoup d'applications en traitement d'image.
+<description lang="fr">Le gradient consiste Ã  calculer les dÃ©rivÃ©es partielles d'une image (suivant les dimensions x et y). Du fait que les contours des objets se manifestent par des gradients Ã©levÃ©s, le calcul du gradient a beaucoup d'applications en traitement d'image.
 
-Cette démonstration vous permet de calculer le gradient, avec différents masques et niveaux de pré-filtrages possibles.</description>
+Cette dÃ©monstration vous permet de calculer le gradient, avec diffÃ©rents masques et niveaux de prÃ©-filtrages possibles.</description>
 <description lang="en">The gradient means computing the partial derivative (along the x and y dimensions) of an image. Because at the coutours of objects the gradient is often high, the gradient computing has many applications in image processing.
 
 This demonstration enables you to compute the gradient, with different possible masks and pre-filtering levels.</description>
@@ -186,14 +188,14 @@ This demonstration enables you to compute the gradient, with different possible 
       <match value="0" name="0" fr="En valeur absolue" en="In absolute value"/>
       <match value="1" name="1" fr="Suivant les 2 directions" en="Along the 2 directions"/>
     </attribute>
-    <attribute name="sel2" min="0" max="1" fr="Type d'opérateur" en="Operator type">
-      <match value="0" name="0" fr="Opérateur de Sobel" en="Sobel operator"/>
-      <match value="1" name="1" fr="Opérateur de Scharr" en="Schar operator"/>
+    <attribute name="sel2" min="0" max="1" fr="Type d'opÃ©rateur" en="Operator type">
+      <match value="0" name="0" fr="OpÃ©rateur de Sobel" en="Sobel operator"/>
+      <match value="1" name="1" fr="OpÃ©rateur de Scharr" en="Schar operator"/>
     </attribute>
-    <attribute name="sel3" min="0" max="1" fr="Type de préfiltrage" en="Prefiltering type">
+    <attribute name="sel3" min="0" max="1" fr="Type de prÃ©filtrage" en="Prefiltering type">
       <match value="0" name="0" fr="Gaussien" en="Gaussian" schema="gaussian-sigma"/>
       <match value="1" name="1" fr="Deriche" en="Deriche" schema="deriche-gamma"/>
-            <description lang="fr">Le préfiltrage permet de limiter le bruit de calcul (la dérivation a tendance à amplifier les hautes fréquences, donc le bruit).</description>
+            <description lang="fr">Le prÃ©filtrage permet de limiter le bruit de calcul (la dÃ©rivation a tendance Ã  amplifier les hautes frÃ©quences, donc le bruit).</description>
       <description lang="en">The prefiltering enables to reduce the computing noise (the derivation operation amplify somehow the high frequencies, hence the noise).</description>
     </attribute>
     
@@ -203,7 +205,7 @@ This demonstration enables you to compute the gradient, with different possible 
   </node>
   
   <node name="gaussian-sigma">
-      <attribute name="sigma" fr="Ecart-type préfiltrage" en="Standard deviation" type="float" default="2"/>
+      <attribute name="sigma" fr="Ecart-type prÃ©filtrage" en="Standard deviation" type="float" default="2"/>
   </node>
   
     <node name="deriche-gamma">
@@ -211,17 +213,17 @@ This demonstration enables you to compute the gradient, with different possible 
   </node>
   
   <node name = "laplace" fr="laplace">
-<description lang="fr">Le laplacien est la somme des dérivées secondes d'une image suivant x et y. C'est un opérateur qui a beaucoup d'applications. Par exemple, au niveau des contours d'une image, le laplacien s'annule.</description>
+<description lang="fr">Le laplacien est la somme des dÃ©rivÃ©es secondes d'une image suivant x et y. C'est un opÃ©rateur qui a beaucoup d'applications. Par exemple, au niveau des contours d'une image, le laplacien s'annule.</description>
 <description lang="en">The laplacian is the sum of the second derivative along x and y axis. This operator finds a lot of applications. For instance, at the contours point of an image, the laplacian cancels.</description>
-    <attribute name="sigma" fr="Ecart-type préfiltrage" en="Gaussian prefiltering standard deviation" type="float" default="2">
-      <description lang="fr">Le préfiltrage gaussien permet de limiter le bruit de calcul (la dérivation a tendance à amplifier les hautes fréquences, donc le bruit).</description>
+    <attribute name="sigma" fr="Ecart-type prÃ©filtrage" en="Gaussian prefiltering standard deviation" type="float" default="2">
+      <description lang="fr">Le prÃ©filtrage gaussien permet de limiter le bruit de calcul (la dÃ©rivation a tendance Ã  amplifier les hautes frÃ©quences, donc le bruit).</description>
       <description lang="en">Gaussian prefiltering enables to reduce the computing noise (the derivation operation amplify somehow the high frequencies, hence the noise).</description>
     </attribute>
   
   </node>
   
   <node name = "net">
-    <description lang="fr">Le laplacien est utilisé pour rendre plus net les contours d'une image. Pour cela, on soustrait à l'image une fraction du laplacien.</description>
+    <description lang="fr">Le laplacien est utilisÃ© pour rendre plus net les contours d'une image. Pour cela, on soustrait Ã  l'image une fraction du laplacien.</description>
     <description lang="en">The laplacian is used to enhance the contours of an image. To do this, a fraction of the laplacian is substracted to the image itself.</description>
     <attribute name="coef" fr="Coefficient" en="Coefficient" type="float" default="0.5"/>
   </node>
@@ -229,9 +231,9 @@ This demonstration enables you to compute the gradient, with different possible 
 
   
   <node name = "histeq">
-<description lang="fr">L'égalisation d'histogramme consiste à améliorer le contraste d'une image en utilisant mieux la plage des valeurs possibles pour chaque pixel.
+<description lang="fr">L'Ã©galisation d'histogramme consiste Ã  amÃ©liorer le contraste d'une image en utilisant mieux la plage des valeurs possibles pour chaque pixel.
 
-<span fgcolor="red"><b>Attention :</b></span> l'égalisation d'autres composantes que la luminance (exemple : égalisation RVB) peut générer des couleurs artificielles (non présentes dans l'image d'origine).</description>
+<span fgcolor="red"><b>Attention :</b></span> l'Ã©galisation d'autres composantes que la luminance (exemple : Ã©galisation RVB) peut gÃ©nÃ©rer des couleurs artificielles (non prÃ©sentes dans l'image d'origine).</description>
 
 <description lang="en">Histogram equalization consists in enhancing image constrast by better using the range of possible pixel values.
 
@@ -244,47 +246,47 @@ This demonstration enables you to compute the gradient, with different possible 
   </node>
   
   <node name = "hist-calc">
-<description lang="fr">L'histogramme est une estimation de la distribution des valeurs de pixels sur une ou plusieurs images. Cette démonstration vous permet de calculer les histogrammes en luminance, RVB ou TSV.</description>
+<description lang="fr">L'histogramme est une estimation de la distribution des valeurs de pixels sur une ou plusieurs images. Cette dÃ©monstration vous permet de calculer les histogrammes en luminance, RVB ou TSV.</description>
 
 <description lang="en">The histogram is an estimate of the distribution of the pixels on one or several images. This demonstration enables you to compute the RGB, HSV or luminance histogram.</description>
 
     <attribute type="int" name="sel" fr="Mode" en="Mode" default="1" min="0" max="2">
-      <match value="0" name="rvb" fr="Histogrammes séparés RGB" en="RGB 1d histograms"/>
+      <match value="0" name="rvb" fr="Histogrammes sÃ©parÃ©s RGB" en="RGB 1d histograms"/>
       <match value="1" name="gris" fr="Histogramme luminance" en="Luminance 1d histogram"/>
-      <match value="2" name="tsv" fr="Histogrammes séparés TSV" en="HSV 1d histograms"/>
+      <match value="2" name="tsv" fr="Histogrammes sÃ©parÃ©s TSV" en="HSV 1d histograms"/>
 <!--      <match value="3" name="ts" fr="Histogramme 2d T-S" en="H-S 2d histogram"/>-->
     </attribute>
   </node>
   
   <node name = "hist-bp">
-    <description lang="fr">Vous pouvez sélectionner avec la souris une zone rectangulaire dans l'image d'entrée. Cette zone servira à calculer l'histogramme de référence. A partir de cet histogramme, l'algorithme de projection arrière (<i>back-projection</i>) détermine pour chaque pixel de l'image la probabilité qu'il soit du même type que la zone sélectionnée.
+    <description lang="fr">Vous pouvez sÃ©lectionner avec la souris une zone rectangulaire dans l'image d'entrÃ©e. Cette zone servira Ã  calculer l'histogramme de rÃ©fÃ©rence. A partir de cet histogramme, l'algorithme de projection arriÃ¨re (<i>back-projection</i>) dÃ©termine pour chaque pixel de l'image la probabilitÃ© qu'il soit du mÃªme type que la zone sÃ©lectionnÃ©e.
 
-Cela peut vous servir pour repérer des objets similaires (de même teinte) dans une image, on pour suivre un objet en mouvement (fondement de l'algorithme camshift).</description>
+Cela peut vous servir pour repÃ©rer des objets similaires (de mÃªme teinte) dans une image, on pour suivre un objet en mouvement (fondement de l'algorithme camshift).</description>
 
 <description lang="en">You can select with the mouse a rectangular area in the input image. This zone will be used to compute the reference histogram. From this histogram, the backprojection algorithm compute for each pixel of the whole image the probability that it is of the same type that one of the selected area.
 
 It can be helpful to locate similar (of the same hue) objects on an image, or to follow a moving object (fundation of the camshift algorithm).
 </description>
 
-          <attribute type="int" name="sel" fr="Méthode" en="Method" min="0" max="1" default="0">
-            <match value="0" name="0" fr="D'après la teinte uniquement" en="From hue only"/>
-            <match value="1" name="1" fr="D'après la teinte et la saturation" en="From hue and saturation"/>
+          <attribute type="int" name="sel" fr="MÃ©thode" en="Method" min="0" max="1" default="0">
+            <match value="0" name="0" fr="D'aprÃ¨s la teinte uniquement" en="From hue only"/>
+            <match value="1" name="1" fr="D'aprÃ¨s la teinte et la saturation" en="From hue and saturation"/>
           </attribute>
   </node>
   
   <node name = "seuillage">
-      <description lang="fr">Le seuillage d'une image (en niveaux de gris) vous permet de sélectionner uniquement les pixels dont la valeur est supérieure à un certain seuil. Le seuil peut être :
+      <description lang="fr">Le seuillage d'une image (en niveaux de gris) vous permet de sÃ©lectionner uniquement les pixels dont la valeur est supÃ©rieure Ã  un certain seuil. Le seuil peut Ãªtre :
 (1) <b>fixe</b>, 
-(2) <b>calculé automatiquement</b> en fonction de l'image (méthode de Otsu), 
-(3) <b>adaptatif</b>, dans ce cas on ajoute pour chaque pixel au seuil  la valeur moyenne de l'image dans le voisinage du pixel. Cela permet de diminuer l'impact des variations de luminosité dans une image.</description>
+(2) <b>calculÃ© automatiquement</b> en fonction de l'image (mÃ©thode de Otsu), 
+(3) <b>adaptatif</b>, dans ce cas on ajoute pour chaque pixel au seuil  la valeur moyenne de l'image dans le voisinage du pixel. Cela permet de diminuer l'impact des variations de luminositÃ© dans une image.</description>
 
 <description lang="en">Image thresholding (for gray levels images) enables you to select only the pixels which value is above a given threshold. The threshold can be:
 (1) <b>fixed</b>,
 (2) <b>automaticaly computed</b> from the image (Otsu algorithm),
 (3) <b>adaptative</b>, in which case the mean value in the neighborhood of each pixel is taken into account. This enables to dimish the impact of luminosity variation accros the image.</description>
-    <attribute type="int" name="sel" fr="Méthode" en="Method" min="0" max="2" default="0">
+    <attribute type="int" name="sel" fr="MÃ©thode" en="Method" min="0" max="2" default="0">
       <match value="0" name="0" fr="Seuil fixe" en="Fixed threshold" schema="seuillage-fixe"/>
-      <match value="1" name="1" fr="Otsu (seuil calculé automatiquement)" en="Otsu (automatically computed threshold)"/>
+      <match value="1" name="1" fr="Otsu (seuil calculÃ© automatiquement)" en="Otsu (automatically computed threshold)"/>
       <match value="2" name="2" fr="Adaptatif" en="Adaptative" schema="seuillage-adaptatif"/>
     </attribute>
     <sub type="seuillage-fixe" min="1" max="1"/>
@@ -300,7 +302,7 @@ It can be helpful to locate similar (of the same hue) objects on an image, or to
   </node>
   
   <node name = "canny">
-<description lang="fr">L'algorithme de Canny est une méthode en plusieurs étapes pour déterminer les points de contour dans une image. Elle est fondée sur le calcul du gradient de l'image, de la sélection des maxima locaux du gradient suivant sa direction, et enfin d'un seuillage avec hystérésis pour supprimer les faux positifs isolés.</description>
+<description lang="fr">L'algorithme de Canny est une mÃ©thode en plusieurs Ã©tapes pour dÃ©terminer les points de contour dans une image. Elle est fondÃ©e sur le calcul du gradient de l'image, de la sÃ©lection des maxima locaux du gradient suivant sa direction, et enfin d'un seuillage avec hystÃ©rÃ©sis pour supprimer les faux positifs isolÃ©s.</description>
 
 <description lang="en">The Canny algorithm is a multi-steps method to localize the contour points in an image. It is based on the gradient of an image, the selection of local maxima of the gradient magnitude in the direction of the gradient, and finally a thresholding with histerys to suppress false positives (isolated contour points).</description>
 
@@ -313,7 +315,7 @@ It can be helpful to locate similar (of the same hue) objects on an image, or to
         <description lang="fr">Higher value for the process of thresholding with histeresis.</description>
       </attribute>
       <attribute name="norme" fr="Type de norme" en="Norm type" min="0" max="1" default="1">
-        <description lang="fr">La norme L2 est la norme euclidienne et la plus précise. La norme L1 est plus rapide à calculer.</description>
+        <description lang="fr">La norme L2 est la norme euclidienne et la plus prÃ©cise. La norme L1 est plus rapide Ã  calculer.</description>
         <description lang="fr">The L2 norm (euclidian) is the most accurate. The L1 norm is faster to compute.</description>
         <match value="0" name="0" fr="Norme L1" en="L1 norm"/>
         <match value="1" name="1" fr="Norme L2" en="L2 norm"/>
@@ -321,28 +323,28 @@ It can be helpful to locate similar (of the same hue) objects on an image, or to
   </node>
         
   <node name = "hough">
-<description lang="fr">La transformée de Hough est une méthode robuste pour détecter des lignes ou des segments dans une image. L'implémentation dans OpenCV fait appel à l'algorithme de Canny pour déterminer les points de contour. De ce fait, il y a deux seuils à régler.
+<description lang="fr">La transformÃ©e de Hough est une mÃ©thode robuste pour dÃ©tecter des lignes ou des segments dans une image. L'implÃ©mentation dans OpenCV fait appel Ã  l'algorithme de Canny pour dÃ©terminer les points de contour. De ce fait, il y a deux seuils Ã  rÃ©gler.
 
-Cette démonstration vous permet de tester la détection de lignes avec OpenCV, avec la méthode standard et une variante probabiliste (détection de segments).</description>
+Cette dÃ©monstration vous permet de tester la dÃ©tection de lignes avec OpenCV, avec la mÃ©thode standard et une variante probabiliste (dÃ©tection de segments).</description>
 <description lang="en">The Hough transform is a robust method to detect lines or segments. The OpenCV implementation makes use of the Canny algorithm to detect contour points. Thus, there are two thresholds to tune.
 
 This demonstration allows you to test lines detection with OpenCV, with the standard method and with the probabilist variant (segments detection).</description>
-      <attribute name="sel" fr="Méthode" en="Method" min="0" max="2">
+      <attribute name="sel" fr="MÃ©thode" en="Method" min="0" max="2">
         <match value="0" name="0" fr="Standard" en="Standard"/>
         <match value="1" name="1" fr="Probabiliste" en="Probabilist"/>
-        <match value="2" name="2" fr="Fondée sur le gradient" en="Gradient based"/>
-        <description lang="fr">La méthode standard détecte des lignes (longueur infinie), alors que la méthode probabiliste permet de détecter les segments.</description>
+        <match value="2" name="2" fr="FondÃ©e sur le gradient" en="Gradient based"/>
+        <description lang="fr">La mÃ©thode standard dÃ©tecte des lignes (longueur infinie), alors que la mÃ©thode probabiliste permet de dÃ©tecter les segments.</description>
         <description lang="en">Different methods are made available:
 - The <b>standard method</b> can detect lines (of infinite length),
 - The <b>probabilist method</b> can detect segments,
 - The <b>gradient method</b> is similar to the standard method, but does not require any threshold (Canny contour are not used).</description>
       </attribute> 
-      <attribute type="int" name="seuil-canny" fr="Seuil détection contour (Canny)" en="Canny threshold" 
+      <attribute type="int" name="seuil-canny" fr="Seuil dÃ©tection contour (Canny)" en="Canny threshold" 
                 min="1" size="2" default="170" require="sel=0|1">
         <description lang="fr">Seuil pour la validation des pixels de contour.</description>
         <description lang="en">Threshold for the validation of the contour pixels.</description>
       </attribute>
-      <attribute type="int" name="seuil" fr="Seuil transformée de Hough" 
+      <attribute type="int" name="seuil" fr="Seuil transformÃ©e de Hough" 
       en="Hough threshold" min="1" size="2" default="100"  require="sel=0|1">
         <description lang="fr">Seuil pour la validation des lignes.</description>
         <description lang="en">Threshold for the validation of detected lines.</description>
@@ -350,23 +352,23 @@ This demonstration allows you to test lines detection with OpenCV, with the stan
   </node>
   
   <node name = "houghc">
-<description lang="fr">On peut aussi adapter la transformée de Hough pour détecter des cercles. Dans ce cas, l'espace des paramètres est à trois dimensions : position du centre (x, y) et rayon. En pratique, on effectue la recherche en deux étapes (localisations des centres, puis calcul des rayons) afin de diminuer la dimension de l'espace de recherche.</description>
+<description lang="fr">On peut aussi adapter la transformÃ©e de Hough pour dÃ©tecter des cercles. Dans ce cas, l'espace des paramÃ¨tres est Ã  trois dimensions : position du centre (x, y) et rayon. En pratique, on effectue la recherche en deux Ã©tapes (localisations des centres, puis calcul des rayons) afin de diminuer la dimension de l'espace de recherche.</description>
 <description lang="en">The Hough transform can also be adapted to detect circles. In this case, the parameter space has 3 dimensions: center position (x,y) and radius. In practice, so as to reduce the complexity, the search is done in two steps: (1) localization of potential centers using the image gradient (at the circle contour, the gradient points toward the center), and then radius computation.</description>
-    <attribute type="int" name="seuil-canny" fr="Seuil détection contour (Canny)" en="Canny threshold" min="1" size="2" default="100"/>
-    <attribute type="int" name="seuil" fr="Seuil transformée de Hough" en="Hough threshold" min="1" size="2" default="60"/>
+    <attribute type="int" name="seuil-canny" fr="Seuil dÃ©tection contour (Canny)" en="Canny threshold" min="1" size="2" default="100"/>
+    <attribute type="int" name="seuil" fr="Seuil transformÃ©e de Hough" en="Hough threshold" min="1" size="2" default="60"/>
     <attribute type="int" name="rmin" fr="Rayon minimal" en="Minimal radius" min="1" size="2" default="14"/>
     <attribute type="int" name="rmax" fr="Rayon maximal" en="Maximal radius" min="1" size="2" default="21"/>
   </node>
   
   <node name="hough-rec">
-    <description lang="fr">Détection de quadrilatères et correction automatique de perspective. Cette démonstration est fondée sur le tutorial <i>Automatic perspective correction for quadrilateral objects</i>, que l'on peut trouver à l'adresse suivante : <a href="http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects">http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects</a>.
+    <description lang="fr">DÃ©tection de quadrilatÃ¨res et correction automatique de perspective. Cette dÃ©monstration est fondÃ©e sur le tutorial <i>Automatic perspective correction for quadrilateral objects</i>, que l'on peut trouver Ã  l'adresse suivante : <a href="http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects">http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects</a>.
 
-L'algorithme fait appel aux étapes suivantes :
-(1) Détection des contours par <b>Canny</b>,
-(2) <b>Transformée de Hough</b> (variante probabiliste),
-(3) Calcul des <b>points d'intersections</b> entre toutes les lignes détectées,
-(4) Estimation d'un <b>polygone</b> passant par ces points et vérification qu'il s'agit d'un quadrilatère,
-(5) Application d'une <b>transformée de perspective</b>.</description>
+L'algorithme fait appel aux Ã©tapes suivantes :
+(1) DÃ©tection des contours par <b>Canny</b>,
+(2) <b>TransformÃ©e de Hough</b> (variante probabiliste),
+(3) Calcul des <b>points d'intersections</b> entre toutes les lignes dÃ©tectÃ©es,
+(4) Estimation d'un <b>polygone</b> passant par ces points et vÃ©rification qu'il s'agit d'un quadrilatÃ¨re,
+(5) Application d'une <b>transformÃ©e de perspective</b>.</description>
 
 <description lang="en">Quadrilateres detection et automatic perspective correction. This demonstration is based on the tutorial <i>Automatic perspective correction for quadrilateral objects</i>, which can be found at the following address: <a href="http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects">http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects</a>.
 
@@ -380,7 +382,7 @@ The algorithm is based on the following steps:
 
 
 <node name="pano">
-<description lang="fr">Cette démonstration vous permet de réaliser un panorama à partir de plusieurs images. Elle est basée sur le module stictching de OpenCV.</description>
+<description lang="fr">Cette dÃ©monstration vous permet de rÃ©aliser un panorama Ã  partir de plusieurs images. Elle est basÃ©e sur le module stictching de OpenCV.</description>
 <description lang="en">This demonstration allows you to make a panorama from different images. It is based on the stitching module of OpenCV.</description>
   <!--<sub type="pano-img"/>-->
 </node>  
@@ -391,9 +393,9 @@ The algorithm is based on the following steps:
 
   
   <node name = "corner-det">
-<description lang="fr">Cette démonstration vous permet de tester différents détecteurs de point d'inrérêt inclus dans OpenCV (Harris, FAST, ORB).
+<description lang="fr">Cette dÃ©monstration vous permet de tester diffÃ©rents dÃ©tecteurs de point d'inrÃ©rÃªt inclus dans OpenCV (Harris, FAST, ORB).
 
-Les points d'intérêts ont beaucoup d'applications: ils sont très utilisés notamment pour mettre en correspondance des points sur deux images différentes (exemple : réalisation de panoramas à partir de plusieurs photos).</description>
+Les points d'intÃ©rÃªts ont beaucoup d'applications: ils sont trÃ¨s utilisÃ©s notamment pour mettre en correspondance des points sur deux images diffÃ©rentes (exemple : rÃ©alisation de panoramas Ã  partir de plusieurs photos).</description>
 <description lang="en">This demonstration allows you to test different interest points detectors included in OpenCV (Harris, FAST, ORB).
 
 Interest points have a lot of applications: they are used especially to find correspondances between several images (exemple: realization of panorama from different photographies).</description>
@@ -410,16 +412,16 @@ Interest points have a lot of applications: they are used especially to find cor
       <match value="2" name="FAST" fr="FAST" en="FAST"/>
       <match value="3" name="ORB" fr="ORB" en="ORB"/>
     </attribute>
-    <attribute type="int" name="max-pts" size="2" en="Maximum number of interest points" fr="Nombre maximal de points d'intérêts" default="500" min="1"/>
+    <attribute type="int" name="max-pts" size="2" en="Maximum number of interest points" fr="Nombre maximal de points d'intÃ©rÃªts" default="500" min="1"/>
     
   </node>
   
   <node name = "flux-optique">
-    <description lang="fr">Le flux optique consiste à estimer la vitesse (direction et valeur absolue) des objets à partir d'un flux vidéo. On peut distinguer deux catégories d'algorithmes :
-(1) Les algorithmes "denses", qui essayent de calculer le flux optique pour tous les pixels de l'image. Le problème est qu'il peut être très difficile de mesurer la vitesse pour certain pixels (par exemple si le gradient est localement constant dans une direction).
-(2) Les algorithmes "creux", qui calculent le flux optique seulement au niveau de point spéciaux, situés à des endroits où le flux optique est calculable de manière fiable.
+    <description lang="fr">Le flux optique consiste Ã  estimer la vitesse (direction et valeur absolue) des objets Ã  partir d'un flux vidÃ©o. On peut distinguer deux catÃ©gories d'algorithmes :
+(1) Les algorithmes "denses", qui essayent de calculer le flux optique pour tous les pixels de l'image. Le problÃ¨me est qu'il peut Ãªtre trÃ¨s difficile de mesurer la vitesse pour certain pixels (par exemple si le gradient est localement constant dans une direction).
+(2) Les algorithmes "creux", qui calculent le flux optique seulement au niveau de point spÃ©ciaux, situÃ©s Ã  des endroits oÃ¹ le flux optique est calculable de maniÃ¨re fiable.
 
-Cette démonstration vous permet de tester l'implémentation OpenCV de l'algorithme de Farneback (flux optique dense).</description>
+Cette dÃ©monstration vous permet de tester l'implÃ©mentation OpenCV de l'algorithme de Farneback (flux optique dense).</description>
 
 <description lang="en">The optical flow is an estimate of the speed of objects in the image (direction and absolute value). There are two kinds of algorithm:
 (1) Dense algorithms, which try to compute the optical flow on each pixel,
@@ -430,27 +432,27 @@ This demonstration allows you to test the OpenCV implementation of Farneback alg
       <match value="0" name="0" fr="Farneback" en="Farneback"/>
       <match value="1" name="1" fr="TVL1" en="TVL1"/>
       <match value="2" name="2" fr="Luca-Kanade" en="Luca-Kanade"/>
-      <description lang="fr">Attention : seul l'algorithme de Farneback est supporté pour l'instant.</description>
+      <description lang="fr">Attention : seul l'algorithme de Farneback est supportÃ© pour l'instant.</description>
       <description lang="en">Warning: only the Farneback algorithm is supported for now.</description>
     </attribute>
   </node>
   
   <node name = "sous-arriere-plan">
-<description lang="fr">Cette démonstration vous permet de tester la fonction de soustraction d'arrière-plan incluse dans OpenCV. La soustraction d'arrière-plan peut être utile pour localiser des objets en mouvements ou ponctuels sur un arrière-plan fixe and changeant lentement (exemple : vidéo-surveillance, etc.).</description>
+<description lang="fr">Cette dÃ©monstration vous permet de tester la fonction de soustraction d'arriÃ¨re-plan incluse dans OpenCV. La soustraction d'arriÃ¨re-plan peut Ãªtre utile pour localiser des objets en mouvements ou ponctuels sur un arriÃ¨re-plan fixe and changeant lentement (exemple : vidÃ©o-surveillance, etc.).</description>
 <description lang="en">This demonstration allows you to test the background substraction algorithms included in OpenCV. Background substraction can be useful to detect moving or ponctual objects on a fixed or slow-changing background.</description>
     <attribute name="sel" min="0" max="1" fr="Algorithme" en="Algorithm" default="0">
-      <match value="0" name="0" fr="Mélange de gaussiennes" en="Gaussian mixture"/>
+      <match value="0" name="0" fr="MÃ©lange de gaussiennes" en="Gaussian mixture"/>
       <match value="1" name="1" fr="KNN" en="KNN"/>
     </attribute>
-    <!--<attribute name="max-hist" fr="Durée max. suivi mvt" en="Maximum duration for mvt tracking" default="20"/>
+    <!--<attribute name="max-hist" fr="DurÃ©e max. suivi mvt" en="Maximum duration for mvt tracking" default="20"/>
     <attribute name="seuil" fr="Seuil segmentation" en="Segmentation threshold" default="3"/>-->
     
   </node>
   
   <node name = "hsv">
-<description lang="fr">Un pixel de couleur peut être représenté de diverses manières : décomposition Rouge / Vert / Bleu (RVB), Teinte / Saturation / Valeur (TSV), etc.
+<description lang="fr">Un pixel de couleur peut Ãªtre reprÃ©sentÃ© de diverses maniÃ¨res : dÃ©composition Rouge / Vert / Bleu (RVB), Teinte / Saturation / Valeur (TSV), etc.
 
-Cette démonstration vous permet de choisir une couleur d'après ces composantes TSV.</description>
+Cette dÃ©monstration vous permet de choisir une couleur d'aprÃ¨s ces composantes TSV.</description>
 <description lang="en">A color pixel can be represented according to different decompositions: RGB, HSV, YUV, etc.
 
 This demonstration allows you to choose a color according to its HSV values.</description>
@@ -460,32 +462,32 @@ This demonstration allows you to choose a color according to its HSV values.</de
     </attribute>-->
     
     <attribute name="T" fr="Teinte" en="Hue" min="0" max="179">
-      <description lang="fr">La teinte décrit la couleur principale, indépendemment de l'intensité lumineuse ou de la pureté de la couleur. Pour OpenCV, la teinte est codée entre 0 et 179, et de manière circulaire (les deux teintes 0 et 179 sont très proches).</description>
+      <description lang="fr">La teinte dÃ©crit la couleur principale, indÃ©pendemment de l'intensitÃ© lumineuse ou de la puretÃ© de la couleur. Pour OpenCV, la teinte est codÃ©e entre 0 et 179, et de maniÃ¨re circulaire (les deux teintes 0 et 179 sont trÃ¨s proches).</description>
     </attribute>
     <attribute name="S" fr="Saturation" en="Saturation" min="0" max="255" default="128">
-      <description lang="fr">La saturation décrit la pureté de la couleur : 255 = couleur pure, 0 = gris.</description>
+      <description lang="fr">La saturation dÃ©crit la puretÃ© de la couleur : 255 = couleur pure, 0 = gris.</description>
     </attribute>
     <attribute name="V" fr="Valeur" en="Value" min="0" max="255" default="128">
-      <description lang="fr">La valeur décrit l'intensité lumineuse.</description>
+      <description lang="fr">La valeur dÃ©crit l'intensitÃ© lumineuse.</description>
     </attribute>
     
   </node>
   
   <node name = "grabcut">
-    <description lang="fr">Séparation avant-plan / arrière-plan, à partir d'une pré-localisation d'un rectangle contenant l'avant plan.
-<b>Note :</b> La séparation pourrait être améliorée en précisant manuellement d'autres points comme faisant partie de l'avant ou de l'arrière plan.</description>
+    <description lang="fr">SÃ©paration avant-plan / arriÃ¨re-plan, Ã  partir d'une prÃ©-localisation d'un rectangle contenant l'avant plan.
+<b>Note :</b> La sÃ©paration pourrait Ãªtre amÃ©liorÃ©e en prÃ©cisant manuellement d'autres points comme faisant partie de l'avant ou de l'arriÃ¨re plan.</description>
 
 <description lang="en">Background / foreground separation, based on the coarse prelocalisation of the foreground using an outer rectangle.
 <b>Note :</b> The seperation could be enhanced by selecting manually other points as being foreground or background.</description>
   </node>
   
   <node name ="dtrans">
-<description lang="fr">La transformée de distance consiste à, à partir d'une image binaire, calculer la distance entre chaque pixel et le pixel noir le plus proche.</description>
+<description lang="fr">La transformÃ©e de distance consiste Ã , Ã  partir d'une image binaire, calculer la distance entre chaque pixel et le pixel noir le plus proche.</description>
 <description lang="en">The distance transform consists in, from a binary image, computing the distance between each pixel and the nearest black pixel.</description>
   </node>
     
   <node name = "casc-visage">
-<description lang="fr">Détection de visages (vue de face), classifieur en cascade par défaut (fournit avec OpenCV).</description>
+<description lang="fr">DÃ©tection de visages (vue de face), classifieur en cascade par dÃ©faut (fournit avec OpenCV).</description>
 <description lang="en">Face detection (frontal view), default cascad classifier included in OpenCV.</description>
     <attribute name="minsizex" fr="Taille minimale (x)" en="Minimum size (x)" default="30"/>
     <attribute name="minsizey" fr="Taille minimale (y)" en="Minimum size (y)" default="30"/>
@@ -497,7 +499,7 @@ This demonstration allows you to choose a color according to its HSV values.</de
     </attribute>
   </node>
   <node name = "casc-profile">
-<description lang="fr">Détection de visages (vue de profile), classifieur en cascade par défaut (fournit avec OpenCV).</description>
+<description lang="fr">DÃ©tection de visages (vue de profile), classifieur en cascade par dÃ©faut (fournit avec OpenCV).</description>
 <description lang="en">Face detection (profile view), default cascad classifier included in OpenCV.</description>
     <attribute name="minsizex" fr="Taille minimale (x)" en="Minimum size (x)" default="120"/>
     <attribute name="minsizey" fr="Taille maximale (y)" en="Maximum size (y)" default="120"/>
@@ -509,7 +511,7 @@ This demonstration allows you to choose a color according to its HSV values.</de
     </attribute>
   </node>
   <node name = "casc-yeux">
-<description lang="fr">Détection pour les yeux, classifieur en cascade par défaut (fournit avec OpenCV).</description>
+<description lang="fr">DÃ©tection pour les yeux, classifieur en cascade par dÃ©faut (fournit avec OpenCV).</description>
 <description lang="en">Eyes detection, default cascad classifier included in OpenCV.</description>
     <attribute name="minsizex" fr="Taille minimale (x)" en="Minimum size (x)" default="16"/>
     <attribute name="minsizey" fr="Taille minimale (y)" en="Minimum size (y)" default="16"/>
@@ -517,7 +519,7 @@ This demonstration allows you to choose a color according to its HSV values.</de
     <attribute name="maxsizey" fr="Taille maximale (y)" en="Maximum size (y)" default="100"/>
   </node>
   <node name = "casc-sil">
-      <description lang="fr">Détection de silhouettes, classifieur en cascade par défaut (fournit avec OpenCV).</description>
+      <description lang="fr">DÃ©tection de silhouettes, classifieur en cascade par dÃ©faut (fournit avec OpenCV).</description>
 <description lang="en">Body detection, default cascad classifier included in OpenCV.
 This detector does not seem to work very well!</description>
     <attribute name="minsizex" fr="Taille minimale (x)" en="Minimum size (x)" default="80"/>
@@ -530,7 +532,7 @@ This detector does not seem to work very well!</description>
     </attribute>
   </node>
   <node name = "casc-plate">
-      <description lang="fr">Détection de plaques d'immatriculation, classifieur en cascade par défaut pour les plaques russes (fournit avec OpenCV).</description>
+      <description lang="fr">DÃ©tection de plaques d'immatriculation, classifieur en cascade par dÃ©faut pour les plaques russes (fournit avec OpenCV).</description>
 <description lang="en">Car plates detection (russian models), default cascad classifier included in OpenCV.</description>
     <attribute name="minsizex" fr="Taille minimale (x)" en="Minimum size (x)" default="60"/>
     <attribute name="minsizey" fr="Taille minimale (y)" en="Minimum size (y)" default="15"/>
@@ -539,14 +541,14 @@ This detector does not seem to work very well!</description>
   </node>
   
   <node name = "camshift">
-<description lang="fr">L'algorithme <b>camshift</b> permet de suivre un objet en mouvement. La détection est fondée sur la projection arrière d'histogramme.</description>
+<description lang="fr">L'algorithme <b>camshift</b> permet de suivre un objet en mouvement. La dÃ©tection est fondÃ©e sur la projection arriÃ¨re d'histogramme.</description>
 <description lang="en">The <b>camshift</b> algorithm allows you to track a moving object. The detection is based on histogram backprojection.</description>
   </node>
   
   <node name = "watershed">
-<description lang="fr">Cette démonstration est basée sur les tutoriaux en ligne <i>Image Segmentation with Watershed Algorithm</i>  (<a href="http://docs.opencv.org/master/d3/db4/tutorial_py_watershed.html#gsc.tab=0">http://docs.opencv.org/master/d3/db4/tutorial_py_watershed.html#gsc.tab=0</a>, et <i>Image Segmentation using Unsupervised Watershed Algorithm with an Over-segmentation Reduction Technique</i> (<a href="http://www.codeproject.com/Articles/751744/Image-Segmentation-using-Unsupervised-Watershed-Al">http://www.codeproject.com/Articles/751744/Image-Segmentation-using-Unsupervised-Watershed-Al</a>). Elle permet de segmenter différents objets, même si ils sont proches l'un de l'autre. Cela peut être utile pour compter des objets similaires sur une image.
+<description lang="fr">Cette dÃ©monstration est basÃ©e sur les tutoriaux en ligne <i>Image Segmentation with Watershed Algorithm</i>  (<a href="http://docs.opencv.org/master/d3/db4/tutorial_py_watershed.html#gsc.tab=0">http://docs.opencv.org/master/d3/db4/tutorial_py_watershed.html#gsc.tab=0</a>, et <i>Image Segmentation using Unsupervised Watershed Algorithm with an Over-segmentation Reduction Technique</i> (<a href="http://www.codeproject.com/Articles/751744/Image-Segmentation-using-Unsupervised-Watershed-Al">http://www.codeproject.com/Articles/751744/Image-Segmentation-using-Unsupervised-Watershed-Al</a>). Elle permet de segmenter diffÃ©rents objets, mÃªme si ils sont proches l'un de l'autre. Cela peut Ãªtre utile pour compter des objets similaires sur une image.
 
-Le principe consiste à déterminer les graines initiales pour l'algorithme Watershed grâce à un seuillage et des opérations morphologiques.</description>
+Le principe consiste Ã  dÃ©terminer les graines initiales pour l'algorithme Watershed grÃ¢ce Ã  un seuillage et des opÃ©rations morphologiques.</description>
 <description lang="en">This demonstration is based on the following tutorials: <i>Image Segmentation with Watershed Algorithm</i>  (<a href="http://docs.opencv.org/master/d3/db4/tutorial_py_watershed.html#gsc.tab=0">http://docs.opencv.org/master/d3/db4/tutorial_py_watershed.html#gsc.tab=0</a>, et <i>Image Segmentation using Unsupervised Watershed Algorithm with an Over-segmentation Reduction Technique</i> (<a href="http://www.codeproject.com/Articles/751744/Image-Segmentation-using-Unsupervised-Watershed-Al">http://www.codeproject.com/Articles/751744/Image-Segmentation-using-Unsupervised-Watershed-Al</a>). It allows to segment different objects, even if they are close. It can be useful to count similar objects on a image.
 
 
@@ -554,28 +556,28 @@ The principle is to localize the initial seeds positions for the watershed algor
   </node>
   
   <node name="inpaint">
-    <description lang="fr">Cette démonstration vous permet de tester la fonction "d'inpainting" de OpenCV. Avec la souris, vous pouvez sélectionner la zone d'image à réparer (cliquer sur l'image).</description>
+    <description lang="fr">Cette dÃ©monstration vous permet de tester la fonction "d'inpainting" de OpenCV. Avec la souris, vous pouvez sÃ©lectionner la zone d'image Ã  rÃ©parer (cliquer sur l'image).</description>
     <description lang="en">This demonstation enables you to test the inpainting function of OpenCV. You can use the mouse to selet the area to repair (click on the image).</description>
   </node>
   
   <node name="dft">
-    <description lang="fr">Cette démonstration de la TFD (transformée de Fourier Discrète) est fondée sur l'exemple discrete_fourier_transform.cpp inclu dans OpenCV.
+    <description lang="fr">Cette dÃ©monstration de la TFD (transformÃ©e de Fourier DiscrÃ¨te) est fondÃ©e sur l'exemple discrete_fourier_transform.cpp inclu dans OpenCV.
     </description>
       <description lang="en">This demonstration of the DFT (Discret Fourier Transform) is based on the sample discrete_fourier_transform.cpp included in OpenCV.
     </description>
   </node>
   
   <node name="disp-map">  
-<description lang="fr">Calcul de la disparité entre deux images, qui doivent avoir été correctement rectifiées auparavant (les images doivent être alignées verticalement).</description>
+<description lang="fr">Calcul de la disparitÃ© entre deux images, qui doivent avoir Ã©tÃ© correctement rectifiÃ©es auparavant (les images doivent Ãªtre alignÃ©es verticalement).</description>
 <description lang="en">Compute the disparity map between two images, which must have been correctly rectified before (the images must be vertically aligned).</description>
   </node>
   
   <node name="cam-cal">
-    <description lang="fr">Cette petite démonstration vous permet de tester les fonctions de calibration automatique de caméra incluses dans OpenCV. Pour simplifier, seulement une image est utilisée pour la calibration, mais avec plusieurs images les résultats sont plus précis.
+    <description lang="fr">Cette petite dÃ©monstration vous permet de tester les fonctions de calibration automatique de camÃ©ra incluses dans OpenCV. Pour simplifier, seulement une image est utilisÃ©e pour la calibration, mais avec plusieurs images les rÃ©sultats sont plus prÃ©cis.
 
-Notez comme les lignes droites sont améliorées (comparer les bords du damier sur les deux images).
+Notez comme les lignes droites sont amÃ©liorÃ©es (comparer les bords du damier sur les deux images).
 
-Cette démonstration est fondée sur l'exemple calibration.cpp inclu dans OpenCV et l'image utilisée est prise du même exemple.
+Cette dÃ©monstration est fondÃ©e sur l'exemple calibration.cpp inclu dans OpenCV et l'image utilisÃ©e est prise du mÃªme exemple.
     </description>
       <description lang="en">This little demonstration enables to test the camera calibration functions included in OpenCV. To simplify, only one image is used to compute the camera matrix, but the results could be more accurate with more than one image.
 
@@ -589,16 +591,16 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
     en="Coin type" min="0" max="2">
       <match value="0" name="0" fr="Damier" en="Chessboard corners"/>
       <match value="1" name="1" fr="Grille circulaire" en="Circle grid"/>
-      <match value="2" name="2" fr="Grille circulaire asymétrique" en="Asymmetric circle grid"/>
+      <match value="2" name="2" fr="Grille circulaire asymÃ©trique" en="Asymmetric circle grid"/>
     </attribute>
     
     <attribute name="bw" 
-      fr="Coins intérieurs (largeur)"
+      fr="Coins intÃ©rieurs (largeur)"
       en="Inner corners (first dimension)" 
       default="9"/>
       
     <attribute name="bh" 
-      fr="Coins intérieurs (longueur)"
+      fr="Coins intÃ©rieurs (longueur)"
       en="Inner corners (other dimension)" 
       default="6"/>
     
@@ -609,7 +611,7 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
   </node>
   
   <node name="contours">
-    <description lang="fr">Cet exemple permet de tester l'algorithme de séparation des contours, c'est-à-dire la fonction findContours() de OpenCV. En entrée, cette fonction prends un masque de contour (typiquement la sortie de l'algorithme de Canny), et détermine les contours des différents objets présents sur l'image.</description>
+    <description lang="fr">Cet exemple permet de tester l'algorithme de sÃ©paration des contours, c'est-Ã -dire la fonction findContours() de OpenCV. En entrÃ©e, cette fonction prends un masque de contour (typiquement la sortie de l'algorithme de Canny), et dÃ©termine les contours des diffÃ©rents objets prÃ©sents sur l'image.</description>
     <description lang="en">This example enable to test the contour separation algorithm, that is the function findContours() of OpenCV. As input, this function takes a contour mask (typicaly the output of the Canny() function), and computes the contours of the different objects in the image.</description>
     
       <attribute name="seuil-bas" fr="Seuil bas" en="Low threshold" size="2" default="50">
@@ -621,13 +623,13 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
         <description lang="en">Higher value for the process of thresholding with histeresis.</description>
       </attribute>
       <attribute name="norme" fr="Type de norme" en="Norm type" min="0" max="1" default="1">
-        <description lang="fr">La norme L2 est la norme euclidienne et la plus précise. La norme L1 est plus rapide à calculer.</description>
+        <description lang="fr">La norme L2 est la norme euclidienne et la plus prÃ©cise. La norme L1 est plus rapide Ã  calculer.</description>
         <description lang="fr">The L2 norm (euclidian) is the most accurate. The L1 norm is faster to compute.</description>
         <match value="0" name="0" fr="Norme L1" en="L1 norm"/>
         <match value="1" name="1" fr="Norme L2" en="L2 norm"/>
       </attribute>
       
-      <attribute name="typcont" fr="Type de contours à trouver" en="Kind of contour to find" min="0" max="1">
+      <attribute name="typcont" fr="Type de contours Ã  trouver" en="Kind of contour to find" min="0" max="1">
         <match value="0" name="0" fr="Contours externes" en="External contours"/>
         <match value="1" name="1" fr="Tous les contours" en="All contours"/>
       </attribute>
@@ -639,14 +641,14 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
   </node>
   
 <node name="corner-match">
-<description lang="fr">Cette démonstration permet de tester la mise en correspondance de points d'intérêts sur 2 images. Cette démonstration est inspirée du tutorial OpenCV "Features2D + Homography to find a known object" (<a href="http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography">http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography</a>).</description>
+<description lang="fr">Cette dÃ©monstration permet de tester la mise en correspondance de points d'intÃ©rÃªts sur 2 images. Cette dÃ©monstration est inspirÃ©e du tutorial OpenCV "Features2D + Homography to find a known object" (<a href="http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography">http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography</a>).</description>
 <description lang="en">This demonstration allows to test interest point matching from 2 images. This demonstration is freely inspired from the OpenCV tutorial "Features2D + Homography to find a known object" (<a href="http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography">http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography</a>).</description>
   <sub type="pano-img" min="2"/>
   <attribute name="seuil" fr="Distance maximale" en="Maximum distance" default="46"/>
 </node>
 
 <node name="hdr">
-<description lang="fr">Cette démonstration vous permet de fusionner des images à basse résolutions (8 bits), fondé sur le module HDR de OpenCV.</description>
+<description lang="fr">Cette dÃ©monstration vous permet de fusionner des images Ã  basse rÃ©solutions (8 bits), fondÃ© sur le module HDR de OpenCV.</description>
 <description lang="en">This demonstration enables you to fusion low resolution (8 bits) image, using the HDR module of OpenCV.</description>
 </node>
 

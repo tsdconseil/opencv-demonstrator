@@ -80,6 +80,7 @@ private:
   bool has_output();
   void maj_bts();
   void maj_langue();
+  void maj_langue_systeme();
   void setup_demo_p(const Node &sel);
   std::string export_demos(utils::model::Node &cat, Localized::Language lg);
   void maj();

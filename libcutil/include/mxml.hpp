@@ -1,6 +1,7 @@
 #ifndef MXML_H
 #define MXML_H
 
+#include "pugixml.hpp"
 #include "trace.hpp"
 
 #include <vector>
@@ -48,6 +49,7 @@ public:
 
   /** Charge un fichier xml    */
   int from_file(std::string filename);
+  int from_file_with_pugixml(std::string filename);
   int from_string(std::string s);
   MXml(std::string name, std::vector<XmlAttribute> *attributes, std::vector<MXml> *children);
   std::string dump() const;
@@ -66,6 +68,7 @@ public:
   /** @brief convert "&amp;" to "&" */
   static std::string ascii_string_to_xml(std::string s);
 private:
+  void load_from_pugi_node(pugi::xml_node node);
 };
 
 }

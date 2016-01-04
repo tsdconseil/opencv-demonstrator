@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="iso-8859-1" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 
-<!-- Fichier de localisation pour le démonstrateur OpenCV -->
+<!-- Fichier de localisation pour le dÃ©monstrateur OpenCV -->
 
 <!--
 
@@ -25,43 +25,46 @@
 -->
 
 <section name="ocvdemo">
-  <item name="main-title" fr="Démonstrateur OpenCV" en="OpenCV demonstrator"/>
-  <item name="resultats" fr="Résultats" en="Results"/>
+  <item name = "main-title" 
+        fr   = "DÃ©monstrateur OpenCV" 
+        en   = "OpenCV demonstrator"
+        ru   = "Ð”ÐµÐ¼Ð¾Ð½ÑÑ‚Ñ€Ð°Ñ‚Ð¾Ñ€ OpenCV"/>
+  <item name="resultats" fr="RÃ©sultats" en="Results" ru="Ñ€ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹"/>
   <item name="img-entree" fr="Image d'entree" en="Input image"/>
   <item name="img-sortie" fr="Image de sortie" en="Output image"/>
   <item name="err-opencv-title" fr="Erreur OpenCV" en="OpenCV error"/>
   <item name="err-opencv-msg" 
-        fr  ="OpenCV a rencontré une erreur" 
+        fr  ="OpenCV a rencontrÃ© une erreur" 
         en="OpenCV function has failed."/>
   <item name="err-opencv-msg2" 
-        fr  = "Le calcul n'a pas pu être effectué correctement. Cela peut être du par exemple à une taille d'image incorrecte ou à des paramètres de calcul non supportés." 
+        fr  = "Le calcul n'a pas pu Ãªtre effectuÃ© correctement. Cela peut Ãªtre du par exemple Ã  une taille d'image incorrecte ou Ã  des paramÃ¨tres de calcul non supportÃ©s." 
         en  = "The image processing function failed. This can be caused for instance by an incorrect image size or to invalid computing parameters."/>
-  <item name="menu-entree" fr="_Choix de l'image d'entrée..." en="_Input image selection..."/>
+  <item name="menu-entree" fr="_Choix de l'image d'entrÃ©e..." en="_Input image selection..."/>
   <item name="menu-quitter" fr="_Quitter" en="_Quit"/>
-  <item name="obj-pas-quadri" fr="L'objet n'est pas un quadrilatère." en="The object is not quadrilateral."/>
-  <item name="coins-non-tries-correctement" fr="Le tri des coinsa a échoué." en="The corners were not sorted correctly."/>
-  <item name="entree" fr="Paramètres" en="Configuration"/>
-  <item name="entree-tt" fr="Sélection de l'image / vidéo de test et autres paramètres" en="Selection of the test image / video and other parameters"/>
+  <item name="obj-pas-quadri" fr="L'objet n'est pas un quadrilatÃ¨re." en="The object is not quadrilateral."/>
+  <item name="coins-non-tries-correctement" fr="Le tri des coinsa a Ã©chouÃ©." en="The corners were not sorted correctly."/>
+  <item name="entree" fr="ParamÃ¨tres" en="Configuration" ru="Ð½Ð°ÑÑ‚Ñ€Ð¾Ð¹ÐºÐ¸"/>
+  <item name="entree-tt" fr="SÃ©lection de l'image / vidÃ©o de test et autres paramÃ¨tres" en="Selection of the test image / video and other parameters"/>
   <item name="apropos" fr="A propos" en="About"/>
   <item name="apropos-tt" fr="Informations sur la license" en="Licensing informations"/>
-  <item name="quitter" fr="Quitter" en="Exit"/>
+  <item name="quitter" fr="Quitter" en="Exit" ru="Ð¾ÑÑ‚Ð°Ð²Ð»ÑÑ‚ÑŒ"/>
   <item name="quitter-tt" fr="Quitter l'application" en="Close this application"/>
   <item name="save" fr="Enregistrer" en="Save"/>
-  <item name="save-tt" fr="Enregistrement de l'image calculée" en="Saving of the computed image"/>
-  <item name="echec-calcul" fr="Le calcul a échoué." en="Computing failed."/>
+  <item name="save-tt" fr="Enregistrement de l'image calculÃ©e" en="Saving of the computed image"/>
+  <item name="echec-calcul" fr="Le calcul a Ã©chouÃ©." en="Computing failed."/>
   
-  <item name="ech-vid-tit" fr="Echec lecture du fichier vidéo" en="Error"/>
+  <item name="ech-vid-tit" fr="Echec lecture du fichier vidÃ©o" en="Error"/>
   <item name="ech-vid-sd" fr="Erreur lors de l'ouverture du fichier" en="Video file reading error"/>
-  <item name="ech-vid-d" fr="Le fichier n'a pas été trouvé ou bien le format vidéo n'est pas supporté." en="The video file has not been found, or the video format is not supported."/>
+  <item name="ech-vid-d" fr="Le fichier n'a pas Ã©tÃ© trouvÃ© ou bien le format vidÃ©o n'est pas supportÃ©." en="The video file has not been found, or the video format is not supported."/>
   <item name="ech-cam-tit" fr="Echec connexion camera" en="Camera connexion failure"/>
   <item name="ech-cam-sd" fr="Erreur lors de l'ouverture du flux video" en="Failure while opening camera stream"/>
-  <item name="ech-cam-d" fr="La caméra USB n'a pas été détectée. Veuillez vérifier si la caméra est bien connectée." en="The USB camera has not been detected. Please check the camera connexion."/>
+  <item name="ech-cam-d" fr="La camÃ©ra USB n'a pas Ã©tÃ© dÃ©tectÃ©e. Veuillez vÃ©rifier si la camÃ©ra est bien connectÃ©e." en="The USB camera has not been detected. Please check the camera connexion."/>
 
-  <item name="credit-image" fr="Crédit images" en="Image credits"/>  
+  <item name="credit-image" fr="CrÃ©dit images" en="Image credits"/>  
   <item name="credit-image-opencv" fr="Images d'exemples incluses dans OpenCV  (http://www.opencv.org)" en="Images included in OpenCV example files (http://www.opencv.org)"/>
-  <item name="credit-image-carte" fr="Carte à jouer (détection quadrilatère) : site web Automatic perspective correction for quadrilateral objects (http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects)"/>
+  <item name="credit-image-carte" fr="Carte Ã  jouer (dÃ©tection quadrilatÃ¨re) : site web Automatic perspective correction for quadrilateral objects (http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects)"/>
   <item name="credit-image-autre" fr="Autres photos : J.A." en="Other photos: J.A."/>
-  <item name="rev" fr="Révision %d.%02d, OpenCV 3.0, GTKMM 3.0" en="Version %d.%02d, OpenCV 3.0, GTKMM 3.0"/>
+  <item name="rev" fr="RÃ©vision %d.%02d, OpenCV 3.0, GTKMM 3.0" en="Version %d.%02d, OpenCV 3.0, GTKMM 3.0"/>
   
   <item name="gabs" fr="Gradient (valeur absolue)" en="Gradient (absolute value)"/>
   <item name="histo-bvr" fr="Histogramme BVR" en="BGR histogram"/>  
@@ -69,26 +72,26 @@
   <item name="b_raz" fr="RAZ masque" en="Mask RAZ"/>
   <item name="b_gomme" fr="Outil gomme" en="Erase tool"/>
   <item name="b_remplissage" fr="Outil remplissage" en="Fill tool"/>
-  <item name="wnd-tools" fr="Génération du masque" en="Masq generation"/>
+  <item name="wnd-tools" fr="GÃ©nÃ©ration du masque" en="Masq generation"/>
   
   <item name="disp-map" fr="Carte de disparite" en="Disparity map"/>
   
   <item name="mask-arr" fr="Masque d'avant-plan" en="Foreground mask"/>
-  <item name="title-save" fr="Enregistrer le résultat sous..." en="Save result as..."/>
+  <item name="title-save" fr="Enregistrer le rÃ©sultat sous..." en="Save result as..."/>
   <item name="title-open" fr="Ajouter une image..." en="Add an image..."/>
   <item name="b_del" fr="Supprimer" en="Remove"/>
   <item name="b_add" fr="Ajouter" en="Add"/>
   <item name="b_del_tout" fr="Supprimer tout" en="Remove all"/>
   <item name="b_maj" fr="Recalculer" en="Recompute"/>
-  <item name="titre-sel" fr="Sélection des images" en="Images selection"/>
+  <item name="titre-sel" fr="SÃ©lection des images" en="Images selection"/>
   <item name = "cam-err-1"
-          fr = "Caméra non détectée"
+          fr = "CamÃ©ra non dÃ©tectÃ©e"
           en = "Camera not detected"/>
   <item name = "cam-err-2"
-          fr = "Echec lors de la connexion à la caméra"
+          fr = "Echec lors de la connexion Ã  la camÃ©ra"
           en = "Camera connexion error"/>
   <item name = "cam-err-3"
-          fr = "Votre caméra ne fonctionne pas ou n'est pas compatible avec OpenCV."
+          fr = "Votre camÃ©ra ne fonctionne pas ou n'est pas compatible avec OpenCV."
           en = "Your camera is not working or is not compatible with OpenCV."/>
   <item name = "check-lock-1"
         fr   = "Fin innatendue du programme"
@@ -97,7 +100,7 @@
         fr   = "Enregistrement du fichier journal"
         en   = "Log file saving"/>
   <item name = "check-lock-3"
-        fr   = "Lors de la précédente exécution du démonstrateur OpenCV, l'application s'est interrompue de manière innatendue. Nous sommes désolé pour ce désagrément. Souhaitez-vous enregistrer le dernier fichier journal ? Vous pouvez ensuite le transmettre au support technique avec une description du bug (adresse mail : contact@tsdconseil.fr)."
+        fr   = "Lors de la prÃ©cÃ©dente exÃ©cution du dÃ©monstrateur OpenCV, l'application s'est interrompue de maniÃ¨re innatendue. Nous sommes dÃ©solÃ© pour ce dÃ©sagrÃ©ment. Souhaitez-vous enregistrer le dernier fichier journal ? Vous pouvez ensuite le transmettre au support technique avec une description du bug (adresse mail : contact@tsdconseil.fr)."
         en   = "During the previous execution of the OpenCV demonstrator, the application stopped in an unexpected way. We are sorry for the disagreement. Do you wish to save the log file? You can them send it to the support team (email address: contact@tsdconseil.fr), with a description of the bug, and we will try to solve this problem."/>
   <item name = "save-log-title"
         fr   = "Enregistrement du fichier journal"

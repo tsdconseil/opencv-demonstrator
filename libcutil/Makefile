@@ -26,7 +26,7 @@ RPATH = ..
 # Definition of individual files to compiled
 SOURCES_BASE =  cutil  crc trace bytearray serial fdserial \
          serial-enumeration serial-session socket iostreams \
-         hal
+         hal pugixml
 
 SOURCES_EXT = mxml modele modele-wrapper 
 

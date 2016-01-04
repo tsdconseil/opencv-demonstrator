@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
-<!-- D�monstrateur OpenCV : liste des d�monstration,
-  -- class�e par cat�gories.
+<!-- Démonstrateur OpenCV : liste des démonstration,
+  -- classée par catégories.
   -- Copyright 2015 J.A. / http://www.tsdconseil.fr
   -- Project web page: http://www.tsdconseil.fr/log/opencv/demo/index-en.html
   -->
@@ -11,25 +11,28 @@
 
   <cat name = "basic" 
        fr   = "Traitements d'image simples" 
-       en   = "Basic image processing">
+       en   = "Basic image processing"
+       ru   = "Простой обработки изображений">
 
     <demo name  = "filtrage" 
           fr    = "Filtrage" 
           en    = "Filtering"
+          ru    = "фильтрация"
           img-count = "3">
         <o id="1" fr="Image bruitee" en="Image with noise"/>
     </demo>
     
     
     <demo name = "morpho" 
-          fr   = "Op�rateurs morphologiques" 
+          fr   = "Opérateurs morphologiques" 
           en   = "Morphological operations"
           img-count = "2"
           default-img="data/img/baboon.jpg"/>
     
     <cat  name = "derivation"
-          fr   = "D�rivation"
-          en   = "Derivation">
+          fr   = "Dérivation"
+          en   = "Derivation"
+          ru   = "отвлечение">
           
           
       <demo name = "gradient" 
@@ -45,7 +48,7 @@
             en   = "Laplacian computing"/>
             
       <demo name = "net"
-            fr   = "Am�lioration de la nettet� d'une image"
+            fr   = "Amélioration de la netteté d'une image"
             en   = "Image sharpening"
             default-img="data/img/gavarnie.jpg">
       </demo>
@@ -55,22 +58,22 @@
 
     <cat name="contours" fr="Contours" en="Contours">           
       <demo name = "canny" 
-            fr   = "D�tection de contour par Canny" 
+            fr   = "Détection de contour par Canny" 
             en   = "Canny edge detector"/>
       
       <demo name = "contours" 
-            fr   = "D�limitation des contours" 
+            fr   = "Délimitation des contours" 
             en   = "Contours delimitation"
             default-img="data/img/pic5.png"/>
       
     </cat>
           
     <cat name = "hough"
-          fr   = "Transform�e de Hough"
+          fr   = "Transformée de Hough"
           en   = "Hough transform">
           
     <demo name = "hough"
-          fr   = "Transform�e de Hough (lignes)"
+          fr   = "Transformée de Hough (lignes)"
           en   = "Hough transform (lines)"
           img-count = "3"
           default-img="data/img/building.jpg">
@@ -78,13 +81,13 @@
     </demo>
     
     <demo name = "houghc"
-          fr   = "Transform�e de Hough (cercles)"
+          fr   = "Transformée de Hough (cercles)"
           en   = "Hough transform (circles)"
           default-img = "data/img/deuch.png">
     </demo>
     
     <demo name = "hough-rec"
-          fr   = "D�tection de quadrilat�res"
+          fr   = "Détection de quadrilatères"
           en   = "Quadrilateral object detection"
           default-img = "data/img/card.jpg"/>
     
@@ -115,7 +118,7 @@
             en   = "Histogram equalization"/>
           
       <demo name = "hist-bp"
-            fr   = "Projection arri�re"
+            fr   = "Projection arrière"
             en   = "Backprojection"
             default-img = "data/img/jouets.jpg"/> 
           
@@ -149,14 +152,14 @@
             default-img="data/img/Quichotte.jpg">
       </demo>
 
-       <demo name="dtrans" fr="Transform�e de distance" en="Distance transform" default-img="data/img/pieces.jpg">
+       <demo name="dtrans" fr="Transformée de distance" en="Distance transform" default-img="data/img/pieces.jpg">
        </demo>       
          
-       <demo name = "grabcut" fr="S�paration avant-plan (grabcut)" en="Foreground detection (grabcut)" default-img="./data/img/jouets.jpg">
+       <demo name = "grabcut" fr="Séparation avant-plan (grabcut)" en="Foreground detection (grabcut)" default-img="./data/img/jouets.jpg">
        </demo>
          
        <demo name = "watershed" 
-             fr   = "Segmentation par Watershed (non supervis�e)" 
+             fr   = "Segmentation par Watershed (non supervisée)" 
              en   = "Watershed segmentation (unsupervised)"
              default-img = "data/img/pieces.jpg">
        </demo>
@@ -168,7 +171,7 @@
     
     
     <demo name = "dft"
-          fr   = "Transform�e de Fourier"
+          fr   = "Transformée de Fourier"
           en   = "Fourier transform">
       
           
@@ -180,7 +183,7 @@
        fr   = "Reconnaissance d'objets"
        en   = "Object detection">
        
-    <cat name="casc" fr="D�tecteurs en cascade" en="Cascad detectors">   
+    <cat name="casc" fr="Détecteurs en cascade" en="Cascad detectors">   
     
       <demo name = "casc-visage"
             fr   = "Visage(s)"
@@ -198,7 +201,7 @@
             default-img = "data/img/7seau3.jpg"/>
             
       <!--<demo name = "casc-sil"
-            fr   = "Pi�tons"
+            fr   = "Piétons"
             en   = "Pedestrians"
             default-img = "data/img/t03.jpg"/>-->
             
@@ -209,10 +212,10 @@
     </cat>
           
           
-    <cat name="corner" fr="Point d'int�r�ts / Traits"
+    <cat name="corner" fr="Point d'intérêts / Traits"
       en="Interest points and features detection">
     <demo name  = "corner-det"
-          fr    = "D�tections de points d'int�r�ts"
+          fr    = "Détections de points d'intérêts"
           en    = "Corner / interest point detection"
           default-img = "data/img/sequence.mpg"/>
 
@@ -223,7 +226,7 @@
   </cat>
   
   <cat name = "video"
-       fr   = "Traitements vid�os"
+       fr   = "Traitements vidéos"
        en   = "Video processing">
        
        <demo name = "flux-optique"
@@ -234,7 +237,7 @@
        </demo>
        
        <demo name = "sous-arriere-plan"
-             fr   = "Soustraction d'arri�re-plan"
+             fr   = "Soustraction d'arrière-plan"
              en   = "Background substraction"
              default-img = "data/img/sequence.mpg"/>
        
@@ -253,7 +256,7 @@
        en   = "Photography">
        
        <demo name = "pano"
-             fr   = "R�alisation de panoramas"
+             fr   = "Réalisation de panoramas"
              en   = "Panoramas (image stiching)">
              <!--<img path="data/img/palas1.jpg"/>
              <img path="data/img/palas2.jpg"/>-->
@@ -264,7 +267,7 @@
        </demo>
        
        <demo name = "hdr"
-             fr   = "Haute d�finition (HDR)"
+             fr   = "Haute définition (HDR)"
              en   = "High definition (HDR)"
              needs-mosaic = "1">
              <img path="data/img/hdr/memorial00.jpg"/>
@@ -276,7 +279,7 @@
        
        <demo name = "inpaint"
              en   = "Image inpainting"
-             fr   = "R�paration d'image"
+             fr   = "Réparation d'image"
              default-img = "data/img/travaux.jpg"/>
        
        
@@ -289,13 +292,13 @@
        en   = "3D processing">
        
        <demo  name = "cam-cal" 
-              fr   = "Calibration de cam�ra" 
+              fr   = "Calibration de caméra" 
               en   = "Camera calibration"
               default-img="data/img/left01.jpg"/>
               
               
 <!--       <cat name = "stereo"
-            fr   = "Traitements st�r�o"
+            fr   = "Traitements stéréo"
             en   = "Stereo processing">-->
 
 
@@ -305,11 +308,11 @@
 
                
 <!--        <demo name="epi"
-               fr="Lignes �pipolaires"
+               fr="Lignes épipolaires"
                en="Epipolar lines"/>-->
                
          <demo name="disp-map"
-               fr="Calcul de disparit�"
+               fr="Calcul de disparité"
                en="Disparity map">
            
              <img path="data/img/platre1.jpg"/>

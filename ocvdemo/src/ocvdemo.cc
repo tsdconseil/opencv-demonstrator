@@ -36,6 +36,9 @@
 #define VMAJ 1
 #define VMIN 3
 
+// Conversion latin -> utf8:
+// iconv -f latin1 -t utf-8 data/lang8859.xml > data/lang.xml
+
 using utils::model::Localized;
 
 static OCVDemo *instance = nullptr;
@@ -659,24 +662,20 @@ namespace utils
   extern Localized::Language current_language;
 }
 
+void OCVDemo::maj_langue_systeme()
+{
+  int sel = modele_global.get_attribute_as_int("langue");
+
+
+  // TODO: remove this stupid redondance
+  utils::current_language = (Localized::LanguageEnum) (sel + Localized::LANG_FR);
+  langue.current_language = Localized::language_id(utils::current_language);
+}
+
 void OCVDemo::maj_langue()
 {
-
-  int sel = modele_global.get_attribute_as_int("langue");
   auto prev_lg = langue.current_language;
-
-
-
-  if(sel == 0)
-  {
-    utils::current_language = Localized::LANG_FR;
-    langue.current_language = "fr";
-  }
-  else
-  {
-    utils::current_language = Localized::LANG_EN;
-    langue.current_language = "en";
-  }
+  maj_langue_systeme();
 
   b_save.set_label(langue.get_item("save"));
   b_save.set_tooltip_markup(langue.get_item("save-tt"));
@@ -736,21 +735,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 
   journal.trace("Application configuration:\n%s\n", modele_global.to_xml().c_str());
 
-  // TODO : factoriser avec le code dans update_langue();
-  {
-    int sel = modele_global.get_attribute_as_int("langue");
-
-    if(sel == 0)
-    {
-      utils::current_language = Localized::LANG_FR;
-      langue.current_language = "fr";
-    }
-    else
-    {
-      utils::current_language = Localized::LANG_EN;
-      langue.current_language = "en";
-    }
-  }
+  maj_langue_systeme();
 
   lockfile = utils::get_current_user_path() + PATH_SEP + "lock.dat";
   if(utils::files::file_exists(lockfile))

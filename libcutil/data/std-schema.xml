@@ -25,6 +25,8 @@
   <attribute type="string" name="root" fr="Section racine"/>
   <attribute type="string" name="name" fr="Nom" hidden="true"/>
   <attribute type="string" name="fr" fr="En français" hidden="true"/>
+  <attribute type="string" name="ru"/>
+  <attribute type="string" name="de"/>
   <attribute type="string" name="filename" hidden="true" volatile="true"/>
 </node>
 
@@ -33,6 +35,8 @@
   <attribute type="string" name="name" fr="Nom"/>
   <attribute type="string" name="fr" fr="En français" en="In french"/>
   <attribute type="string" name="en" en="In english" fr="En anglais"/>
+  <attribute type="string" name="ru"/>
+  <attribute type="string" name="de"/>
   <attribute type="string" name="icon" fr="Icône" hidden="true"/>
   <sub type="attribute"/>
   <sub type="sub"/>

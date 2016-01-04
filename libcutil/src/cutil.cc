@@ -1,6 +1,3 @@
-
-
-
 #include <sys/stat.h>
 
 #include "cutil.hpp"
@@ -29,6 +26,14 @@ namespace utils
 {
 
 using namespace model;
+
+
+////////////////////////////////////////////////
+//// CONSTANT DATA
+////////////////////////////////////////////////
+#define NLANG 4
+static std::string lglist[NLANG] = 
+  {"fr", "en", "de", "ru"};
 
 ////////////////////////////////////////////////
 //// LOCAL FUNCTIONS    
@@ -1509,7 +1514,7 @@ std::string TextAlign::get_result()
 void Section::load(std::string filename)
 {
   MXml mx;
-  if(mx.from_file(std::string(filename)))
+  if(mx.from_file_with_pugixml(std::string(filename)))
   {
     printf("Unable to load localization file.\n");
     fflush(stdout);
@@ -2018,14 +2023,37 @@ bool Localized::has_description() const
   return (s.size() > 0);
 }
 
+std::vector<Localized::Language> Localized::language_list()
+{
+  std::vector<Localized::Language> res;
+
+  for(auto i = 0u; i < NLANG; i++)
+    res.push_back((Localized::Language) (i + (int) Localized::LANG_FR));
+
+  return res;
+}
+
+std::string Localized::language_id(Localized::Language l)
+{
+  int i = ((int) l) - (int) LANG_FR;
+  if(i >= NLANG)
+    return "?";
+  return lglist[i];
+}
+
 Localized::Language Localized::parse_language(std::string id)
 {
-  if(id.compare("fr") == 0)
+  for(auto i = 0; i < NLANG; i++)
+    if(id.compare(lglist[i]) == 0)
+      return (Localized::Language) (((int) LANG_FR) + i);
+  /*if(id.compare("fr") == 0)
     return LANG_FR;
   if(id.compare("en") == 0)
     return LANG_EN;
   if(id.compare("de") == 0)
     return LANG_DE;
+  if(id.compare("ru") == 0)
+  return LANG_RU;*/
   return LANG_UNKNOWN;
 }
 
@@ -2036,6 +2064,7 @@ Localized::Localized(const MXml &mx)
   else if(mx.hasAttribute("type"))
     set_value(LANG_ID, mx.getAttribute("type").toString());
 
+  // TODO: should not repeat the same code for each language
   if(mx.hasAttribute("fr"))
     set_value(LANG_FR, mx.getAttribute("fr").toString());
 
@@ -2044,6 +2073,9 @@ Localized::Localized(const MXml &mx)
 
   if(mx.hasAttribute("de"))
     set_value(LANG_DE, mx.getAttribute("de").toString());
+
+  if(mx.hasAttribute("ru"))
+    set_value(LANG_RU, mx.getAttribute("ru").toString());
 
   std::vector<MXml> lst = mx.getChildren("description");
 

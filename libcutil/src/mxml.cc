@@ -222,6 +222,50 @@ int MXml::from_string(std::string s)
   }
 }
 
+void MXml::load_from_pugi_node(pugi::xml_node node)
+{
+  name = node.name();
+  for(auto att: node.attributes())
+  {
+    XmlAttribute xatt;
+    xatt.name = att.name();
+    xatt.string_value = att.value();
+    attributes.push_back(xatt);
+  }
+  for(auto ch: node.children())
+  {
+    auto type = ch.type();
+    if(type == pugi::xml_node_type::node_pcdata)
+    {
+      add_text(ch.text().get());
+    } 
+    else if((type == pugi::xml_node_type::node_element) 
+	    || (type == pugi::xml_node_type::node_element))
+    {
+      MXml child;
+      child.load_from_pugi_node(ch);
+      add_child(child);
+    }
+  }
+}
+
+int MXml::from_file_with_pugixml(std::string filename)
+{
+  pugi::xml_document doc;
+  auto result = doc.load_file(filename.c_str());
+  if(result.status != pugi::xml_parse_status::status_ok)
+  {
+    log_anomaly(main_log, "Error occurred while parsing [%s]: %s.",
+		filename.c_str(), result.description());
+    return -1;
+  }
+
+  auto elt = doc.document_element();
+  //elt.print(std::cout);
+  load_from_pugi_node(elt);
+  return 0;
+}
+
 int MXml::from_file(std::string filename)
 {
   current_file = filename;
