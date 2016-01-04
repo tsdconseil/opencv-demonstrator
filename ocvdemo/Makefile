@@ -46,7 +46,7 @@ ADDITIONNAL_INC_DIRS= -I ../ocvext/include -I$(RPATH)/libcutil/include -I$(RPATH
 ifeq ($(OCV_VER), 300)
 ifeq ($(TARGET),LINUX)
 else
-ADDITIONNAL_INC_DIRS += -I"/c/downloads/ocv3/release/install/include" -DOCV300
+ADDITIONNAL_INC_DIRS += -I"/c/downloads/ocv3/release/install/include" -DOCV300 -march=i486
 endif
 else
 ADDITIONNAL_INC_DIRS += -I"/c/downloads/ocv/opencv/build/include" -DOCV240
@@ -65,7 +65,7 @@ ADDITIONNAL_LOPT = ../ocvext/build/ocvext.lib -lopencv_core -lopencv_highgui -lo
 else
 ADDITIONNAL_LOPT = ../ocvext/build/ocvext.lib -mwindows
 ifeq ($(OCV_VER), 300)
-ADDITIONNAL_LOPT += -L"/c/downloads/ocv3/release/install/x86/mingw/lib" -lopencv_core300 -lopencv_imgproc300 -lopencv_highgui300 -lopencv_video300 -lopencv_videoio300 -lopencv_features2d300 -lopencv_objdetect300 -lopencv_imgcodecs300 -lopencv_calib3d300 -lopencv_stitching300 -lopencv_photo300 -lfftw3-3 -lfftw3f-3
+ADDITIONNAL_LOPT += -L"/c/downloads/ocv3/release/install/x86/mingw/lib" -lopencv_core300 -lopencv_imgproc300 -lopencv_highgui300 -lopencv_video300 -lopencv_videoio300 -lopencv_features2d300 -lopencv_objdetect300 -lopencv_imgcodecs300 -lopencv_calib3d300 -lopencv_stitching300 -lopencv_photo300 -lfftw3-3 -lfftw3f-3 -march=i486
 else
 ADDITIONNAL_LOPT += -L"/c/downloads/ocv/opencv/build/x86/mingw/lib" -lopencv_core246 -lopencv_imgproc246 -lopencv_highgui246 -lopencv_video246 -lopencv_features2d246 -lopencv_objdetect246 -lopencv_contrib246 -lopencv_video246 -lopencv_calib3d246 -lfftw3-3 -lfftw3f-3
 endif

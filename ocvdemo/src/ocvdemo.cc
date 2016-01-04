@@ -703,6 +703,8 @@ void OCVDemo::maj_langue()
 
 OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 {
+  utils::current_language = Localized::LANG_EN;
+  langue.current_language = "en";
   outil_dessin_en_cours = 0;
   entree_video = false;
   first_entry = true;
