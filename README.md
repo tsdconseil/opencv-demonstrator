@@ -1,4 +1,7 @@
 # opencv-demonstrator
+
+![OpenCV demonstrator (GUI)](screenshots/screenshot-opencv-demonstrator.png "OpenCV demonstrator (GUI)")
+
 OpenCV demonstrator
 
 
