@@ -21,7 +21,8 @@ Important note: the difficulty of installing this various libraries on Windows s
 (2) Open a MSYS terminal, go at the folder where you extracted the sources, and follow Linux build instructions (from point (3)).
 
 # BUILD INSTRUCTIONS FOR LINUX (UBUNTU)
-* Note:* not yet working due to an incompatibility between OpenCV and GTKMM 3.0.
+* Note: * not yet working due to an incompatibility between OpenCV and GTKMM 3.0.
+* Note2: * It is possible to build this project under Debian GNU/Linux 8 (jessie). Information about the steps coming soon!
 
 (1) Ensure that the following packages are already installed:
   - bison
