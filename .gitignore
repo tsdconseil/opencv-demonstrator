@@ -27,5 +27,7 @@
 *.out
 *.app
 
-# Eclude the build folder.
+# Eclude the build folders.
 ocvdemo/build/*
+libcutil/build/*
+ocvext/build/*

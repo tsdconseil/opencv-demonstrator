@@ -7,14 +7,15 @@ vpath %.cc   src test
 SRC := gl.cc hough.cc
 OBJ := $(patsubst %.cc,build/%.o,$(SRC))
 LIB := ./build/ocvext.lib
-COPT = -std=c++0x -g -O1 -Wall -Iinclude 
+COPT = -std=c++0x -g -O1 -Wall -Iinclude
 COPT += -I"/c/downloads/ocv3/release/install/include"
 
 ifeq ($(TARGET),LINUX)
-LOPT = -lopencv_core -lopencv_highgui -lopencv_contrib
+# LOPT = -lopencv_core -lopencv_highgui -lopencv_contrib
+LOPT = -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs
 else
-COPT += -march=i486 
-LOPT = -L"/c/downloads/ocv3/release/install/x86/mingw/lib" -march=i486 -lopencv_core300 -lopencv_imgproc300 -lopencv_highgui300 -lopencv_imgcodecs300 
+COPT += -march=i486
+LOPT = -L"/c/downloads/ocv3/release/install/x86/mingw/lib" -march=i486 -lopencv_core300 -lopencv_imgproc300 -lopencv_highgui300 -lopencv_imgcodecs300
 endif
 
 all: build/test.exe $(LIB)
