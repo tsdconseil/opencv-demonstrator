@@ -18,7 +18,10 @@ COPT += -march=i486
 LOPT = -L"/c/downloads/ocv3/release/install/x86/mingw/lib" -march=i486 -lopencv_core300 -lopencv_imgproc300 -lopencv_highgui300 -lopencv_imgcodecs300
 endif
 
-all: build/test.exe $(LIB)
+all: check-dirs build/test.exe $(LIB)
+
+check-dirs: 
+	@test -d ./build || mkdir ./build
 
 build/%.o:  %.cc
 	@echo "Construction $@..."
