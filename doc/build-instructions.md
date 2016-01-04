@@ -73,9 +73,11 @@ $ make
 
 Notes:
 
-- These instructions were tested on **`Debian GNU/Linux 8 (jessie)`**, **`Ubuntu 14.04.3`**, and
-**`Linux Mint 17.1 KDE`**.
-- While calling ocvdemo.exe, you can add the "-vv" option to see the debug traces on the terminal,
+- These instructions were tested on:
+  *  **`Debian GNU/Linux 8 (jessie)`**
+  * **`Ubuntu 14.04.3`**
+  * **`Linux Mint 17.1 KDE`**.
+- While calling ocvdemo.exe, you can add the "-vv" option to see the debug traces on the terminal.
 - The ".exe" extension may seem useless on Linux, but it's because the same Makefile is used on Windows and Linux. In
 the future, it should be removed under Linux!
 - You must be in the ocvdemo folder when calling ocvdemo.exe, because it will look for constant data files (xml, images)
@@ -85,5 +87,5 @@ constant data files. But the data files should have been copied there through th
 written).
 - There is another data folder that will be used by the application, where user specific files will be stored
 (application journal, application configuration, language selection). This folder may be:
-- ~/.ocvdemo on Linux, where ~ is the current user home folder
-- c:/appdata/.../current user/.../roaming/ocvdemo on Windows (the exact path is dependent on Windows version).
+  * ~/.ocvdemo on Linux, where ~/ is the current user home folder.
+  * c:/appdata/.../current user/.../roaming/ocvdemo on Windows (the exact path is dependent on Windows version).
