@@ -35,7 +35,7 @@ int main(int argc, char **argv)
   utils::init(cmdeline, "ocvdemo", "test-webcam");
   utils::TraceManager::set_global_min_level(utils::TraceManager::TraceTarget::TRACE_TARGET_FILE, utils::TraceLevel::AL_VERBOSE);
 
-  VideoCapture cam;
+  VideoCapture cam(0);
 
   utils::langue.load("./data/lang.xml");
   Gtk::Main kit(argc, argv);
