@@ -14,7 +14,7 @@ Screenshots and stable binary releases are available on the
 [official OpenCV demonstrator web page](http://www.tsdconseil.fr/log/opencv/demo/index-en.html).
 
 
-## Setup
+## Pre-built binaries
 
 If you just want to try OpenCV without having to write any line of code, or if
 you want to just test the OpenCV demonstrator, you can simply download and
@@ -22,6 +22,9 @@ install the lastest stable binary package, which can be found on the
 [OpenCV demonstrator web page](http://www.tsdconseil.fr/log/opencv/demo/index-en.html)
 (for now only Windows binary installer is available, but a `.deb` should be
 available soon).
+
+
+## Build from source
 
 If you want to build the demonstrator from the source code, please follow the
 build instructions that are located in the file
