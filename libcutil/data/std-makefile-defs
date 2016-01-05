@@ -1,20 +1,20 @@
 # std-makefile-defs: Common definitions for Makefiles
 
 # This file is part of LIBCUTIL.
-# 
+#
 # LIBCUTIL is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # LIBCUTIL is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public License
 # along with LIBCUTIL.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 # Copyright 2007-2014 ja
 
 
@@ -36,15 +36,15 @@ ifeq ($(TARGET),LINUX)
 ECHO=  echo
 BISON= bison
 FLEX=  flex
-TSUF   := 
-EXESUF := 
-COPTADD  = -DLINUX -DLINUX_RUN -fPIC -isystem /usr/include/gtkmm-2.4
+TSUF   :=
+EXESUF :=
+COPTADD  = -DLINUX -DLINUX_RUN -fPIC -isystem /usr/include/gtkmm-3.0
 
 GTKREV  = 3.0
-#2.4
+
 GTK_DIR= `pkg-config --cflags gtkmm-$(GTKREV)`
-GTK_LIB= `pkg-config --libs gtkmm-$(GTKREV) gthread-2.0`
-# -lgthread-2.0   
+GTK_LIB= `pkg-config --libs gtkmm-$(GTKREV)` -lpthread
+
 PRS_LIB=  -ly -lfl
 LOPTADD   := -lrt
 else
@@ -62,7 +62,7 @@ endif
 # GCC=   $(PPC_PATH)/powerpc-linux-gnu-gcc
 # GPP=   $(PPC_PATH)/powerpc-linux-gnu-g++
 TSUF := -ppc
-EXESUF := 
+EXESUF :=
 COPTADD= -DLINUX -DLINUX_RUN -fPIC
 
 GTKREV  =0
@@ -77,12 +77,12 @@ ECHO= echo -e
 TARGET= WIN
 BISON= c:/GnuWin32/bin/bison.exe
 FLEX= c:/GnuWin32/bin/flex.exe
-TSUF := 
+TSUF :=
 EXESUF := .exe
 COPTADD= -DWIN  -isystem c:/GTK/include/gtkmm-2.4 -Ic:/GnuWin32/include -D_USE_MATH_DEFINES
 GTKREV  =3.0
 GTK_DIR= `pkg-config --cflags gtkmm-$(GTKREV)`
-GTK_LIB= `pkg-config --libs gtkmm-$(GTKREV)` -lgthread-2.0  
+GTK_LIB= `pkg-config --libs gtkmm-$(GTKREV)` -lgthread-2.0
 PRS_LIB= C:/MinGW3/lib/liby.a C:/MinGW3/lib/libfl.a -ly -lfl
 
 LOPTADD := -lws2_32 -lwinmm  -lpng -LC:/GnuWin32/lib
@@ -140,10 +140,10 @@ MODEL_FILES := $(patsubst %,$(BUILD_DIR)/data/%,$(MODEL_FILES))
 COPT = $(COPTADD) -Wall -MMD -MP -MF $(BUILD_DIR)/.dep/$(@F).d -Wno-write-strings -DBT_SOCKET_DISABLE=0 $(ADDITIONNAL_COPT) $(INCDIR)
 
 ifeq ($(RMODE),debug)
-COPT += -g -O1 -DDEBUG_MODE 
-#-O1 
+COPT += -g -O1 -DDEBUG_MODE
+#-O1
 else
-COPT += -O3 -DRELEASE_MODE 
+COPT += -O3 -DRELEASE_MODE
 endif
 
 CPPFLAGS += $(COPT)
@@ -175,7 +175,7 @@ all:   check-dirs data-update $(FIRST_TARGETS) $(ADDITIONNAL_OBJS) $(CURRENT_LIB
 
 base: check-dirs data-update $(CURRENT_LIB_BASE)
 
-libs: check-dirs $(CURRENT_LIB) $(CURRENT_LIB_BASE) 
+libs: check-dirs $(CURRENT_LIB) $(CURRENT_LIB_BASE)
 
 display:
 	@$(ECHO) "Liste des dépendances pour les exécutables: $(ELIBS)"
@@ -247,6 +247,3 @@ distclean: clean
 
 # Auto-generate source files dependencies.
 -include $(shell mkdir $(BUILD_DIR)/.dep 2>/dev/null) $(wildcard $(BUILD_DIR)/.dep/*)
-
-
-
