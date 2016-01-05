@@ -10,14 +10,14 @@ This open source **OpenCV demonstrator (GUI)**, originally developped by
 repository opened to user contributions. With the help of the OpenCV
 community we can make a very exciting product!
 
+Screenshots and stable binary releases are available on the
+[official OpenCV demonstrator web page](http://www.tsdconseil.fr/log/opencv/demo/index-en.html).
+
 The project is written in C++. The following open source libraries are used:
 
 - [OpenCV 3.0](http://opencv.org/) - a real-time computer vision library
 - [gtkmm 3](http://www.gtkmm.org/en/) library for the GUI part
 - [pugixml](http://pugixml.org/) for XML parsing
-
-Screenshots and stable binary releases are available on the
-[official OpenCV demonstrator web page](http://www.tsdconseil.fr/log/opencv/demo/index-en.html).
 
 
 ## Pre-built binaries
