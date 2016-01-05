@@ -21,4 +21,20 @@
 #   along with OCVDemo.  If not, see <http://www.gnu.org/licenses/>.
 
 all:
+	@echo "Please specify a build target. Try one of:"
+	@echo "    make windows"
+	@echo "    make linux"
+	@echo "    make clean"
+
+windows:
 	cd libcutil && make && cd ../ocvext && make && cd ../ocvdemo && make
+
+linux:
+	cd libcutil; export TARGET=LINUX; make
+	cd ocvext; export TARGET=LINUX; make
+	cd ocvdemo; export TARGET=LINUX; make
+
+clean:
+	rm -rf libcutil/build
+	rm -rf ocvext/build
+	rm -rf ocvdemo/build
