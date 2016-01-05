@@ -37,19 +37,6 @@ $ make windows
 ```
 
 
-### Step 3 - Checking that the demonstrator works
-
-The demonstrator executable is located in (from the download directory)
-`ocvdemo/build/debug/ocvdemo.exe`. To work correcly, it is necessary to run
-it from the `ocvdemo` folder:
-
-
-```
-$ cd ~/build_from_source/opencv-demonstrator/ocvdemo
-$ ./build/debug/ocvdemo.exe
-```
-
-
 ## Build instruction for Linux (Ubuntu)
 
 These instructions will download **opencv-3.0.0**, **opencv_contrib-3.0.0**,
@@ -104,7 +91,7 @@ $ make linux
 ```
 
 
-### Step 3 - Checking that the demonstrator works
+## Checking that the demonstrator works
 
 The demonstrator executable is located in (from the download directory)
 `ocvdemo/build/debug/ocvdemo.exe`. To work correcly, it is necessary to run
