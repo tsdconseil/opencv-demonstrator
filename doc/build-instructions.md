@@ -90,7 +90,6 @@ $ cmake \
 $ make --jobs=4
 $ sudo make install
 $ sudo ldconfig
-$ cd ~/build_from_source
 ```
 
 
@@ -98,6 +97,7 @@ $ cd ~/build_from_source
 
 
 ```
+$ cd ~/build_from_source
 $ git clone https://github.com/tsdconseil/opencv-demonstrator.git
 $ cd opencv-demonstrator
 $ make linux
