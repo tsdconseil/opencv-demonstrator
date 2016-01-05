@@ -36,6 +36,11 @@ Contributions are welcome! If you wish to add your own demonstration, please hav
 - GUI improvements (multiple filters, scripting support, etc.)
 
 
+## Authors
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md).
+
+
 ## License
 
 The software is provided according to the GNU Lesser General Public License (LGPL) version 3. Please see
