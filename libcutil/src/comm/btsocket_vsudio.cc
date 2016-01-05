@@ -11,12 +11,12 @@
 #include "blue.h"
 #include <string.h>
 #include <cguid.h>
- 
+
 //static FILE *flog;
 
-#define trace(...) 
+#define trace(...)
 
-int _bt_server_start(SOCKET *socket_, 
+int _bt_server_start(SOCKET *socket_,
                      const char *service_name,
                      const char *comment)
 {
@@ -43,7 +43,7 @@ int _bt_server_start(SOCKET *socket_,
      WSAPROTOCOL_INFO protocolInfo;
    int protocolInfoSize = sizeof(protocolInfo);
 
-    if (0 != getsockopt(s, SOL_SOCKET, SO_PROTOCOL_INFO, 
+    if (0 != getsockopt(s, SOL_SOCKET, SO_PROTOCOL_INFO,
 		(char*)&protocolInfo, &protocolInfoSize))
     {
     trace("getsockopt: error %d\n", WSAGetLastError());
@@ -72,8 +72,8 @@ int _bt_server_start(SOCKET *socket_,
     return -1;
   }
 
-  // check which port we’re listening on
-  if(getsockname(s, (SOCKADDR*)&address, &sa_len)) 
+  // check which port weÂ’re listening on
+  if(getsockname(s, (SOCKADDR*)&address, &sa_len))
   {
     trace("getsockname error %d\n", WSAGetLastError());
     closesocket(s);
@@ -120,7 +120,7 @@ int _bt_server_start(SOCKET *socket_,
 
   trace("Waiting for client connection...\n");
   //fflush(flog);
-  // Sur la carte d'évaluation, faire :
+  // Sur la carte d'Ã©valuation, faire :
   // CALL 00:0A:3A:7F:24:69 1101 RFCOMM
 
 # if 0
@@ -138,7 +138,7 @@ int _bt_server_start(SOCKET *socket_,
   fflush(flog);
 # endif
 
-  
+
 
   *socket_ = s;
   //fclose(flog);
@@ -147,7 +147,7 @@ int _bt_server_start(SOCKET *socket_,
 
 
 #if 0
-int _bt_server_start(SOCKET *socket_, 
+int _bt_server_start(SOCKET *socket_,
                      const char *service_name,
                      const char *comment)
 {
@@ -192,8 +192,8 @@ int _bt_server_start(SOCKET *socket_,
     return -1;
   }
 
-  // check which port we’re listening on
-  if(getsockname(s, (SOCKADDR*)&sa, &sa_len)) 
+  // check which port weÂ’re listening on
+  if(getsockname(s, (SOCKADDR*)&sa, &sa_len))
   {
     fprintf(flog, "getsockname error %d\n", WSAGetLastError());
     closesocket(s);
@@ -243,7 +243,7 @@ int _bt_server_start(SOCKET *socket_,
 
   fprintf(flog, "Waiting for client connection...\n");
   fflush(flog);
-  // Sur la carte d'évaluation, faire :
+  // Sur la carte d'Ã©valuation, faire :
   // CALL 00:0A:3A:7F:24:69 1101 RFCOMM
 
 # if 1
@@ -295,7 +295,7 @@ int _bt_client_connect(const char *target_mac, SOCKET *socket_)
     memset (&sa, 0, sizeof(sa));
     sa.addressFamily = AF_BTH;
 
-    /** Adresse de la carte d'évaluation bluegiga (inversée) */
+    /** Adresse de la carte d'Ã©valuation bluegiga (inversÃ©e) */
     unsigned char peripheral_address[6] = {0x75,0x2b,0x81,0x80,0x07,0x00};
 
     memcpy(&(sa.btAddr), peripheral_address, 6);
@@ -315,6 +315,3 @@ int _bt_client_connect(const char *target_mac, SOCKET *socket_)
     *socket_ = s;
     return 0;
 }
-
-
-

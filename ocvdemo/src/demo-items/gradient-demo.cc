@@ -44,7 +44,7 @@ int ContourDemo::calcul(Node &model, cv::Mat &I)
   I = tmp;
   blur(tmp,tmp,Size(3,3));
   Canny(tmp, detected_edges, seuil_bas, seuil_haut, taille_noyau, norme == 1);
-  /// Using Canny’s output as a mask, we display our result
+  /// Using Canny's output as a mask, we display our result
   sortie.O[1].create(I.size(), I.type());
   sortie.O[1] = Scalar::all(0);
   //I.copyTo(O[0], detected_edges);
@@ -228,7 +228,7 @@ int CannyDemo::calcul(Node &model, cv::Mat &I)
   cvtColor(I,tmp,CV_BGR2GRAY);
   blur(tmp,tmp,Size(3,3));
   Canny(tmp, detected_edges, seuil_bas, seuil_haut, taille_noyau, norme == 1);
-  /// Using Canny’s output as a mask, we display our result
+  /// Using Canny's output as a mask, we display our result
   sortie.O[0].create(I.size(), I.type());
   sortie.O[0] = Scalar::all(0);
   I.copyTo(sortie.O[0], detected_edges);
@@ -263,7 +263,7 @@ int HoughDemo::calcul(Node &model, cv::Mat &I)
     sortie.nb_sorties = 2;
     vector<Vec2f> lines;
     HoughLines(bw, lines, 1, CV_PI/180, seuil, 0, 0);
-    printf("Détecté %d lignes.\n", lines.size());
+    printf("DÃ©tectÃ© %d lignes.\n", lines.size());
     for(size_t i = 0; i < lines.size(); i++ )
     {
       float rho = lines[i][0], theta = lines[i][1];
@@ -300,7 +300,7 @@ int HoughDemo::calcul(Node &model, cv::Mat &I)
     sortie.nb_sorties = 1;
     vector<Vec2f> lines;
     HoughLinesWithGradientDir(I, lines, 1, CV_PI/180);
-    printf("Détecté %d lignes.\n", lines.size());
+    printf("DÃ©tectÃ© %d lignes.\n", lines.size());
     for(size_t i = 0; i < lines.size(); i++ )
     {
       float rho = lines[i][0], theta = lines[i][1];
@@ -342,7 +342,7 @@ int HoughCDemo::calcul(Node &model, cv::Mat &I)
       seuil,
       rmin,
       rmax);
-  printf("Détecté %d cercles.\n", cercles.size());
+  printf("DÃ©tectÃ© %d cercles.\n", cercles.size());
   for(size_t i = 0; i < cercles.size(); i++ )
   {
     float xc = cercles[i][0], yc = cercles[i][1], r = cercles[i][2];
@@ -405,7 +405,7 @@ void sortCorners(std::vector<cv::Point2f>& corners,
 }
 
 
-// D'après http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects/
+// D'aprÃ¨s http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects/
 int RectDemo::calcul(Node &model, cv::Mat &I)
 {
   cv::Mat bw;
@@ -503,9 +503,3 @@ int RectDemo::calcul(Node &model, cv::Mat &I)
 
   return 0;
 }
-
-
-
-
-
-

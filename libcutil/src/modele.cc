@@ -1,4 +1,3 @@
-
 #include "modele.hpp"
 #include "mxml.hpp"
 #include "cutil.hpp"
@@ -337,7 +336,7 @@ NodeSchema::NodeSchema(const Node &e, FileSchema *root, const string &name_)
   }
 
 
-  
+
 
   for(i = 0; i < e.get_children_count("ref"); i++)
   {
@@ -581,7 +580,7 @@ std::string NodeSchema::get_localized() const
   return res;
 }
 
-void Node::get_children_recursive(const string &type, 
+void Node::get_children_recursive(const string &type,
                                   deque<Node> &res)
 {
   unsigned int n = schema()->children.size();
@@ -966,7 +965,7 @@ int FileSchema::from_xml(const MXml &xm)
   }
 
   build_references();
-  root = get_schema(rootname);  
+  root = get_schema(rootname);
   if(root != nullptr)
     root->update_size_info();
 
@@ -1131,7 +1130,7 @@ std::string FileSchema::to_string()
 {
   std::string res = "";
   res += "<schema " + utils::str::xmlAtt("root", root->name.get_id()) + ">\n";
-  
+
   for(const refptr<NodeSchema> &s: schemas)
   {
     res += "<node " + utils::str::xmlAtt("name", s->name.get_id());
@@ -1168,7 +1167,7 @@ std::string FileSchema::to_string()
 }
 
 FileSchema::FileSchema(): log("libcutil")
-{  
+{
 }
 
 FileSchema::FileSchema(const FileSchema &c): log("libcutil")
@@ -1357,17 +1356,17 @@ std::string AttributeSchema::get_default_value() const
 {
   if(default_value.size() > 0)
     return get_string(default_value);
-  
+
   switch(type)
   {
   case TYPE_STRING: return "";
   case TYPE_BOOLEAN: return "false";
   case TYPE_FLOAT: return "0.0";
-  case TYPE_INT: 
+  case TYPE_INT:
   {
     if(enumerations.size() > 0)
       return enumerations[0].value;//name.get_id();
-    if(has_min) 
+    if(has_min)
       return utils::str::int2str(min);
     if(is_hexa)
       return "0x00000000";
@@ -1416,7 +1415,7 @@ std::string AttributeSchema::to_string() const
       if(i < constraints.size() - 1)
         res += std::string("|");
     }
-    res += "\""; 
+    res += "\"";
   }
   if(enumerations.size() == 0)
     return res + "/>\n";
@@ -1502,7 +1501,7 @@ AttributeSchema::AttributeSchema(const Node &e)
   size = 1;
   id = 0xffff;
   is_read_only = false;
-  
+
   if(e.has_attribute("require"))
     requirement = e.get_attribute_as_string("require");
 
@@ -1528,9 +1527,9 @@ AttributeSchema::AttributeSchema(const Node &e)
   formatted_text = false;
   if(e.has_attribute("formatted-text"))
     formatted_text = e.get_attribute_as_boolean("formatted-text");
-  
-  
-  
+
+
+
   for(const Node &sb: e.children("match"))
   {
     Enumeration en;
@@ -1591,7 +1590,7 @@ AttributeSchema::AttributeSchema(const Node &e)
       max = get_int(ba);
     }
   }
-  
+
   has_min = (e.get_attribute_as_string("min").size() > 0) && (e.get_attribute_as_string("min")[0] != 'n') && (e.get_attribute_as_int("min") != -1);
   if(has_min)
   {
@@ -1618,11 +1617,11 @@ AttributeSchema::AttributeSchema(const Node &e)
 
 
   assert(is_valid(default_value));
-  
+
   std::string tot = e.get_attribute_as_string("constraints");
   if(tot.size() > 0)
   {
-      
+
       // Parse list of match ('|' separed)
       const char *s = tot.c_str();
       char current[200];
@@ -1684,7 +1683,7 @@ AttributeSchema::AttributeSchema(const MXml &mx)
   has_max = false;
   is_hexa = false;
   is_bytes = false;
-  unit = "";  
+  unit = "";
   extension = "";
   size = 1;
   //default_value = "";
@@ -1716,27 +1715,27 @@ AttributeSchema::AttributeSchema(const MXml &mx)
 
   if(mx.hasAttribute("readonly"))
     is_read_only = mx.getAttribute("readonly").toBool();
-  
+
   //trace("%s: readonly = %s.", name.c_str(), is_read_only ? "true" : "false");
 
   /*if(mx.hasAttribute("en"))
     en = mx.getAttribute("en").toString();
-  
+
   if(mx.hasAttribute("fr"))
     fr = mx.getAttribute("fr").toString();*/
-  
+
   if(mx.hasAttribute("id"))
     id = mx.getAttribute("id").toInt();
-  
+
   if(mx.hasAttribute("size"))
     size = mx.getAttribute("size").toInt();
-  
+
   if(mx.hasAttribute("signed"))
     is_signed = mx.getAttribute("signed").toBool();
-  
+
   if(mx.hasAttribute("hidden"))
     is_hidden = mx.getAttribute("hidden").toBool();
-  
+
   if(mx.hasAttribute("volatile"))
     is_volatile = mx.getAttribute("volatile").toBool();
   if(mx.hasAttribute("hexa"))
@@ -1746,7 +1745,7 @@ AttributeSchema::AttributeSchema(const MXml &mx)
   /*if(mx.hasChild("description"))
   {
     description = mx.getChild("description").dumpContent();
-    //trace("Charg� description : " + description);
+    //trace("Chargï¿½ description : " + description);
   }*/
 
 
@@ -1864,7 +1863,7 @@ AttributeSchema::AttributeSchema(const MXml &mx)
   }
 
   assert(is_valid(default_value));
-  
+
   if(mx.hasAttribute("constraints"))
   {
       std::string tot = mx.getAttribute("constraints").toString();
@@ -2055,7 +2054,7 @@ int    AttributeSchema::get_int    (const ByteArray &ba) const
     }
 
     log.anomaly("get int: unmanaged size = %d.", size);
-    
+
     return 0;
   }
   else
@@ -2284,9 +2283,9 @@ int    AttributeSchema::serialize(ByteArray &ba, string value) const
 
         //result = atof(s.c_str());
         //printf("get_float: %s -> %f\n", s.c_str(), result);
-             
+
         //printf("get_float: %s -> %f\n", s.c_str(), result);
-        
+
         //return result;
 
       break;
@@ -2327,7 +2326,7 @@ void Attribute::unserialize(ByteArray &ba)
     {
       ba.pop(new_value, 4);
       break;
-    } 
+    }
     case TYPE_BLOB:
     {
       uint32_t len = ba.popl();
@@ -2364,7 +2363,7 @@ void Attribute::unserialize(ByteArray &ba)
       //delete ce.source_node;
     }
   }
-  
+
 
 }
 
@@ -2448,7 +2447,7 @@ Node RamNode::add_child(const string &sub_name)
     log.anomaly("%s: no such child: %s.", __func__, sub_name.c_str());
     return Node();
   }
-  
+
   SubSchema &ss = schema->children[index];
 
   Node nv(new RamNode(ss.ptr));
@@ -2614,7 +2613,7 @@ void Node::unserialize(ByteArray &source)
     // k is the old number of children
     k = get_children_count(cname);
 
-    //trace("unserialize type %s: local count = %d, new count = %d.", 
+    //trace("unserialize type %s: local count = %d, new count = %d.",
     //      cname.c_str(), k, m);
 
     // Update existing nodes
@@ -2941,7 +2940,7 @@ bool Node::has_attribute(const XPath &path) const
 string Node::get_fullpath() const
 {
   string res = schema()->name.get_id();
-  
+
   if(!parent().is_nullptr())
     res = parent().get_fullpath() + "/" + res;
 
@@ -3097,7 +3096,7 @@ std::string Node::get_identifier(bool disp_type, bool bold) const
 
   if(langue.has_item(str_type))
     str_type = langue.get_item(str_type);
-  
+
   /** If has a parent, preferably take the name of sub */
   Node prt = parent();
   if(!prt.is_nullptr())
@@ -3116,7 +3115,7 @@ std::string Node::get_identifier(bool disp_type, bool bold) const
 
   if(!this->has_attribute("name"))
     return str_type;
-  
+
   if(!disp_type)
   {
     auto lgs = Localized::language_list();
@@ -3125,7 +3124,7 @@ std::string Node::get_identifier(bool disp_type, bool bold) const
     {
       auto id = Localized::language_id(lg);
       //printf("Check: %s.\n", id.c_str());
-      if((langue.current_language.compare(id) == 0) 
+      if((langue.current_language.compare(id) == 0)
 	 && has_attribute(id) && (get_attribute_as_string(id).size() > 0))
 	return get_attribute_as_string(id);
     }
@@ -3160,10 +3159,10 @@ std::string Node::get_identifier(bool disp_type, bool bold) const
 unsigned long RamNode::get_children_count(const string &type) const
 {
   int index = schema->get_sub_index(type);
-  
+
   if(index == -1)
     return 0;
-  
+
   if(index >= (int) children.size())
   {
     log.anomaly("get_children_count(%s): unitialized container.", type.c_str());
@@ -3523,7 +3522,7 @@ void Node::setup_refs()
 
     XPath full_path(rs.path + "/" + path.to_string());
     //trace("Full path = %s", full_path.to_string().c_str());
-    
+
     Node target = get_child(full_path);
     if(target.is_nullptr())
     {
@@ -3568,7 +3567,7 @@ XPath RamNode::get_reference_path(const string &name)
 	{
 	  //warning("get_reference_path(): must build path from ptr.");
 	}
-	
+
 
         continue;
         /*log.anomaly("get_ref_path: nullptr path returned.");
@@ -3684,7 +3683,7 @@ void Node::fromXml(const MXml &e, string root_path)
   for(unsigned int i = 0; i < n; i++)
   {
     const XmlAttribute &xa = e.attributes[i];
-    
+
     // check references
     if(schema()->has_reference(xa.name))
     {
@@ -3896,7 +3895,7 @@ std::string Node::to_xml_atts(unsigned int indent,
   std::string res = "";
   std::vector<std::string > attnames, attvalues;
   unsigned int n = data->get_attribute_count();
-  
+
   for(unsigned int i = 0; i < n; i++)
   {
     const Attribute *a = data->get_attribute_at(i);
@@ -3965,7 +3964,7 @@ std::string Node::to_xml_atts(unsigned int indent,
       std::string ref_path;
       RefSchema *rschema = schema()->get_reference(ref_name);
       std::string root_path = rschema->path;
-      
+
       Node root = get_child(root_path);
       if(root.is_nullptr())
       {
@@ -3992,7 +3991,7 @@ std::string Node::to_xml_atts(unsigned int indent,
     if(attnames[i].size() > max_att_len)
       max_att_len = attnames[i].size();
   }
-  
+
   for(unsigned int i = 0; i < attnames.size(); i++)
   {
     res += attnames[i];
@@ -4125,9 +4124,9 @@ std::string Node::to_xml(unsigned int indent,
   }
   res += std::string("<") + type() + " ";
   res += to_xml_atts(indent, display_default_values, charset_latin, root_path);
-  
+
   bool has_child = (get_children_count() > 0);
-  
+
   if((schema()->name.get_id().compare("description") == 0)
       && (get_attribute_as_string("content").size() > 0))
     has_child = true;
@@ -4137,7 +4136,7 @@ std::string Node::to_xml(unsigned int indent,
   {
     return res + "/>\n";
   }
-  
+
   res += ">";
   if(!is_description)
     res += "\n";
@@ -4234,12 +4233,12 @@ static void accept_all(std::vector<std::string> &cars)
   for(i = 0xc0; i <= 0xfe; i++)
     accept_utf8(cars, 0xc3, i);
 
-  //accept_interval(cars, '�', '�');
-  //accept_interval(cars, '�', '�');
-  //accept_interval(cars, '�', '�');
+  //accept_interval(cars, 'ï¿½', 'ï¿½');
+  //accept_interval(cars, 'ï¿½', 'ï¿½');
+  //accept_interval(cars, 'ï¿½', 'ï¿½');
   accept_interval(cars, '"', '"');
   accept_interval(cars, '\'', '\'');
-  //accept_interval(cars, '�', '�');
+  //accept_interval(cars, 'ï¿½', 'ï¿½');
   accept_interval(cars, '=', '=');
   accept_interval(cars, ' ', ' ');
 }
@@ -4509,7 +4508,7 @@ int  Attribute::set_value(const ByteArray &ba)
       dispatch(ce);
       //delete ce.source_node;
     }
-    
+
     return 0;
   }
 
@@ -4725,14 +4724,14 @@ refptr<NodeSchema> RootSchema::get_schema(std::string name)
   return root_fs->get_schema(name);
 }
 #endif
- 
+
 
 // GET CHILDREN, TYPE NON PRECISE
 
 unsigned long     Node::get_children_count() const
 {
   uint32_t i, res = 0;
- 
+
   if(data == nullptr)
     return 0;
 
@@ -5345,7 +5344,7 @@ int XPath::from_string(const string &s_)
         //log.anomaly("xpath(\"%s\"): parse error.", s.c_str());
         return -1;
       }
-      
+
       std::string spec = s.substr(0, pos);
       size_t pos_equal = spec.find('=', 0);
 
@@ -5625,7 +5624,7 @@ ChangeEvent ChangeEvent::create_att_changed(Attribute *source)
 ChangeEvent ChangeEvent::create_child_removed(std::string type, uint32_t instance)
 {
   ChangeEvent res;
-  
+
   res.type        = CHILD_REMOVED;
   res.path        = XPath(type + "[" + utils::str::int2str(instance) + "]");
   return res;
@@ -5634,7 +5633,7 @@ ChangeEvent ChangeEvent::create_child_removed(std::string type, uint32_t instanc
 ChangeEvent ChangeEvent::create_child_added(std::string type, uint32_t instance)
 {
   ChangeEvent res;
-  
+
   res.type        = CHILD_ADDED;
 
   res.path        = XPath(type + "[" + utils::str::int2str(instance) + "]");
@@ -5715,7 +5714,7 @@ int DotTools::export_html_att_table(string &res, const Node &schema)
           "<col width=95>"
           "<col width=300>"
         +  "<tr>"
-        +  "<th><font size=\"-1\">" + utils::str::latin_to_utf8("Param�tre") + "</font></th>"
+        +  "<th><font size=\"-1\">" + utils::str::latin_to_utf8("Paramètre") + "</font></th>"
         +  "<th><font size=\"-1\">Identifiant</font></th>"
         +  "<th><font size=\"-1\">Type</font></th>"
         +  "<th><font size=\"-1\">Dimension</font></th>"
@@ -5799,7 +5798,7 @@ string LatexWrapper::get_attribute_long_description(const Node &e)
   if(as.type == TYPE_STRING)
     def2 = "\"" + def2 + "\"";
 
-  //Valeur par défaut
+  //Valeur par dÃ©faut
   res += langue.get_item("default-val") +  " : " + def2;
 
   if(e.has_attribute("unit") && (e.get_attribute_as_string("unit").size() > 0))
@@ -5857,7 +5856,7 @@ string DotTools::get_attribute_type_description(const Node &e)
 
   /*if(e.get_attribute_as_int("count") > 1)
   {
-    res += " (tableau de " + e.get_attribute_as_string("count") + " �l�ments)";
+    res += " (tableau de " + e.get_attribute_as_string("count") + " ï¿½lï¿½ments)";
   }*/
 
   if(e.get_attribute_as_boolean("readonly"))
@@ -6244,7 +6243,7 @@ int LatexWrapper::export_att_table(string &res, const Node &schema)
   {
     s   += std::string("\\begin{longtable}{|c|c|c|c|p{7cm}|}\n")
         +  "\\hline\n"
-        +  "{\\bf " + utils::str::latin_to_utf8("Param�tre") + "} & "
+        +  "{\\bf " + utils::str::latin_to_utf8("Paramètre") + "} & "
         +  "{\\bf Identifiant} &"
         +  "{\\bf Type} &"
         +  "{\\bf Dimension} &"
@@ -6328,7 +6327,7 @@ string LatexWrapper::get_attribute_type_description(const Node &e)
 
   /*if(e.get_attribute_as_int("count") > 1)
   {
-    res += " (tableau de " + e.get_attribute_as_string("count") + " �l�ments)";
+    res += " (tableau de " + e.get_attribute_as_string("count") + " ï¿½lï¿½ments)";
   }*/
 
   if(e.get_attribute_as_boolean("readonly"))
@@ -6377,7 +6376,7 @@ string DotTools::get_attribute_long_description(const Node &e)
   if(as.type == TYPE_STRING)
     def2 = "\"" + def2 + "\"";
 
-  //Valeur par défaut
+  //Valeur par dÃ©faut
   res += "<p> " + langue.get_item("default-val") +  " : " + def2;
 
   if(e.has_attribute("unit") && (e.get_attribute_as_string("unit").size() > 0))
@@ -6412,6 +6411,3 @@ string DotTools::get_attribute_long_description(const Node &e)
 
 }
 }
-
-
-
