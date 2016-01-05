@@ -26,7 +26,7 @@
 #include "ocvdemo.hpp"
 #include "opencv2/video/video.hpp"
 
-/** @brief Démonstration flux optique */
+/** @brief DÃ©monstration flux optique */
 class OptFlowDemo: public OCVDemoItem
 {
 public:
@@ -38,7 +38,7 @@ private:
   cv::Ptr<cv::DenseOpticalFlow> algo;
 };
 
-/** @brief Démonstration soustraction d'arrière-plan */
+/** @brief DÃ©monstration soustraction d'arriÃ¨re-plan */
 class SousArrierePlanDemo: public OCVDemoItem
 {
 public:
@@ -53,7 +53,7 @@ private:
   void update_sel(int nsel);
 };
 
-/** Démonstration algorithme camshift */
+/** DÃ©monstration algorithme camshift */
 class CamShiftDemo: public OCVDemoItem
 {
 public:

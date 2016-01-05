@@ -28,7 +28,7 @@ template<typename T>
   float accu = x[0];
   float gam  = gamma;
   float ugam = 1.0 - gamma;
-  // Accu:  représentation XXX.X
+  // Accu:  reprÃ©sentation XXX.X
   // Gamma:                   .X
   for(i = 0; i < n; i++)
   {
@@ -44,7 +44,7 @@ template<typename T>
   float accu = x[(n-1)*stride];
   float gam  = gamma;
   float ugam = 1.0 - gamma;
-  // Accu:  représentation XXX.X
+  // Accu:  reprÃ©sentation XXX.X
   // Gamma:                   .X
   for(i = n-1; i >= 0; i--)
   {
@@ -116,7 +116,7 @@ int DericheBlur(const cv::Mat &I, cv::Mat &O, float gamma)
       garciaLorcaBlur_template<int16_t>(I, O, gamma);
       break;
     default:
-      fprintf(stderr, "garciaLorcaBlur: type de données non supporté (%d).\n", I.depth());
+      fprintf(stderr, "garciaLorcaBlur: type de donnÃ©es non supportÃ© (%d).\n", I.depth());
       return -1;
   }
   return 0;
@@ -144,8 +144,8 @@ int DericheGradient(const cv::Mat &I,
   if(DericheGradient(I, gx, gy, gamma))
     return -1;
   cv::Mat agx, agy;
-  convertScaleAbs(gx,agx); // Conversion 8 bits non signé
-  convertScaleAbs(gy,agy); // Conversion 8 bits non signé
+  convertScaleAbs(gx,agx); // Conversion 8 bits non signÃ©
+  convertScaleAbs(gy,agy); // Conversion 8 bits non signÃ©
   addWeighted(agx, .5, agy, .5, 0, O);
   cv::normalize(O, O, 0, 255, cv::NORM_MINMAX);
   return 0;
@@ -187,7 +187,7 @@ public:
       break;
     }
     default:
-      printf("Type non supporté : %d.\n", type); fflush(0);
+      printf("Type non supportÃ© : %d.\n", type); fflush(0);
       abort();
       return;
     }
@@ -239,8 +239,8 @@ public:
           //fdst[y*dststep/4+x] = fsrc[y*dststep/4+x];
       }*/
 
-      // PB 1 : les échantillons de sortie ne sont pas du tout alignés en mémoire
-      // PB 2 : on ne fait qu'une partie à chaque fois !
+      // PB 1 : les Ã©chantillons de sortie ne sont pas du tout alignÃ©s en mÃ©moire
+      // PB 2 : on ne fait qu'une partie Ã  chaque fois !
 
       for(auto x = 0; x < width; x++)
       {
@@ -249,7 +249,7 @@ public:
       break;
     }
     default:
-      printf("Type non supporté : %d.\n", type); fflush(0);
+      printf("Type non supportÃ© : %d.\n", type); fflush(0);
       abort();
       return;
     }

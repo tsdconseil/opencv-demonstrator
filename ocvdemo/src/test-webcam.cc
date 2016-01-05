@@ -54,12 +54,12 @@ int main(int argc, char **argv)
     if(I.data == nullptr)
       break;
 
-    // A FAIRE : diviser la résolution par 2 et passer en niveaux de gris
+    // A FAIRE : diviser la rÃ©solution par 2 et passer en niveaux de gris
     // [...]
     cv::pyrDown(I, I);
 
     imshow("Camera #0", I);
-  } while (waitKey(30) == -1); // Sortie dès que appui sur une touche
+  } while (waitKey(30) == -1); // Sortie dÃ¨s que appui sur une touche
   return 0;
 }
 

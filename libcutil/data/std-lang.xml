@@ -20,20 +20,20 @@
 
   <item name="infos" fr="A propos..." en="About..."/>
   <item name="new" fr="Nouveau" en="New"/>
-  <item name="Use it" fr="Sélection" en="Selection"/>
-  <item name="default-val" fr="Valeur par défaut" en="Default value"/>
-  <item name="ref-sel" fr="Sélection de la référence" en="Reference selection"/>
-  <item name="select-folder" fr="Sélection du dossier" en="Folder selection"/>
+  <item name="Use it" fr="SÃ©lection" en="Selection"/>
+  <item name="default-val" fr="Valeur par dÃ©faut" en="Default value"/>
+  <item name="ref-sel" fr="SÃ©lection de la rÃ©fÃ©rence" en="Reference selection"/>
+  <item name="select-folder" fr="SÃ©lection du dossier" en="Folder selection"/>
   <item name="exit" fr="Quitter" en="Exit"/>
   <item name="save" fr="Enregistrer" en="Save"/>
   <item name="open" fr="Ouvrir" en="Open"/>
-  <item name="params" fr="Paramètres" en="Configuration"/>
+  <item name="params" fr="ParamÃ¨tres" en="Configuration"/>
   <item name="key-del" fr="DEL" en="DEL"/>
   <item name="key-space" fr="ESPACE" en="SPACE"/>
   <item name="key-tab" fr="TAB" en="TAB"/>
   <item name="up" fr="Monter" de="Steigen"/>
   <item name="down" fr="Descendre" de="Aussteigen"/>
-  <item name="Options" fr="Eléments optionnels" de="Optionen"/>
+  <item name="Options" fr="ElÃ©ments optionnels" de="Optionen"/>
   <item name="attributes" fr="Attributs" de="Attribute"/>
   <item name="indicators" fr="Indicateurs" de="Anzeiger"/>
   <item name="actions" fr="Commandes" de="Bestellungen"/>
@@ -41,17 +41,17 @@
   <item name=" into " fr=" dans " de=" in "/>
   <item name="Please enter " fr="Veuillez saisir " de="Erfassen Sie bitte "/>
   <item name="apply" fr="Appliquer" de="Anwenden"/>
-  <item name="close" fr="Fermer" de="Schließen"/>
+  <item name="close" fr="Fermer" de="SchlieÃŸen"/>
   <item name="cancel" fr="Annuler" de="Aufheben"/>
   <item name="valid" fr="Valider" en="Validate" de="Ok"/>
   <item name="validate" fr="Valider" en="Validate" de="Ok"/>
-  <item name="input" fr="Paramètres d'entrée" de="Eingangsparameter"/>
-  <item name="partial" fr="Résultats intermédiaires" de="Intermediäre Ergebnisse"/>
-  <item name="output" fr="Résultats" de="Ergebnisse"/>
+  <item name="input" fr="ParamÃ¨tres d'entrÃ©e" de="Eingangsparameter"/>
+  <item name="partial" fr="RÃ©sultats intermÃ©diaires" de="IntermediÃ¤re Ergebnisse"/>
+  <item name="output" fr="RÃ©sultats" de="Ergebnisse"/>
   <item name="b-cancel" fr="Annuler" en="Cancel" de="Aufheben"/>
   <item name="b-valid" fr="Valider" en="Ok" de="Ok"/>
   <item name="b-apply" fr="Appliquer" en="Apply" de="Anwenden"/>
-  <item name="title-sel-color" fr="Sélection de la couleur" en="Color Selection"/>
+  <item name="title-sel-color" fr="SÃ©lection de la couleur" en="Color Selection"/>
   <item name="Add..." fr="Ajouter..."/>
   <item name="Remove" fr="Retirer"/>
   <item name="Add " fr="Ajouter " en="Add "/>

@@ -1,7 +1,7 @@
 /*
  * schema2doc.cc
  *
- *  Created on: 27 août 2013
+ *  Created on: 27 aoÃ»t 2013
  *      Author: A
  */
 

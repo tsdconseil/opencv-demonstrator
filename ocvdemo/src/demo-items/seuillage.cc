@@ -162,7 +162,7 @@ int GrabCutDemo::calcul(Node &model, cv::Mat &I)
       }
     }
   }
-  journal.verbose("terminé.");
+  journal.verbose("terminÃ©.");
 
   return 0;
 }
@@ -189,7 +189,7 @@ int Seuillage::calcul(Node &model, cv::Mat &I)
   // Otsu
   else if(sel == 1)
   {
-    threshold(Ig, sortie.O[0], 0 /* non utilisé */,
+    threshold(Ig, sortie.O[0], 0 /* non utilisÃ© */,
               255, THRESH_BINARY_INV | THRESH_OTSU);
   }
   // Adaptatif
@@ -218,7 +218,7 @@ int DTransDemo::calcul(Node &model, cv::Mat &I)
 {
   Mat Ig, tmp;
   cvtColor(I, Ig, CV_BGR2GRAY);
-  threshold(Ig, sortie.O[0], 0 /* non utilisé */,
+  threshold(Ig, sortie.O[0], 0 /* non utilisÃ© */,
                 255, THRESH_BINARY_INV | THRESH_OTSU);
   journal.trace("dtrans...");
   cv::distanceTransform(sortie.O[0], tmp, CV_DIST_L2, 3);

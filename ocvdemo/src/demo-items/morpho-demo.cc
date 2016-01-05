@@ -1,5 +1,5 @@
 /** @file morpho-demo.cc
- *  @brief Démonstrations autour des opérateurs morphologiques
+ *  @brief DÃ©monstrations autour des opÃ©rateurs morphologiques
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 

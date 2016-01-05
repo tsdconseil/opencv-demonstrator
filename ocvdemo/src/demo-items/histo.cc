@@ -1,5 +1,5 @@
 /** @file histo.cc
- *  @brief Traitements bas�s sur les histogrammes
+ *  @brief Traitements basés sur les histogrammes
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 
@@ -171,8 +171,8 @@ static void plot_curve(const MatND &x, Mat &image, Scalar color,
 
 #if 0
 // Computes the 1D histogram and returns an image of it.
-// D'après "OpenCV 2 Computer Vision Application programming cookbook", Robert Laganière
-// (Mise à jour : d'après le manuel utilisateur)
+// D'aprÃ¨s "OpenCV 2 Computer Vision Application programming cookbook", Robert LaganiÃ¨re
+// (Mise Ã  jour : d'aprÃ¨s le manuel utilisateur)
 cv::Mat HistoCalc::get_1d_histogram_image(const cv::Mat &image,
 					  int channel,
 					  float maxval)
@@ -269,9 +269,9 @@ cv::Mat HistoCalc::get_1d_histogram_image(const cv::Mat &image,
 int HistoCalc::calcul(Node &model, cv::Mat &I)
 {
   int sel = model.get_attribute_as_int("sel");
-  // 0 : histogrammes séparés RGB
+  // 0 : histogrammes sÃ©parÃ©s RGB
   // 1 : histogramme niveaux de gris
-  // 2 : histogrammes séparés HSV
+  // 2 : histogrammes sÃ©parÃ©s HSV
   // 3 : histogramme 2D HS
 
   if(sel == 0)

@@ -26,7 +26,7 @@
 #include "ocvdemo.hpp"
 
 
-/** @brief Démonstration réparation d'image */
+/** @brief DÃ©monstration rÃ©paration d'image */
 class InpaintDemo: public OCVDemoItem
 {
 public:
@@ -37,7 +37,7 @@ private:
   
 };
 
-/** @brief Démonstration seuillage */
+/** @brief DÃ©monstration seuillage */
 class Seuillage: public OCVDemoItem
 {
 public:
@@ -45,7 +45,7 @@ public:
   int calcul(Node &model, cv::Mat &I);
 };
 
-/** @brief Démonstration algorithme grabcut */
+/** @brief DÃ©monstration algorithme grabcut */
 class GrabCutDemo: public OCVDemoItem
 {
 public:
@@ -53,7 +53,7 @@ public:
   int calcul(Node &model, cv::Mat &I);
 };
 
-/** @brief Démonstration algorithme watershed */
+/** @brief DÃ©monstration algorithme watershed */
 class WShedDemo: public OCVDemoItem
 {
 public:
@@ -61,7 +61,7 @@ public:
   int calcul(Node &model, cv::Mat &I);
 };
 
-/** @brief Démonstration transformée de distance */
+/** @brief DÃ©monstration transformÃ©e de distance */
 class DTransDemo: public OCVDemoItem
 {
 public:

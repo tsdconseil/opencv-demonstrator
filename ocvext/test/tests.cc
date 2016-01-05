@@ -81,13 +81,13 @@ void test_grad(cv::Mat &gx, cv::Mat &gy, const std::string &name)
   cv::normalize(gabs, gabs, 0, 255, cv::NORM_MINMAX);
   cv::imwrite("./build/gabs-" + name + ".jpg", gabs);
 
-  // Image au format TSV, seule la luminosité est fixée
+  // Image au format TSV, seule la luminositÃ© est fixÃ©e
   cv::Mat hsv;
   cv::normalize(mag,mag,0,1.0,cv::NORM_MINMAX);
   cv::Mat _hsv[3], bgr;
   // Teinte (couleur) = angle
   _hsv[0] = angle * ((360.0 / (2 * 3.141592)));
-  // Chromaticité = 1
+  // ChromaticitÃ© = 1
   _hsv[1] = 1.0 * cv::Mat::ones(angle.size(), CV_32F);
   // Luminance
   _hsv[2] = mag;
@@ -103,20 +103,20 @@ int tests_gradient(const cv::Mat &img)
 {
   cv::Mat gx, gy, imgf;
   //////////////////////////////////
-  // Pas de pré-lissage         ////
+  // Pas de prÃ©-lissage         ////
   //////////////////////////////////
   cv::Sobel(img, gx, CV_32F, 1, 0, 1);
   cv::Sobel(img, gy, CV_32F, 0, 1, 1);
   test_grad(gx, gy, "sobel");
 
   //////////////////////////////////
-  // Pré-lissage Deriche        ////
+  // PrÃ©-lissage Deriche        ////
   //////////////////////////////////
   DericheGradient(img, gx, gy, 0.5);
   test_grad(gx, gy, "deriche");
 
   //////////////////////////////////
-  // Pré-lissage gaussien       ////
+  // PrÃ©-lissage gaussien       ////
   //////////////////////////////////
   cv::GaussianBlur(img, imgf, cv::Size(15,15), 0, 0);
   cv::Sobel(imgf, gx, CV_32F, 1, 0, 1);
@@ -124,7 +124,7 @@ int tests_gradient(const cv::Mat &img)
   test_grad(gx, gy, "canny");
 
   //////////////////////////////////
-  // Pré-lissage moy. mobile    ////
+  // PrÃ©-lissage moy. mobile    ////
   //////////////////////////////////
   cv::blur(img, imgf, cv::Size(11,11));
   cv::Sobel(imgf, gx, CV_32F, 1, 0, 1);
@@ -142,7 +142,7 @@ int tests_hough(const cv::Mat &img)
   //////////////////////////////////
   std::vector<cv::Vec2f> lines;
   HoughLinesWithGradientDir(img, lines);
-  printf("Détecté %d lignes.\n", lines.size());
+  printf("DÃ©tectÃ© %d lignes.\n", lines.size());
   printf("sx = %d, sy = %d.\n", img.cols, img.rows);
   cv::Mat img2, img3;
   cv::cvtColor(img, img2, CV_GRAY2BGR);
@@ -159,7 +159,7 @@ int tests_hough(const cv::Mat &img)
   int seuil_hough = 50;
   cv::Canny(bw, bw, seuil_canny, seuil_canny * 2, 3);
   cv::HoughLines(bw, lines, 1, CV_PI/180, seuil_hough, 0, 0);
-  printf("Détecté %d lignes.\n", lines.size());
+  printf("DÃ©tectÃ© %d lignes.\n", lines.size());
   printf("sx = %d, sy = %d.\n", img.cols, img.rows);
   cv::cvtColor(img, img3, CV_GRAY2BGR);
   plot_lines(img3, lines, cv::Scalar(0,0,255));

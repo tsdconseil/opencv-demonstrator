@@ -118,7 +118,7 @@ SectionEnd
 ;Descriptions
 
   ;Language strings
-  LangString DESC_SecCkernide ${LANG_FRENCH} "Installe logiciel de démonstration OpenCV"
+  LangString DESC_SecCkernide ${LANG_FRENCH} "Installe logiciel de dÃ©monstration OpenCV"
 
   ;Assign language strings to sections
   !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN

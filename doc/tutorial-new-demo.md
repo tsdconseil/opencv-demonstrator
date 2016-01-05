@@ -24,7 +24,7 @@ For instance, to create a demonstration of id `dummy`, using the `data/img/box.p
 
 ```
 <demo name = "dummy" 
-      fr   = "Ma démonstration" 
+      fr   = "Ma dÃ©monstration" 
       en   = "My demonstration"
       default-img="data/img/box.png"/>
 ```

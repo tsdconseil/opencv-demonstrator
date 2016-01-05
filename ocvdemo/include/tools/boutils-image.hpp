@@ -24,7 +24,7 @@ public:
   /** Cache la barre d'outils */
   void cache();
 
-  /** Mise à jour de la langue */
+  /** Mise Ã  jour de la langue */
   void maj_lang();
 private:
   Gtk::VBox vbox;

@@ -217,7 +217,7 @@ int OptFlowDemo::calcul(Node &model, cv::Mat &I)
   minMaxLoc(mag, 0, &maxVal);
   normalize(mag,nmag,0,1.0,NORM_MINMAX);
   _hsv[0] = angle * ((360.0 / (2 * 3.141592))); // Teinte (couleur) = angle
-  _hsv[1] = 1.0 * Mat::ones(angle.size(), CV_32F); // Chromaticité = 1
+  _hsv[1] = 1.0 * Mat::ones(angle.size(), CV_32F); // ChromaticitÃ© = 1
   _hsv[2] = nmag; // Luminance
   merge(_hsv, 3, hsv);
   sortie.O[0] = Mat(hsv.size(), CV_8UC3);

@@ -1,5 +1,5 @@
 /** @file image-mosaic.cc
- *  @brief Affichage de plusieurs images sur une même fenêtre
+ *  @brief Affichage de plusieurs images sur une mÃªme fenÃªtre
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 
@@ -23,7 +23,7 @@
 
 #include "ocvdemo.hpp"
 
-// Adapté d'après http://code.opencv.org/projects/opencv/wiki/DisplayManyImages
+// AdaptÃ© d'aprÃ¨s http://code.opencv.org/projects/opencv/wiki/DisplayManyImages
 
 
 ImageMosaique::ImageMosaique()
@@ -40,7 +40,7 @@ void ImageMosaique::mouse_callback(int event, int x, int y, int flags)
 {
   //journal.trace("imosaic mouse callback x = %d, y = %d.", x, y);
 
-  // Conversion vers coordoonnées image i
+  // Conversion vers coordoonnÃ©es image i
   for(auto j = 0u; j < img_pos.size(); j++)
   {
     cv::Rect r = img_pos[j];

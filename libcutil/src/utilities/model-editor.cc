@@ -99,8 +99,8 @@ void ModelEditor::on_b_exit()
   if(!model_saved)
   {
     if(!dialogs::check_dialog("Quitter",
-        "Certaines modifications n'ont pas été sauvegardées.",
-        "Voulez-vous vraiment fermer l'application et\nperdre les dernières modifications ?"))
+        "Certaines modifications n'ont pas Ã©tÃ© sauvegardÃ©es.",
+        "Voulez-vous vraiment fermer l'application et\nperdre les derniÃ¨res modifications ?"))
     {
       return;
     }
@@ -153,7 +153,7 @@ void ModelEditor::update_view()
 
   if(ev == nullptr)
   {
-    s = "Edition modéle XML";
+    s = "Edition modÃ©le XML";
   }
   else
   {
@@ -174,9 +174,9 @@ void ModelEditor::on_event(const EVSelectionChangeEvent &evse)
 
   if(!model_saved)
   {
-    if(Gide::check_dialog("Changement de sélection",
-        "Voulez-vous enregistrer les modification effectuées ?",
-        "Les modifications n'ont pas été sauvegardées."))
+    if(Gide::check_dialog("Changement de sÃ©lection",
+        "Voulez-vous enregistrer les modification effectuÃ©es ?",
+        "Les modifications n'ont pas Ã©tÃ© sauvegardÃ©es."))
     {
       on_b_save();
     }
@@ -312,7 +312,7 @@ ModelEditor::ModelEditor()
   b_infos.signal_clicked().connect(sigc::mem_fun(*this, &ModelEditor::on_b_infos));
 
 
-  log.trace("Construction terminée.");
+  log.trace("Construction terminÃ©e.");
   show_all_children(true);
   update_view();
   //set_size_request(1000,780);
@@ -413,7 +413,7 @@ int ModelEditor::main(CmdeLine &cmdeline)
   {
     log.warning("no schema specified.");
     
-    schema_path = dialogs::open_dialog(str::latin_to_utf8("Sch�ma de donn�es"),
+    schema_path = dialogs::open_dialog(str::latin_to_utf8("Schéma de données"),
 				    "*.xml", 
 				    "Fichier XML",
 				    "", 
