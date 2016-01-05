@@ -29,7 +29,7 @@
         fr   = "Démonstrateur OpenCV" 
         en   = "OpenCV demonstrator"
         ru   = "Демонстратор OpenCV"/>
-  <item name="resultats" fr="Résultats" en="Results" ru="результаты"/>
+  <item name="resultats" fr="Résultats" en="Results"/>
   <item name="img-entree" fr="Image d'entree" en="Input image"/>
   <item name="img-sortie" fr="Image de sortie" en="Output image"/>
   <item name="err-opencv-title" fr="Erreur OpenCV" en="OpenCV error"/>

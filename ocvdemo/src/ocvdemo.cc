@@ -21,16 +21,6 @@
  **/
 
 #include "ocvdemo.hpp"
-#include "demo-items/filter-demo.hpp"
-#include "demo-items/morpho-demo.hpp"
-#include "demo-items/gradient-demo.hpp"
-#include "demo-items/photographie.hpp"
-#include "demo-items/reco-demo.hpp"
-#include "demo-items/histo.hpp"
-#include "demo-items/seuillage.hpp"
-#include "demo-items/video-demo.hpp"
-#include "demo-items/espaces-de-couleurs.hpp"
-#include "demo-items/3d.hpp"
 #include <glibmm.h>
 
 #define VMAJ 1
@@ -43,45 +33,7 @@ using utils::model::Localized;
 
 static OCVDemo *instance = nullptr;
 
-void OCVDemo::add_demos()
-{
-  items.push_back(new HDRDemo());
-  items.push_back(new EpiDemo());
-  items.push_back(new DispMapDemo());
-  items.push_back(new MatchDemo());
-  items.push_back(new ContourDemo());
-  items.push_back(new CamCalDemo());
-  items.push_back(new DFTDemo());
-  items.push_back(new InpaintDemo());
-  items.push_back(new PanoDemo());
-  items.push_back(new WShedDemo());
-  items.push_back(new SousArrierePlanDemo());
-  items.push_back(new FilterDemo());
-  items.push_back(new HSVDemo());
-  items.push_back(new MorphoDemo());
-  items.push_back(new CannyDemo());
-  items.push_back(new HoughDemo());
-  items.push_back(new HoughCDemo());
-  items.push_back(new GradientDemo());
-  items.push_back(new LaplaceDemo());
-  items.push_back(new NetDemo());
-  items.push_back(new CornerDemo());
-  items.push_back(new HistoDemo());
-  items.push_back(new HistoCalc());
-  items.push_back(new HistoBP());
-  items.push_back(new Seuillage());
-  items.push_back(new GrabCutDemo());
-  items.push_back(new OptFlowDemo());
-  items.push_back(new CamShiftDemo());
-  items.push_back(new RectDemo());
-  items.push_back(new DTransDemo());
-  items.push_back(new CascGenDemo("casc-visage"));
-  items.push_back(new CascGenDemo("casc-profile"));
-  items.push_back(new CascGenDemo("casc-yeux"));
-  items.push_back(new CascGenDemo("casc-plate"));
-  items.push_back(new CascGenDemo("casc-sil"));
 
-}
 
 void OCVDemo::on_b_masque_raz()
 {
@@ -103,10 +55,6 @@ void OCVDemo::on_b_masque_remplissage()
   barre_outil_dessin.b_remplissage.set_active(true);
   outil_dessin_en_cours = 1;
 }
-
-
-
-
 
 
 void OCVDemo::compute_Ia()
@@ -685,6 +633,7 @@ void OCVDemo::maj_langue()
   b_infos.set_tooltip_markup(langue.get_item("apropos-tt"));
   b_entree.set_label(langue.get_item("entree"));
   b_entree.set_tooltip_markup(langue.get_item("entree-tt"));
+  // Apparently OpenCV windows support only ISO-8859-1
   titre_principal = utils::str::utf8_to_latin(langue.get_item("resultats"));
   wnd.set_title(langue.get_item("main-title"));
 

@@ -27,7 +27,11 @@
 *.out
 *.app
 
-# Eclude the build folders.
+# Exclude the build folders.
 ocvdemo/build/*
 libcutil/build/*
 ocvext/build/*
+
+# Exclude emacs tmp files
+*~
+
