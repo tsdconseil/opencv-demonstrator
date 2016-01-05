@@ -31,7 +31,7 @@ build instructions that are located in the file
 [doc/build-instructions.md](doc/build-instructions.md).
 
 
-## Contributions
+## Contributing
 
 Contributions are welcome! If you wish to add your own demonstration, please
 have a look to the
