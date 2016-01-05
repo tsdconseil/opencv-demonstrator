@@ -115,7 +115,7 @@ void HoughWithGradientDir(const cv::Mat &g_abs,
     hough_gradient_template<int16_t>(g_abs, g_angle, res, rho, theta);
     break;
   default:
-    std::cerr << "hough_gradient: type non supporté (" << type << ")." << std::endl;
+    std::cerr << "hough_gradient: type non supportÃ© (" << type << ")." << std::endl;
     CV_Assert(0);
   }
 }
@@ -161,7 +161,7 @@ static void my_top_hat(const cv::Mat &I, cv::Mat &O,
   cv::Mat If1, If2;
   DericheBlur(I, If1, g1);
   DericheBlur(I, If2, g2);
-  O = cv::abs(If1 - If2); // Passe bas (haute fréq) - Passe bas (basse fréq)
+  O = cv::abs(If1 - If2); // Passe bas (haute frÃ©q) - Passe bas (basse frÃ©q)
 }
 
 

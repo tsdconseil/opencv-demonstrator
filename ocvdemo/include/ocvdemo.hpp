@@ -1,5 +1,5 @@
 /** @file ocvdemo.hpp
-    @brief Classe principale pour le démonstrateur OpenCV
+    @brief Classe principale pour le dÃ©monstrateur OpenCV
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 
@@ -46,20 +46,20 @@ using namespace utils::mmi;
 using namespace cv;
 
 ////////////////////////////////////////////////////////////////////////////
-/** @brief Classe principale pour le démonstrateur OpenCV */
+/** @brief Classe principale pour le dÃ©monstrateur OpenCV */
 class OCVDemo:
 
-    // Changement de sélection dans l'arbre
+    // Changement de sÃ©lection dans l'arbre
     private CListener<utils::mmi::SelectionChangeEvent>,
 
-    // Changement d'un paramètre de calcul
+    // Changement d'un paramÃ¨tre de calcul
     private CListener<ChangeEvent>,
 
-    // Changement dans le sélecteur d'image
+    // Changement dans le sÃ©lecteur d'image
     private CListener<ImageSelecteurRefresh>
 {
 public:
-  /** Constructeur (devrait être privé !) */
+  /** Constructeur (devrait Ãªtre privÃ© !) */
   OCVDemo(utils::CmdeLine &cmdeline);
 
   /** Singleton */
@@ -71,7 +71,7 @@ public:
   /** Export des images pour la doc HTML */
   void export_captures();
 
-  /** Evénement souris à partir de la fenêtre d'image */
+  /** EvÃ©nement souris Ã  partir de la fenÃªtre d'image */
   void mouse_callback(int image, int event, int x, int y, int flags);
 
 private:
@@ -111,56 +111,56 @@ private:
 
   std::string lockfile; // Chemin du fichier de lock
   utils::hal::Mutex mutex; // Verrou pour les calculs VS video
-  // Dialogue de démarrage
+  // Dialogue de dÃ©marrage
   utils::mmi::NodeDialog *entree_dial;
   // Pour le menu
   Glib::RefPtr<Gtk::ActionGroup> agroup;
   // Vrai seulement au premier appel
   bool first_entry;
-  // Fenêtre principale
+  // FenÃªtre principale
   Gtk::Window wnd;
   // Conteneur principal
   Gtk::VBox vbox;
-  // Séparateur paneaux de gauche et droite
+  // SÃ©parateur paneaux de gauche et droite
   Gtk::HPaned hpaned;
-  // Modèles
+  // ModÃ¨les
   utils::model::Node modele, modele_global, tdm;
   utils::model::Node modele_demo;
-  // Configuration de la démo en cours
+  // Configuration de la dÃ©mo en cours
   utils::mmi::NodeView *rp;
   // Logs
   utils::Logable journal;
-  // Arbre de sélection à gauche
+  // Arbre de sÃ©lection Ã  gauche
   TreeManager vue_arbre;
   // Cadre autour de la config
   JFrame cadre_proprietes;
-  // Schéma racine
+  // SchÃ©ma racine
   FileSchema *fs_racine;
   // Verrou
   bool lock;
   // Titre principal
   std::string titre_principal;
-  // Affichage des résultats
+  // Affichage des rÃ©sultats
   ImageMosaique mosaique;
-  // Liste des démos supportées
+  // Liste des dÃ©mos supportÃ©es
   std::vector<OCVDemoItem *> items;
-  // Démo en cours
+  // DÃ©mo en cours
   OCVDemoItem *item_en_cours;
   // I0 : image originale
-  // I1 : telle que modifiée par le processus
+  // I1 : telle que modifiÃ©e par le processus
   // Ia : avec rectangle utilisateur
   cv::Mat I0, I1, I, Ia;
   int etat_souris;
-  // Région d'intérêt
+  // RÃ©gion d'intÃ©rÃªt
   cv::Rect rect_rdi;
   cv::Point rdi0, rdi1;
-  // Vidéo en cours ?
+  // VidÃ©o en cours ?
   bool entree_video;
-  // Capture vidéo
+  // Capture vidÃ©o
   cv::VideoCapture video_capture;
-  // Fichier vidéo en cours
+  // Fichier vidÃ©o en cours
   std::string video_fp;
-  // Caméra vidéo en cours
+  // CamÃ©ra vidÃ©o en cours
   int video_idx;
   // Barre d'outils
   Gtk::Toolbar barre_outils;

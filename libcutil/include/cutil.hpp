@@ -734,8 +734,8 @@ public:
    *
    *  Example:
    *  <cmdeline>
-   *    <arg name="i" mandatory="true" fr="Fichier d'entrée">
-   *      <description lang="fr">Chemin complet du fichier d'entrée</description>
+   *    <arg name="i" mandatory="true" fr="Fichier d'entrÃ©e">
+   *      <description lang="fr">Chemin complet du fichier d'entrÃ©e</description>
    *    </arg>
    *  </cmdeline>
    */

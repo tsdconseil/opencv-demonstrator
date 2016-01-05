@@ -237,7 +237,7 @@ int PanoDemo::calcul(Node &model, cv::Mat &I)
 
     if (status != Stitcher::OK)
     {
-     journal.warning("échec pano.");
+     journal.warning("Ã©chec pano.");
      return -1;
     }
     lock = false;
@@ -348,7 +348,7 @@ int VisageDemo::calcul(Node &model, cv::Mat &I)
   //int maxsizey = model.get_attribute_as_int("maxsizey");
 
   //-- Detect faces
-  journal.verbose("Détection visages...");
+  journal.verbose("DÃ©tection visages...");
   face_cascade.detectMultiScale(frame_gray, faces,
                                 1.1, // scale factor
                                 2,   // min neighbors
@@ -357,7 +357,7 @@ int VisageDemo::calcul(Node &model, cv::Mat &I)
                                 Size()); // Maximum size
 
 
-  journal.trace("Détecté %d visages.", faces.size());
+  journal.trace("DÃ©tectÃ© %d visages.", faces.size());
 
   for(size_t i = 0; i < faces.size(); i++ )
   {
@@ -366,10 +366,10 @@ int VisageDemo::calcul(Node &model, cv::Mat &I)
     Mat faceROI = frame_gray(faces[i]);
     std::vector<Rect> eyes;
     //-- In each face, detect eyes
-    journal.verbose("Détection yeux...");
+    journal.verbose("DÃ©tection yeux...");
     eyes_cascade.detectMultiScale(faceROI, eyes, 1.05, 2,
                                   CV_HAAR_SCALE_IMAGE);//, Size(5, 5) );
-    journal.verbose("%d trouvés.\n", eyes.size());
+    journal.verbose("%d trouvÃ©s.\n", eyes.size());
     for(size_t j = 0; j < eyes.size(); j++)
     {
       Point center( faces[i].x + eyes[j].x + eyes[j].width * 0.5, faces[i].y + eyes[j].y + eyes[j].height * 0.5 );
@@ -460,14 +460,14 @@ int CascGenDemo::calcul(Node &model, cv::Mat &I)
 
   //-- Detect faces
   cascade[sel].detectMultiScale(frame_gray, faces,
-                                1.1, /* facteur d'échelle */
+                                1.1, /* facteur d'Ã©chelle */
                                 2, /* min voisins ? */
                                 CV_HAAR_SCALE_IMAGE, /* ? */
                                 Size(minsizex,minsizey),
                                 Size(/*maxsizex,maxsizey*/));
 
 
-  journal.trace("Détecté %d objets.", faces.size());
+  journal.trace("DÃ©tectÃ© %d objets.", faces.size());
   for(size_t i = 0; i < faces.size(); i++ )
   {
     Point center( faces[i].x + faces[i].width * 0.5, faces[i].y + faces[i].height * 0.5 );

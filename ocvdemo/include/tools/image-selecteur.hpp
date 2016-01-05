@@ -33,7 +33,7 @@
 
 struct ImageSelecteurRefresh{};
 
-/** @brief Sélecteur d'image */
+/** @brief SÃ©lecteur d'image */
 class ImageSelecteur:
     public Gtk::Window,
     public utils::CProvider<ImageSelecteurRefresh>

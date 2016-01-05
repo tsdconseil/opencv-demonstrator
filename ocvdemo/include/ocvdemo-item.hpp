@@ -1,5 +1,5 @@
 /** @file ocv-demo-item.hpp
- *  @brief Classe de base pour toutes les démonstrations
+ *  @brief Classe de base pour toutes les dÃ©monstrations
  *
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 
@@ -35,46 +35,46 @@ using namespace cv;
 using namespace utils::model;
 
 ////////////////////////////////////////////////////////////////////////////
-/** @brief Classe de base pour toutes les démonstrations OpenCV */
+/** @brief Classe de base pour toutes les dÃ©monstrations OpenCV */
 class OCVDemoItem
 {
 public:
 
-  /** Propriétés d'une démonstration OpenCV */
+  /** PropriÃ©tÃ©s d'une dÃ©monstration OpenCV */
   struct OCVDemoItemProprietes
   {
-    /** Chaine d'identification (pour retrouver le schéma XML) */
+    /** Chaine d'identification (pour retrouver le schÃ©ma XML) */
     std::string id;
 
-    /** Nécessite un masque ? (exemple : inpainting) */
+    /** NÃ©cessite un masque ? (exemple : inpainting) */
     bool requiert_masque;
 
-    /** Nécessite la sélection d'une région d'intérêt ? */
+    /** NÃ©cessite la sÃ©lection d'une rÃ©gion d'intÃ©rÃªt ? */
     bool requiert_roi;
 
-    /** Nécessite la sélection d'une suite d'image ? */
+    /** NÃ©cessite la sÃ©lection d'une suite d'image ? */
     int requiert_mosaique;
 
     struct MosaiqueProps
     {
-      int min, max; // Nombre min / max d'images nécessaires
+      int min, max; // Nombre min / max d'images nÃ©cessaires
       MosaiqueProps(){min = -1; max = -1;}
     } mosaique;
   };
 
-  /** Réglages d'une démonstration OpenCV */
+  /** RÃ©glages d'une dÃ©monstration OpenCV */
   struct OCVDemoItemParams
   {
-    /** Modèle (configuration du traitement) */
+    /** ModÃ¨le (configuration du traitement) */
     Node modele;
 
-    /** Si oui, rectangle définissant la ROI */
+    /** Si oui, rectangle dÃ©finissant la ROI */
     cv::Rect roi;
 
     /** Si oui, valeur du masque */
     cv::Mat masque;
 
-    /** Si oui, liste des images d'entrée */
+    /** Si oui, liste des images d'entrÃ©e */
     std::vector<Mat> mosaique;
   };
 
@@ -87,23 +87,23 @@ public:
     /** Images de sortie */
     cv::Mat O[5];
 
-    /** Nom des différentes images de sortie */
+    /** Nom des diffÃ©rentes images de sortie */
     std::string outname[5];
 
-    /** Message d'erreur si échec */
+    /** Message d'erreur si Ã©chec */
     std::string errmsg;
 
     /** TO DEPRECATE? Pointeur vers la "vraie" image de sortie ???? to remove !!!! */
     Mat vrai_sortie;
   };
 
-  /** Propriétés de la démo */
+  /** PropriÃ©tÃ©s de la dÃ©mo */
   OCVDemoItemProprietes props;
 
-  /** Réglages de la démo */
+  /** RÃ©glages de la dÃ©mo */
   OCVDemoItemParams params;
 
-  /** Résultat de l'exécution de la démo */
+  /** RÃ©sultat de l'exÃ©cution de la dÃ©mo */
   OCVDemoItemSortie sortie;
 
   /** Calcul effectif */
@@ -115,7 +115,7 @@ public:
   /** Destructeur */
   virtual ~OCVDemoItem(){}
 
-  /** To deprecate? Appelé dès lors que la ROI a changé */
+  /** To deprecate? AppelÃ© dÃ¨s lors que la ROI a changÃ© */
   virtual void set_roi(const cv::Mat &I, const cv::Rect &new_roi){params.roi = new_roi;}
 
   /** To deprecate? */

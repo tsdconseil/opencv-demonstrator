@@ -1,5 +1,5 @@
 /** @file 3d.cc
- *  @brief Démonstratation relatives à la 3D
+ *  @brief DÃ©monstratation relatives Ã  la 3D
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 
@@ -213,7 +213,7 @@ int CamCalDemo::calcul(Node &model, cv::Mat &I)
   if(found)
    cv::drawChessboardCorners(I, board_size, Mat(pointbuf), found);
 
-  journal.trace_major("Trouvé %d coins (found = %d).",
+  journal.trace_major("TrouvÃ© %d coins (found = %d).",
       pointbuf.size(), (int) found);
 
   if(found)
@@ -248,7 +248,7 @@ int CamCalDemo::calcul(Node &model, cv::Mat &I)
     objectPoints.resize(imagePoints.size(),objectPoints[0]);
 
     vector<Mat> rvecs, tvecs;
-    // Fonction obsoléte ?
+    // Fonction obsolÃ©te ?
     double rms = cv::calibrateCamera(objectPoints,
                                      imagePoints, I.size(),
                     cameraMatrix, distCoeffs, rvecs, tvecs,

@@ -1,5 +1,5 @@
 /** @file image-mosaique.hpp
- *  @brief Fenêtre de sortie
+ *  @brief FenÃªtre de sortie
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 
@@ -27,9 +27,9 @@
 
 
 ////////////////////////////////////////////////////////////////////////////
-/** @brief Fenêtre afficher un ou plusieurs images
- *  (utilisé pour afficher les résultats des traitements)
- *  @todo Réécrire à base de fenêtre GTK. */
+/** @brief FenÃªtre afficher un ou plusieurs images
+ *  (utilisÃ© pour afficher les rÃ©sultats des traitements)
+ *  @todo RÃ©Ã©crire Ã  base de fenÃªtre GTK. */
 class ImageMosaique
 {
 public:
@@ -41,12 +41,12 @@ public:
                            std::vector<cv::Mat> lst,
                            std::vector<std::string> titles);
 
-  /** Mise à jour d'une image en particulier */
+  /** Mise Ã  jour d'une image en particulier */
   void update_image(int index, const cv::Mat &img);
 
   void mouse_callback(int event, int x, int y, int flags);
 
-  /** Devrait être privé ! */
+  /** Devrait Ãªtre privÃ© ! */
   bool callback_init_ok;
 
   /** Retourne l'image globale */

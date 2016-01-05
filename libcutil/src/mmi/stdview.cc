@@ -139,7 +139,7 @@ string NodeView::mk_label(const Localized &l)
     traduction = langue.getItem(traduction);*/
   if ((traduction[0] >= 'a') && (traduction[0] <= 'z'))
     traduction[0] += 'A' - 'a';
-  if ((uint8_t) traduction[0] == /*'Ã©'*/0x82)
+  if ((uint8_t) traduction[0] == /*'ÃƒÂ©'*/0x82)
     traduction[0] = 'E';
 
   return traduction;
@@ -1608,7 +1608,7 @@ AttributeListView::AttributeListView(Node model,
       {
         nrows++;
         if(this->show_separator && ((i + 1) < natts_total))
-          nrows++; // Séparateur
+          nrows++; // SÃ©parateur
       }
     }
   }
@@ -2323,7 +2323,7 @@ void SelectionView::on_cell_toggled(const Glib::ustring& path)
       if(!model.has_child(name))
         model.add_child(name);
       else
-        log.trace("Mais déjà présente!");
+        log.trace("Mais dÃ©jÃ  prÃ©sente!");
     } 
     else 
     {

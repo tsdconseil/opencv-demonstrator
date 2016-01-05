@@ -319,7 +319,7 @@ void OCVDemo::update()
       if((img_count > 1) && (demo->sortie.O[0].data == nullptr))
       {
         img_count = 1;
-        journal.warning("Img count = 2, et image O non initialisée.");
+        journal.warning("Img count = 2, et image O non initialisÃ©e.");
       }
 
       std::vector<std::string> titres;
@@ -448,7 +448,7 @@ void OCVDemo::maj()
   std::string fp = "";
   int idx = 0;
   int sel = modele_global.get_attribute_as_int("sel");
-  // Image / vidéo par défaut
+  // Image / vidÃ©o par dÃ©faut
   if(sel == 0)
   {
     fp = modele_demo.get_attribute_as_string("default-img");
@@ -458,7 +458,7 @@ void OCVDemo::maj()
   {
     fp = modele_global.get_attribute_as_string("file-schema/path");
   }
-  // Caméra USB
+  // CamÃ©ra USB
   else
   {
     idx = 0;//global_model.get_attribute_as_int("cam-schema/idx");
@@ -478,9 +478,9 @@ void OCVDemo::maj()
     journal.trace_major("Ouverture camera usb #%d...", idx);
     if(!video_capture.open(idx))
     {
-      journal.warning("Camera non détectée: reset sel = 0...");
+      journal.warning("Camera non dÃ©tectÃ©e: reset sel = 0...");
       modele_global.set_attribute("sel", (int) 0);
-      journal.trace_major("Reset effectué.");
+      journal.trace_major("Reset effectuÃ©.");
       utils::mmi::dialogs::show_error(langue.get_item("ech-cam-tit"),
           langue.get_item("ech-cam-sd"),
           langue.get_item("ech-cam-d"));
@@ -792,7 +792,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 
     if(cmdeline.has_option("-c"))
     {
-      journal.trace_major("Export des captures d'écran...");
+      journal.trace_major("Export des captures d'Ã©cran...");
       export_captures();
     }
   }
@@ -902,7 +902,7 @@ std::string OCVDemo::export_html(Localized::Language lg)
 {
   std::string s = "<table class=\"formtable\">\n";
   if(lg == Localized::Language::LANG_FR)
-    s += std::string(R"(<tr><td colspan="2"><b>Démonstration</b></td><td><b>Description</b></td></tr>)") + "\n";
+    s += std::string(R"(<tr><td colspan="2"><b>DÃ©monstration</b></td><td><b>Description</b></td></tr>)") + "\n";
   else
     s += std::string(R"(<tr><td colspan="2"><b>Demonstration</b></td><td><b>Description</b></td></tr>)") + "\n";
   for(auto cat1: tdm.children("cat"))
@@ -939,7 +939,7 @@ void OCVDemo::export_captures(utils::model::Node &cat)
     auto demo = cat.get_child_at("demo", i);
     auto id = demo.get_attribute_as_string("name");
 
-    journal.trace_major("Export démo [%s]...", id.c_str());
+    journal.trace_major("Export dÃ©mo [%s]...", id.c_str());
 
     //setup_demo(id);
     setup_demo_p(demo);
@@ -1126,7 +1126,7 @@ bool OCVDemo::on_timeout(int unused)
       video_capture >> tmp;
       if(tmp.empty())
       {
-        journal.trace("Fin de vidéo : redémarrage.");
+        journal.trace("Fin de vidÃ©o : redÃ©marrage.");
         if(video_fp.size() > 0)
         {
           video_capture.release();
