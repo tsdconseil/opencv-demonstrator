@@ -45,12 +45,10 @@ bool NodeSchema::is_empty() const
 
 NodeSchema::~NodeSchema()
 {
-  //trace("delete node schema..");
 }
 
 void NodeSchema::add_attribute(refptr<AttributeSchema> schema)
 {
-  //refptr<AttributeSchema> ref = refptr<AttributeSchema>(new AttributeSchema(schema));
   attributes.push_back(schema);
   att_mapper[schema->name.get_id()] = attributes.size() - 1;
 }
@@ -184,9 +182,7 @@ Localized Node::get_localized() const
   if(this->has_child("description"))
   {
     for(const Node desc: children("description"))
-    //for(unsigned int i = 0; i < get_children_count("description"); i++)
     {
-      //const Node &desc = get_child_at("description", i);
       res.set_description(
           Localized::parse_language(desc.get_attribute_as_string("lang")),
           desc.get_attribute_as_string("content"));
@@ -927,7 +923,7 @@ int FileSchema::from_xml(const MXml &xm)
     std::string path = lst[i]->getAttribute("path").toString();
 
     MXml xm;
-    if(xm.from_file_with_pugixml(utils::get_fixed_data_path() + PATH_SEP + path))
+    if(xm.from_file(utils::get_fixed_data_path() + PATH_SEP + path))
     {
       log.anomaly("Failed to load include schema @%s.", path.c_str());
       continue;
@@ -986,7 +982,7 @@ int FileSchema::from_file(std::string filename)
 {
   MXml xm;
 
-  if(xm.from_file_with_pugixml(filename))
+  if(xm.from_file(filename))
     return -1;
 
   return from_xml(xm);
@@ -5092,7 +5088,7 @@ Node Node::create_ram_node(NodeSchema *schema, std::string filename)
     schema->log.trace("Loading data tree from XML file [%s]...", filename.c_str());
 
     //schema->verbose("xml parsing..");
-    if(mx.from_file_with_pugixml(filename))
+    if(mx.from_file(filename))
     {
       res.log.anomaly("Parse error while parsing %s.", filename.c_str());
       return res;

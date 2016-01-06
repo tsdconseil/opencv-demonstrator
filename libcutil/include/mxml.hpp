@@ -49,7 +49,6 @@ public:
 
   /** Charge un fichier xml    */
   int from_file(std::string filename);
-  int from_file_with_pugixml(std::string filename);
   int from_string(std::string s);
   MXml(std::string name, std::vector<XmlAttribute> *attributes, std::vector<MXml> *children);
   std::string dump() const;

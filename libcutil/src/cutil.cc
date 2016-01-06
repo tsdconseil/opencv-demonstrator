@@ -1514,7 +1514,7 @@ std::string TextAlign::get_result()
 void Section::load(std::string filename)
 {
   MXml mx;
-  if(mx.from_file_with_pugixml(std::string(filename)))
+  if(mx.from_file(std::string(filename)))
   {
     printf("Unable to load localization file.\n");
     fflush(stdout);
@@ -1742,19 +1742,6 @@ uint32_t Util::extract_bits(uint8_t *buffer, uint32_t offset_in_bits, uint32_t n
   return res;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 CmdeLine::CmdeLine()
 {
 
@@ -1781,13 +1768,9 @@ void CmdeLine::init(vector<string> &argv)
   if(argv.size() > 0)
     argv0 = std::string(argv[0]);
 
-//  cout << "INIT[";
-
   for(unsigned int i = 1; i < argv.size(); i++)
   {
     string opt = argv[i];
-
-    //cout << opt << " ";
 
     if(opt[0] == '-')
     {
@@ -1812,7 +1795,6 @@ void CmdeLine::init(vector<string> &argv)
       prms.push_back(prm);
     }
   }
-  //cout << endl;
 }
 
 void CmdeLine::init(int argc, const char **argv)

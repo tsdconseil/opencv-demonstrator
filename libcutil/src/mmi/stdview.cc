@@ -4207,8 +4207,6 @@ void ListLayout::update_view()
     else
       a.button->set_sensitive(true);
   }
-
-
 }
 
 void ListLayout::on_event(const ChangeEvent &ce)
@@ -4223,6 +4221,8 @@ void ListLayout::on_event(const ChangeEvent &ce)
   case ChangeEvent::ATTRIBUTE_CHANGED:
   case ChangeEvent::GROUP_CHANGE:
     update_view();
+    break;
+  case ChangeEvent::COMMAND_EXECUTED:
     break;
   }
 }

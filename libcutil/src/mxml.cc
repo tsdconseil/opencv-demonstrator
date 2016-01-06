@@ -7,16 +7,6 @@
 #include <string.h>
 #include <malloc.h>
 
-extern utils::model::MXml *closure;
-std::string current_file = "";
-extern int linenum;
-
-extern int xmlparse();
-extern FILE *xmlin;
-
-# ifndef WIN
-extern void xmllex_destroy();
-# endif
 
 namespace utils
 {
@@ -173,54 +163,6 @@ MXml::MXml(std::string name, std::vector<XmlAttribute> *attributes, std::vector<
 }
 
 
-int MXml::from_string(std::string s)
-{
-  linenum = 0;
-  attributes.clear();
-  children.clear();
-
-  xmlin = tmpfile();
-  if(xmlin == nullptr)
-  {
-    log_anomaly(main_log, "Unable to create temp file.");
-    return -1;
-  }
-
-  fprintf(xmlin, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>%s", s.c_str());
-  fseek(xmlin, 0, SEEK_SET);
-
-
-  closure = nullptr;
-  try
-  {
-    xmlparse();
-  }
-  catch(std::string &se)
-  {
-    log_anomaly(main_log, "Exception occurred while reading [%s]: %s.",
-            s.c_str(), se.c_str());
-    fclose(xmlin);
-    return -1;
-  }
-  catch(...)
-  {
-    log_anomaly(main_log, "Unknown exception occurred while reading [%s].", s.c_str());
-    fclose(xmlin);
-    return -1;
-  }
-  fclose(xmlin);
-  if(closure == nullptr)
-  {
-    log_anomaly(main_log, "Parse error in:\n%s", s.c_str());
-    return -1;
-  }
-  else
-  {
-    *this = *closure;
-    delete closure;
-    return 0;
-  }
-}
 
 void MXml::load_from_pugi_node(pugi::xml_node node)
 {
@@ -249,7 +191,7 @@ void MXml::load_from_pugi_node(pugi::xml_node node)
   }
 }
 
-int MXml::from_file_with_pugixml(std::string filename)
+int MXml::from_file(std::string filename)
 {
   pugi::xml_document doc;
   auto result = doc.load_file(filename.c_str());
@@ -266,60 +208,22 @@ int MXml::from_file_with_pugixml(std::string filename)
   return 0;
 }
 
-int MXml::from_file(std::string filename)
+int MXml::from_string(std::string s)
 {
-  current_file = filename;
-  linenum = 0;
-  this->attributes.clear();
-  this->children.clear();
-
-  xmlin = fopen(filename.c_str(), "rt");
-  if(xmlin == nullptr)
+  pugi::xml_document doc;
+  auto result = doc.load_buffer(s.c_str(), s.size());
+  if(result.status != pugi::xml_parse_status::status_ok)
   {
-    log_anomaly(main_log, "File not found: %s.", filename.c_str());
+    log_anomaly(main_log, "Error occurred while parsing XML string: %s.",
+		result.description());
     return -1;
   }
-	
-  closure = nullptr;
-  try
-  {
-    xmlparse();
-  }
-  catch(std::string s)
-  {
-    log_anomaly(main_log, "Exception occurred while reading [%s]: %s.",
-            filename.c_str(), s.c_str());
-    fclose(xmlin);
-    return -1;
-  }
-  catch(...)
-  {
-    log_anomaly(main_log, "Unknown exception occurred while reading [%s].", filename.c_str());
-    fclose(xmlin);
-    return -1;
-  }
-  fclose(xmlin);
 
-  //extern void xmllex_destroy();
-  //xmllex_destroy();
-# ifndef WIN
-  //extern void xmllex_destroy();
-  xmllex_destroy();
-# endif
-
-
-  if(closure == nullptr)
-  {
-    log_anomaly(main_log, "Parse error in %s.", filename.c_str());
-    return -1;
-  }
-  else
-  {
-    *this = *closure;
-    delete closure;
-    return 0;
-  }
+  auto elt = doc.document_element();
+  load_from_pugi_node(elt);
+  return 0;
 }
+
 
 void MXml::add_child(const MXml &mx)
 {

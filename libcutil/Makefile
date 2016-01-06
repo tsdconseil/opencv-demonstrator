@@ -33,7 +33,6 @@ SOURCES_EXT = mxml modele modele-wrapper
 # (Optionnal) Sources requiring a graphic toolkit -> will not be included in the reduced library
 SOURCES_GTK= gtkutil stdview ColorCellEditable2 ColorCellRenderer2 renderers field-view
 
-
 # (Optionnal) Executable targets to be build (each one must have an associated source file)
 EXECS:=   model-editor rcgene schema2doc preprocess
 
@@ -47,28 +46,12 @@ ADDITIONNAL_INC_DIRS=
 EXTERNAL_LIBS = 
 
 # (Optionnal) Additionnal targets to be build after library and executables
-FIRST_TARGETS = $(BUILD_DIR)/xml.cc
+FIRST_TARGETS = 
 
-ADDITIONNAL_CLEAN	  = grammar.output $(BUILD_DIR)/xml.cc $(BUILD_DIR)/xml.h $(BUILD_DIR)/xml-lex.cc
-
-ADDITIONNAL_OBJS = $(BUILD_DIR)/xml.o $(BUILD_DIR)/xml-lex.o
+ADDITIONNAL_OBJS = 
 
 
 
 # Common definitions for Makefiles and build rules
 include $(RPATH)/libcutil/data/std-makefile-defs
-
-# XML PARSER
-$(BUILD_DIR)/xml.cc $(BUILD_DIR)/xml-lex.cc: xml.y xml.lex
-	@$(ECHO) "Building xml parser.."
-	@$(BISON) -p xml -d src/xml.y
-	@mv xml.tab.h $(BUILD_DIR)/xml.h
-	@mv xml.tab.c $(BUILD_DIR)/xml.cc
-	@$(FLEX)  -Pxml src/xml.lex
-	@mv lex.xml.c $(BUILD_DIR)/xml-lex.cc
-
-# Tests de non régression
-test:
-
-
 
