@@ -10,8 +10,6 @@ Ensure that the following packages are already installed:
 
 - MINGW (with GCC version >= 4.6.2)
 - MSYS
-- bison
-- flex
 - libgtkmm-3.0-dev
 - OpenCV 3.0
 - git
@@ -48,7 +46,7 @@ $ sudo aptitude upgrade
 $ sudo aptitude install build-essential cmake git pkg-config libjpeg8-dev \
     libtiff4-dev libjasper-dev libpng12-dev libavcodec-dev libavformat-dev \
     libswscale-dev libv4l-dev libgtk2.0-dev libatlas-base-dev gfortran \
-    libgtkmm-3.0-1 libgtkmm-3.0-dev libgtkmm-3.0-doc bison flex
+    libgtkmm-3.0-1 libgtkmm-3.0-dev libgtkmm-3.0-doc
 $ wget https://github.com/Itseez/opencv/archive/3.0.0.tar.gz
 $ tar -zxvf 3.0.0.tar.gz
 $ rm -rf 3.0.0.tar.gz
