@@ -113,11 +113,11 @@ CommandSchema::CommandSchema(const MXml &mx)
 {
   name = Localized(mx);
 
-  if(mx.hasChild("input"))
-    input = refptr<NodeSchema>(new NodeSchema(mx.getChild("input")));
+  if(mx.has_child("input"))
+    input = refptr<NodeSchema>(new NodeSchema(mx.get_child("input")));
 
-  if(mx.hasChild("output"))
-    output = refptr<NodeSchema>(new NodeSchema(mx.getChild("output")));
+  if(mx.has_child("output"))
+    output = refptr<NodeSchema>(new NodeSchema(mx.get_child("output")));
 }
 
 CommandSchema::CommandSchema(const Node &model)
@@ -373,46 +373,46 @@ void NodeSchema::from_xml(const MXml &mx)
     ss.min = -1;
     ss.max = -1;
 
-    if(lst[i]->hasAttribute("key"))
-      ss.default_key = lst[i]->getAttribute("key").toString();
+    if(lst[i]->has_attribute("key"))
+      ss.default_key = lst[i]->get_attribute("key").to_string();
 
-    if(lst[i]->hasAttribute("sub-readonly"))
-        ss.readonly = lst[i]->getAttribute("sub-readonly").toBool();
-    if(lst[i]->hasAttribute("default"))
-      ss.default_count = lst[i]->getAttribute("default").toInt();
-    if(lst[i]->hasAttribute("hidden"))
-        ss.is_hidden = lst[i]->getAttribute("hidden").toBool();
-    if(lst[i]->hasAttribute("min"))
-      ss.min = lst[i]->getAttribute("min").toInt();
-    if(lst[i]->hasAttribute("max"))
-      ss.max= lst[i]->getAttribute("max").toInt();
+    if(lst[i]->has_attribute("sub-readonly"))
+        ss.readonly = lst[i]->get_attribute("sub-readonly").to_bool();
+    if(lst[i]->has_attribute("default"))
+      ss.default_count = lst[i]->get_attribute("default").to_int();
+    if(lst[i]->has_attribute("hidden"))
+        ss.is_hidden = lst[i]->get_attribute("hidden").to_bool();
+    if(lst[i]->has_attribute("min"))
+      ss.min = lst[i]->get_attribute("min").to_int();
+    if(lst[i]->has_attribute("max"))
+      ss.max= lst[i]->get_attribute("max").to_int();
     ss.show_header = true;
-    if(lst[i]->hasAttribute("show-header"))
-      ss.show_header= lst[i]->getAttribute("show-header").toBool();
-    ss.child_str = lst[i]->getAttribute("type").toString();
+    if(lst[i]->has_attribute("show-header"))
+      ss.show_header= lst[i]->get_attribute("show-header").to_bool();
+    ss.child_str = lst[i]->get_attribute("type").to_string();
     ss.name = Localized(*lst[i]);
 
     ss.display_tree = false;
-    if(lst[i]->hasAttribute("display-tree"))
+    if(lst[i]->has_attribute("display-tree"))
     {
-      ss.display_tree = lst[i]->getAttribute("display-tree").toBool();
+      ss.display_tree = lst[i]->get_attribute("display-tree").to_bool();
     }
 
     ss.display_tab = false;
-    if(lst[i]->hasAttribute("display-tab"))
+    if(lst[i]->has_attribute("display-tab"))
     {
-      ss.display_tab = lst[i]->getAttribute("display-tab").toBool();
+      ss.display_tab = lst[i]->get_attribute("display-tab").to_bool();
       std::string list;
-      if(lst[i]->hasAttribute("display-resume"))
-        list = lst[i]->getAttribute("display-resume").toString();
+      if(lst[i]->has_attribute("display-resume"))
+        list = lst[i]->get_attribute("display-resume").to_string();
       std::vector<std::string> lst;
       utils::str::parse_string_list(list, lst, ',');
       ss.resume = lst;
     }
 
     ss.display_unfold = true;
-    if(lst[i]->hasAttribute("display-unfold"))
-      ss.display_unfold = lst[i]->getAttribute("display-unfold").toBool();
+    if(lst[i]->has_attribute("display-unfold"))
+      ss.display_unfold = lst[i]->get_attribute("display-unfold").to_bool();
 
     //children.push_back(ss);
     //mapper[ss.child_str] = children.size() - 1;
@@ -426,47 +426,47 @@ void NodeSchema::from_xml(const MXml &mx)
     SubSchema ss;
     ss.min = -1;
     ss.max = -1;
-    if(lst[i]->hasAttribute("sub-readonly"))
-      ss.readonly = lst[i]->getAttribute("sub-readonly").toBool();
+    if(lst[i]->has_attribute("sub-readonly"))
+      ss.readonly = lst[i]->get_attribute("sub-readonly").to_bool();
 
-    if(lst[i]->hasAttribute("key"))
-      ss.default_key = lst[i]->getAttribute("key").toString();
+    if(lst[i]->has_attribute("key"))
+      ss.default_key = lst[i]->get_attribute("key").to_string();
 
-    if(lst[i]->hasAttribute("default"))
-      ss.default_count = lst[i]->getAttribute("default").toInt();
-    if(lst[i]->hasAttribute("hidden"))
-        ss.is_hidden = lst[i]->getAttribute("hidden").toBool();
-    if(lst[i]->hasAttribute("min"))
-      ss.min = lst[i]->getAttribute("min").toInt();
-    if(lst[i]->hasAttribute("max"))
-      ss.max= lst[i]->getAttribute("max").toInt();
+    if(lst[i]->has_attribute("default"))
+      ss.default_count = lst[i]->get_attribute("default").to_int();
+    if(lst[i]->has_attribute("hidden"))
+        ss.is_hidden = lst[i]->get_attribute("hidden").to_bool();
+    if(lst[i]->has_attribute("min"))
+      ss.min = lst[i]->get_attribute("min").to_int();
+    if(lst[i]->has_attribute("max"))
+      ss.max= lst[i]->get_attribute("max").to_int();
     ss.show_header = true;
-    if(lst[i]->hasAttribute("show-header"))
-      ss.show_header= lst[i]->getAttribute("show-header").toBool();
-    ss.child_str = lst[i]->getAttribute("name").toString();
+    if(lst[i]->has_attribute("show-header"))
+      ss.show_header= lst[i]->get_attribute("show-header").to_bool();
+    ss.child_str = lst[i]->get_attribute("name").to_string();
     ss.name = Localized(*lst[i]);
 
     ss.display_tree = false;
-    if(lst[i]->hasAttribute("display-tree"))
+    if(lst[i]->has_attribute("display-tree"))
     {
-      ss.display_tree = lst[i]->getAttribute("display-tree").toBool();
+      ss.display_tree = lst[i]->get_attribute("display-tree").to_bool();
     }
 
     ss.display_tab = false;
-    if(lst[i]->hasAttribute("display-tab"))
+    if(lst[i]->has_attribute("display-tab"))
     {
-      ss.display_tab = lst[i]->getAttribute("display-tab").toBool();
+      ss.display_tab = lst[i]->get_attribute("display-tab").to_bool();
       std::string list;
-      if(lst[i]->hasAttribute("display-resume"))
-        list = lst[i]->getAttribute("display-resume").toString();
+      if(lst[i]->has_attribute("display-resume"))
+        list = lst[i]->get_attribute("display-resume").to_string();
       std::vector<std::string> lst;
       utils::str::parse_string_list(list, lst, ',');
       ss.resume = lst;
     }
 
     ss.display_unfold = true;
-    if(lst[i]->hasAttribute("display-unfold"))
-      ss.display_unfold = lst[i]->getAttribute("display-unfold").toBool();
+    if(lst[i]->has_attribute("display-unfold"))
+      ss.display_unfold = lst[i]->get_attribute("display-unfold").to_bool();
 
     add_sub_node(ss);
   }
@@ -476,11 +476,11 @@ void NodeSchema::from_xml(const MXml &mx)
   for(unsigned int i = 0; i < lst.size(); i++)
   {
     RefSchema ss;
-    ss.child_str = lst[i]->getAttribute("type").toString();
+    ss.child_str = lst[i]->get_attribute("type").to_string();
     ss.name = Localized(*lst[i]);
     ss.path = "";
-    if(lst[i]->hasAttribute("path"))
-      ss.path = lst[i]->getAttribute("path").toString();
+    if(lst[i]->has_attribute("path"))
+      ss.path = lst[i]->get_attribute("path").to_string();
     references.push_back(ss);
   }
 }
@@ -493,7 +493,7 @@ NodeSchema::NodeSchema(const MXml &mx)
 
   if(mx.name.compare("input") == 0)
   {
-    if(!mx.hasAttribute("name"))
+    if(!mx.has_attribute("name"))
     {
       name.set_value(Localized::LANG_ID, "input");
     }
@@ -502,7 +502,7 @@ NodeSchema::NodeSchema(const MXml &mx)
   }
   else
   {
-    if(!mx.hasAttribute("name"))
+    if(!mx.has_attribute("name"))
     {
       log.anomaly("XML has no 'name' attribute.");
       return;
@@ -510,11 +510,11 @@ NodeSchema::NodeSchema(const MXml &mx)
     name = Localized(mx);
   }
 
-  if(mx.hasAttribute("inherits"))
-    inheritance_name = mx.getAttribute("inherits").toString();
+  if(mx.has_attribute("inherits"))
+    inheritance_name = mx.get_attribute("inherits").to_string();
 
-  if(mx.hasAttribute("icon"))
-    icon_path = mx.getAttribute("icon").toString();
+  if(mx.has_attribute("icon"))
+    icon_path = mx.get_attribute("icon").to_string();
 
   from_xml(mx);
 }
@@ -899,7 +899,7 @@ int FileSchema::from_xml(const MXml &xm)
     return -1;
   }
 
-  std::string rootname = xm.getAttribute("root").toString();
+  std::string rootname = xm.get_attribute("root").to_string();
 
   std::vector<const MXml *> lst;
 
@@ -915,12 +915,12 @@ int FileSchema::from_xml(const MXml &xm)
   xm.get_children("include-schema", lst);
   for(i = 0; i < lst.size(); i++)
   {
-    if(!lst[i]->hasAttribute("path"))
+    if(!lst[i]->has_attribute("path"))
     {
       log.warning("Tag include-schema without path.");
       continue;
     }
-    std::string path = lst[i]->getAttribute("path").toString();
+    std::string path = lst[i]->get_attribute("path").to_string();
 
     MXml xm;
     if(xm.from_file(utils::get_fixed_data_path() + PATH_SEP + path))
@@ -941,7 +941,7 @@ int FileSchema::from_xml(const MXml &xm)
 
   for(i = 0; i < lst.size(); i++)
   {
-    std::string type = lst[i]->getAttribute("type").toString();
+    std::string type = lst[i]->get_attribute("type").to_string();
     for(j = 0; j < schemas.size(); j++)
     {
       if(schemas[j]->name.get_id().compare(type) == 0)
@@ -1032,26 +1032,6 @@ void FileSchema::build_references()
               break;
             }
           }
-          #if 0
-          if(l == schemas[i]->children.size())
-          {
-            SubSchema ss;
-            //warning("Lookup %s..", as->enumerations[k].schema_str.c_str());
-
-            ss.ptr = get_schema(as->enumerations[k].schema_str);
-            if(ss.ptr == nullptr)
-            {
-              log.anomaly("build refs: schema not found: %s.", as->enumerations[k].schema_str.c_str());
-              continue;
-            }
-            ss.child_str = ss.ptr->name.get_id();
-            ss.min = 0;
-            ss.max = 1;
-            ss.is_exclusive = true;
-            ss.name = ss.ptr->name;
-            schemas[i]->add_sub_node(ss);
-          }
-          #endif
         }
       }
     }
@@ -1479,17 +1459,8 @@ std::string SubSchema::to_string() const
 
 AttributeSchema::AttributeSchema(const Node &e)
 {
-  /*setup("model", std::string("attribute-schema"));*/
-
   std::string typestr = e.get_attribute_as_string("type");
   name = e.get_localized();
-
-  /*e.get_attribute_as_string("name");
-  fr   = e.get_attribute_as_string("fr");
-  en   = e.get_attribute_as_string("en");*/
-
-  //log.setup("model", std::string("attribute-schema/") + name.get_id());
-  log.setup("model");
 
   min = -1;
   is_ip = false;
@@ -1645,24 +1616,18 @@ AttributeSchema::AttributeSchema(const Node &e)
 
 AttributeSchema::AttributeSchema(const MXml &mx)
 {
-  //unsigned int i;
-
   std::string typestr = "int";
 
-  //log.setup("model", string("att-schema/") + mx.getName());
-  log.setup(string("att-schema/") + mx.getName());
+  log.setup(string("att-schema/") + mx.get_name());
 
-  /*setup("model", std::string("attribute-schema/"));*/
-
-  if(mx.hasAttribute("type"))
+  if(mx.has_attribute("type"))
   {
     //anomaly("The XML attribute has no type: %s", mx.dump().c_str());
     //return;
-    typestr = mx.getAttribute("type").toString();
+    typestr = mx.get_attribute("type").to_string();
   }
 
-
-  if(!mx.hasAttribute("name"))
+  if(!mx.has_attribute("name"))
   {
     log.anomaly("The XML attribute has no name: %s", mx.dump().c_str());
     return;
@@ -1690,97 +1655,91 @@ AttributeSchema::AttributeSchema(const MXml &mx)
   is_read_only = false;
 
   formatted_text = false;
-  if(mx.hasAttribute("formatted-text"))
-    formatted_text = mx.getAttribute("formatted-text").toBool();
+  if(mx.has_attribute("formatted-text"))
+    formatted_text = mx.get_attribute("formatted-text").to_bool();
 
   is_instrument = false;
-  if(mx.hasAttribute("instrument"))
-    is_instrument = mx.getAttribute("instrument").toBool();
+  if(mx.has_attribute("instrument"))
+    is_instrument = mx.get_attribute("instrument").to_bool();
 
   //count = 1;
 
-  if(mx.hasAttribute("require"))
-    requirement = mx.getAttribute("require").toString();
+  if(mx.has_attribute("require"))
+    requirement = mx.get_attribute("require").to_string();
 
   regular_exp = "";
-  if(mx.hasAttribute("regular"))
-    regular_exp = mx.getAttribute("regular").toString();
+  if(mx.has_attribute("regular"))
+    regular_exp = mx.get_attribute("regular").to_string();
 
-  //if(mx.hasAttribute("count"))
-   // count = mx.getAttribute("count").toInt();
+  //if(mx.has_attribute("count"))
+   // count = mx.get_attribute("count").to_int();
 
-  if(mx.hasAttribute("readonly"))
-    is_read_only = mx.getAttribute("readonly").toBool();
+  if(mx.has_attribute("readonly"))
+    is_read_only = mx.get_attribute("readonly").to_bool();
 
   //trace("%s: readonly = %s.", name.c_str(), is_read_only ? "true" : "false");
 
-  /*if(mx.hasAttribute("en"))
-    en = mx.getAttribute("en").toString();
+  /*if(mx.has_attribute("en"))
+    en = mx.get_attribute("en").to_string();
 
-  if(mx.hasAttribute("fr"))
-    fr = mx.getAttribute("fr").toString();*/
+  if(mx.has_attribute("fr"))
+    fr = mx.get_attribute("fr").to_string();*/
 
-  if(mx.hasAttribute("id"))
-    id = mx.getAttribute("id").toInt();
+  if(mx.has_attribute("id"))
+    id = mx.get_attribute("id").to_int();
 
-  if(mx.hasAttribute("size"))
-    size = mx.getAttribute("size").toInt();
+  if(mx.has_attribute("size"))
+    size = mx.get_attribute("size").to_int();
 
-  if(mx.hasAttribute("signed"))
-    is_signed = mx.getAttribute("signed").toBool();
+  if(mx.has_attribute("signed"))
+    is_signed = mx.get_attribute("signed").to_bool();
 
-  if(mx.hasAttribute("hidden"))
-    is_hidden = mx.getAttribute("hidden").toBool();
+  if(mx.has_attribute("hidden"))
+    is_hidden = mx.get_attribute("hidden").to_bool();
 
-  if(mx.hasAttribute("volatile"))
-    is_volatile = mx.getAttribute("volatile").toBool();
-  if(mx.hasAttribute("hexa"))
-    is_hexa = mx.getAttribute("hexa").toBool();
-  if(mx.hasAttribute("bytes"))
-    is_bytes = mx.getAttribute("bytes").toBool();
-  /*if(mx.hasChild("description"))
-  {
-    description = mx.getChild("description").dumpContent();
-    //trace("Chargï¿½ description : " + description);
-  }*/
+  if(mx.has_attribute("volatile"))
+    is_volatile = mx.get_attribute("volatile").to_bool();
+  if(mx.has_attribute("hexa"))
+    is_hexa = mx.get_attribute("hexa").to_bool();
+  if(mx.has_attribute("bytes"))
+    is_bytes = mx.get_attribute("bytes").to_bool();
 
-
-  if(mx.hasAttribute("unit"))
-    unit = mx.getAttribute("unit").toString();
-  if(mx.hasAttribute("extension"))
-    extension = mx.getAttribute("extension").toString();
-  if(mx.hasAttribute("max"))
+  if(mx.has_attribute("unit"))
+    unit = mx.get_attribute("unit").to_string();
+  if(mx.has_attribute("extension"))
+    extension = mx.get_attribute("extension").to_string();
+  if(mx.has_attribute("max"))
   {
     has_max = true;
-    max     = mx.getAttribute("max").toInt();
+    max     = mx.get_attribute("max").to_int();
   }
-  if(mx.hasAttribute("min"))
+  if(mx.has_attribute("min"))
   {
     has_min = true;
-    min     = mx.getAttribute("min").toInt();
+    min     = mx.get_attribute("min").to_int();
   }
-  std::vector<MXml> lst = mx.getChildren("match");
+  std::vector<MXml> lst = mx.get_children("match");
   for(unsigned int i = 0; i < lst.size(); i++)
   {
     Enumeration e;
-    e.name  = Localized(lst[i]);//.getAttribute("name").toString();
-    if(lst[i].hasAttribute("value"))
-      e.value = lst[i].getAttribute("value").toString();
+    e.name  = Localized(lst[i]);//.get_attribute("name").to_string();
+    if(lst[i].has_attribute("value"))
+      e.value = lst[i].get_attribute("value").to_string();
     else
       e.value = e.name.get_id();
     /*e.en = e.name;
     e.fr = e.name;
-    if(lst[i].hasAttribute("en"))
-      e.en = lst[i].getAttribute("en").toString();
-    if(lst[i].hasAttribute("fr"))
-      e.fr = lst[i].getAttribute("fr").toString();*/
+    if(lst[i].has_attribute("en"))
+      e.en = lst[i].get_attribute("en").to_string();
+    if(lst[i].has_attribute("fr"))
+      e.fr = lst[i].get_attribute("fr").to_string();*/
 
-    if(lst[i].hasAttribute("schema"))
-        e.schema_str = lst[i].getAttribute("schema").toString();
+    if(lst[i].has_attribute("schema"))
+        e.schema_str = lst[i].get_attribute("schema").to_string();
 
     /*if(lst[i].hasChild("description"))
     {
-      e.description = lst[i].getChild("description").dumpContent();
+      e.description = lst[i].get_child("description").dumpContent();
     }*/
 
     enumerations.push_back(e);
@@ -1847,11 +1806,11 @@ AttributeSchema::AttributeSchema(const MXml &mx)
   }
 
   default_value.clear();
-  if(mx.hasAttribute("default"))
+  if(mx.has_attribute("default"))
   {
 
-    serialize(default_value, mx.getAttribute("default").toString());
-              //default_value = mx.getAttribute("default").toString();
+    serialize(default_value, mx.get_attribute("default").to_string());
+              //default_value = mx.get_attribute("default").to_string();
   }
   else
   {
@@ -1860,9 +1819,9 @@ AttributeSchema::AttributeSchema(const MXml &mx)
 
   assert(is_valid(default_value));
 
-  if(mx.hasAttribute("constraints"))
+  if(mx.has_attribute("constraints"))
   {
-      std::string tot = mx.getAttribute("constraints").toString();
+      std::string tot = mx.get_attribute("constraints").to_string();
       // Parse list of match ('|' separed)
       const char *s = tot.c_str();
       char current[200];
@@ -3672,7 +3631,7 @@ void Node::fromXml(const MXml &e, string root_path)
    * contain embedded HTML/XML content not to be analyzed here. */
   if(e.name.compare("description") == 0)
   {
-    this->set_attribute("content", e.dumpContent());
+    this->set_attribute("content", e.dump_content());
   }
 
   unsigned int n = e.attributes.size();
@@ -3683,7 +3642,7 @@ void Node::fromXml(const MXml &e, string root_path)
     // check references
     if(schema()->has_reference(xa.name))
     {
-      set_reference(xa.name, XPath(xa.toString()));
+      set_reference(xa.name, XPath(xa.to_string()));
     }
     else
     {
@@ -4229,12 +4188,8 @@ static void accept_all(std::vector<std::string> &cars)
   for(i = 0xc0; i <= 0xfe; i++)
     accept_utf8(cars, 0xc3, i);
 
-  //accept_interval(cars, 'ï¿½', 'ï¿½');
-  //accept_interval(cars, 'ï¿½', 'ï¿½');
-  //accept_interval(cars, 'ï¿½', 'ï¿½');
   accept_interval(cars, '"', '"');
   accept_interval(cars, '\'', '\'');
-  //accept_interval(cars, 'ï¿½', 'ï¿½');
   accept_interval(cars, '=', '=');
   accept_interval(cars, ' ', ' ');
 }
@@ -4301,24 +4256,6 @@ bool AttributeSchema::is_valid(std::string s)
   const char *ss = s.c_str();
   uint32_t i, n = s.size();
 
-# if 0
-  if((type == TYPE_STRING) && (regular_exp.size() > 0))
-  {
-    RegExp re;
-    //trace("Checking regexp: %s..", regular_exp.c_str());
-    if(re.from_string(regular_exp))
-    {
-      log.anomaly("Failed to parse regexp: %s.", regular_exp.c_str());
-      return false;
-    }
-    //trace("Which is: %s..", re.to_string().c_str());
-    if(!re.check(s))
-    {
-      log.warning("Regexp do not match '%s'.", s.c_str());
-      return false;
-    }
-  }
-# endif
 
   if((type == TYPE_STRING) && (is_ip))
   {
@@ -4444,8 +4381,6 @@ void Attribute::forward_change_event()
 
 int  Attribute::set_value(const ByteArray &ba)
 {
-  //unsigned int i, j;
-
   if(ba != value)
   {
     if(!schema->is_valid(ba))
@@ -4455,54 +4390,13 @@ int  Attribute::set_value(const ByteArray &ba)
       return -1;
     }
 
-
     value = ba;
-
-
-    #if 0
-    if(parent != nullptr)
-    {
-      Node node(parent);
-      for(i = 0; i < schema->enumerations.size(); i++)
-      {
-        Enumeration &e = schema->enumerations[i];
-        if(e.value.compare(schema->get_string(ba)) == 0)
-        {
-          if(e.schema != nullptr)
-          {
-            trace("enum changed: adding child %s...", e.schema->name.get_id().c_str());
-            if(!node.has_child(e.schema->name.get_id()))
-              node.add_child(e.schema);
-            trace("done.");
-            for(j = 0; j < schema->enumerations.size(); j++)
-            {
-              Enumeration &e2 = schema->enumerations[j];
-              if((e2.schema != nullptr) && (node.has_child(e2.schema->name.get_id())))
-              {
-                if(e2.value.compare(schema->get_string(ba)) == 0)
-                  continue;
-                trace("enum changed: removing child %s...", e2.schema->name.get_id().c_str());
-                node.remove_child(node.get_child_at(e2.schema->name.get_id(), 0));
-              }
-            }
-            break;
-          }
-        }
-      }
-    }
-    #endif
 
     if(!inhibit_event_dispatch)
     {
-      //XPath xpt;
-      //ChangeEvent ce;
-      //value_changed();
       ChangeEvent ce = ChangeEvent::create_att_changed(this);
-      //ce.source = this;
       ce.path = XPath(XPathItem(schema->name.get_id()));
-      //ce.source_node = nullptr;//new Node(parent);
       dispatch(ce);
-      //delete ce.source_node;
     }
 
     return 0;
@@ -4519,11 +4413,8 @@ int Attribute::set_value(const string &s)
     if(!inhibit_event_dispatch)
     {
       ChangeEvent ce = ChangeEvent::create_att_changed(this);
-      //ce.source      = this;
       ce.path = XPath(XPathItem(schema->name.get_id()));
-      //ce.source_node = nullptr;//new Node(parent);
       dispatch(ce);
-      //delete ce.source_node;
     }
     return -1;
   }
@@ -4532,130 +4423,6 @@ int Attribute::set_value(const string &s)
   if(schema->serialize(ba, s))
     return -1;
   return set_value(ba);
-
-
-# if 0
-  unsigned int i, j;
-
-  if(schema == nullptr)
-    return -1;
-
-  if(schema->type == TYPE_BLOB)
-  {
-    blob = ByteArray(s);
-    return 0;
-  }
-
-  std::string old = value;
-
-  if(old.compare(s) != 0)
-  {
-    if(schema->is_valid(s))
-    {
-      /* For color with palette, must find the closest color from the palette */
-      if((schema->type == TYPE_COLOR) && (schema->constraints.size() > 0))
-      {
-        ByteArray target(s);
-        float tr = target[0];
-        float tg = target[1];
-        float tb = target[2];
-        float closest_dst = 3.0*255*255;
-        std::string closest = s;
-        for(unsigned int i = 0; i < schema->constraints.size(); i++)
-        {
-          ByteArray col(schema->constraints[i]);
-          if(col.size() < 3)
-          {
-            log.anomaly("Invalid constraint in color schema: %s.",
-                    schema->constraints[i].c_str());
-            continue;
-          }
-          float r = col[0];
-          float g = col[1];
-          float b = col[2];
-          float d = (r - tr) * (r - tr)
-                  + (g - tg) * (g - tg)
-                  + (b - tb) * (b - tb);
-          if(d < closest_dst)
-          {
-            closest_dst = d;
-            closest = schema->constraints[i];
-          }
-        }
-        if(s.compare(closest))
-        {
-          log.warning("set_color(%s): choosen %s (closest color from the palette).",
-                  s.c_str(), closest.c_str());
-          s = closest;
-        }
-      }
-
-
-      //trace("Value changed: %s -> %s.", value.c_str(), s.c_str());
-
-      value = s;
-
-#    if 0
-      if(parent != nullptr)
-      {
-        Node node(parent);
-        for(i = 0; i < schema->enumerations.size(); i++)
-        {
-          Enumeration &e = schema->enumerations[i];
-          if(e.value.compare(s) == 0)
-          {
-            if(e.schema != nullptr)
-            {
-              trace("enum changed: adding child %s...", e.schema->name.get_id().c_str());
-              node.add_child(e.schema);
-              trace("done.");
-              for(j = 0; j < schema->enumerations.size(); j++)
-              {
-                Enumeration &e2 = schema->enumerations[j];
-                if((e2.schema != nullptr) && (node.has_child(e2.schema->name.get_id())))
-                {
-                  if(e2.value.compare(s) == 0)
-                    continue;
-                  trace("enum changed: removing child %s...", e2.schema->name.get_id().c_str());
-                  node.remove_child(node.get_child_at(e2.schema->name.get_id(), 0));
-                }
-              }
-              break;
-            }
-          }
-        }
-      }
-#    endif
-
-      if(!inhibit_event_dispatch)
-      {
-        value_changed();
-        ChangeEvent ce = ChangeEvent::create_att_changed(this);
-        ce.source = this;
-        ce.path = XPath(XPathItem(schema->name.get_id()));
-        ce.source_node = nullptr;//new Node(parent);
-        dispatch(ce);
-        //delete ce.source_node;
-      }
-      return 0;
-    }
-    else
-    {
-      log.warning("set_value(%s): invalid value.", s.c_str());
-      if(!inhibit_event_dispatch)
-      {
-        ChangeEvent ce = ChangeEvent::create_att_changed(this);
-        ce.source      = this;
-        ce.path = XPath(XPathItem(schema->name.get_id()));
-        ce.source_node = nullptr;//new Node(parent);
-        dispatch(ce);
-        //delete ce.source_node;
-      }
-      return -1;
-    }
-  }
-  return 0;
-# endif
 }
 
 string Attribute::get_string() const
@@ -4668,26 +4435,6 @@ void Attribute::set_value(int i)
   ByteArray ba;
   schema->serialize(ba, i);
   set_value(ba);
-  //value.clear();
-  //return schema->serialize(value, i);
-
-  /*if((schema->type == TYPE_STRING) && (schema->enumerations.size() > 0))
-  {
-    std::string nval = utils::str::int2str(i);
-    for(unsigned int i = 0; i < schema->enumerations.size(); i++)
-    {
-      if(nval.compare(schema->enumerations[i].value) == 0)
-      {
-        set_value(schema->enumerations[i].name.get_id());
-        return;
-      }
-    }
-  }
-
-  if(schema->is_hexa)
-    set_value("0x" + utils::str::int2strhexa(i));
-  else
-  set_value(utils::str::int2str(i));*/
 }
 
 void Attribute::set_value(float f)
@@ -4695,11 +4442,6 @@ void Attribute::set_value(float f)
   ByteArray ba;
   schema->serialize(ba, f);
   set_value(ba);
-
-
-  /*char tmp[50];
-  sprintf(tmp, "%f", f);
-  set_value(std::string(tmp));*/
 }
 
 void Attribute::set_value(bool b)
@@ -4709,17 +4451,6 @@ void Attribute::set_value(bool b)
   set_value(ba);
 }
 
-#if 0
-void RootSchema::register_schema(FileSchema *fs)
-{
-  root_fs = fs;
-}
-
-refptr<NodeSchema> RootSchema::get_schema(std::string name)
-{
-  return root_fs->get_schema(name);
-}
-#endif
 
 
 // GET CHILDREN, TYPE NON PRECISE

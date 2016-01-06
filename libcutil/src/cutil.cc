@@ -1525,7 +1525,7 @@ void Section::load(std::string filename)
     {
       if(mx.children[i].name.compare("include") == 0)
       {
-        load(utils::get_fixed_data_path() + PATH_SEP + mx.children[i].getAttribute("file").toString());
+        load(utils::get_fixed_data_path() + PATH_SEP + mx.children[i].get_attribute("file").to_string());
       }
       else
         data.add_child(mx.children[i]);
@@ -1631,24 +1631,24 @@ std::string str::latin_to_utf8(std::string s)
 
 bool Section::has_item(std::string name)
 {
-  return data.hasChild("item", "name", name);
+  return data.has_child("item", "name", name);
 }
 
 std::string Section::get_item(std::string name)
 {
-  if(!data.hasChild("item", "name", name))
+  if(!data.has_child("item", "name", name))
   {
     printf("Item not found: %s\n", name.c_str());
     return name + "=?";
   }
-  MXml elt = data.getChild("item", "name", name);
+  MXml elt = data.get_child("item", "name", name);
 
 
-  if(elt.hasAttribute(current_language))
-    return elt.getAttribute(this->current_language).string_value;
+  if(elt.has_attribute(current_language))
+    return elt.get_attribute(this->current_language).string_value;
   else
-    if(elt.hasAttribute("en"))
-      return elt.getAttribute("en").string_value;
+    if(elt.has_attribute("en"))
+      return elt.get_attribute("en").string_value;
     else
       return name;
 }
@@ -1658,14 +1658,14 @@ const char *Section::get_text(std::string name)
   /*if((data == nullptr) || (data == 0))
     return name.c_str();*/
 
-  if(!data.hasChild("item", "name", name))
+  if(!data.has_child("item", "name", name))
   {
     printf("Item not found: %s\n", name.c_str());
     return name.c_str();
   }
 
-  MXml elt = data.getChild("item", "name", name);
-  return elt.getAttribute(this->current_language).string_value.c_str();
+  MXml elt = data.get_child("item", "name", name);
+  return elt.get_attribute(this->current_language).string_value.c_str();
 }
 
 Section Section::get_section(std::string name)
@@ -1673,12 +1673,12 @@ Section Section::get_section(std::string name)
   /*if((data == nullptr) || (data == 0))
     return *this;*/
 
-  if(!data.hasChild("section", "name", name))
+  if(!data.has_child("section", "name", name))
   {
     printf("Sub-section not found : %s\n", name.c_str());
     return Section(MXml());
   }
-  MXml dat = data.getChild("section", "name", name);
+  MXml dat = data.get_child("section", "name", name);
   Section res(dat);
   res.current_language = current_language;
   return res;
@@ -2041,33 +2041,33 @@ Localized::Language Localized::parse_language(std::string id)
 
 Localized::Localized(const MXml &mx)
 {
-  if(mx.hasAttribute("name"))
-    set_value(LANG_ID, mx.getAttribute("name").toString());
-  else if(mx.hasAttribute("type"))
-    set_value(LANG_ID, mx.getAttribute("type").toString());
+  if(mx.has_attribute("name"))
+    set_value(LANG_ID, mx.get_attribute("name").to_string());
+  else if(mx.has_attribute("type"))
+    set_value(LANG_ID, mx.get_attribute("type").to_string());
 
   // TODO: should not repeat the same code for each language
-  if(mx.hasAttribute("fr"))
-    set_value(LANG_FR, mx.getAttribute("fr").toString());
+  if(mx.has_attribute("fr"))
+    set_value(LANG_FR, mx.get_attribute("fr").to_string());
 
-  if(mx.hasAttribute("en"))
-    set_value(LANG_EN, mx.getAttribute("en").toString());
+  if(mx.has_attribute("en"))
+    set_value(LANG_EN, mx.get_attribute("en").to_string());
 
-  if(mx.hasAttribute("de"))
-    set_value(LANG_DE, mx.getAttribute("de").toString());
+  if(mx.has_attribute("de"))
+    set_value(LANG_DE, mx.get_attribute("de").to_string());
 
-  if(mx.hasAttribute("ru"))
-    set_value(LANG_RU, mx.getAttribute("ru").toString());
+  if(mx.has_attribute("ru"))
+    set_value(LANG_RU, mx.get_attribute("ru").to_string());
 
-  std::vector<MXml> lst = mx.getChildren("description");
+  std::vector<MXml> lst = mx.get_children("description");
 
   for(unsigned int i = 0; i < lst.size(); i++)
   {
-    std::string contents = lst[i].dumpContent();
+    std::string contents = lst[i].dump_content();
 
-    if(lst[i].hasAttribute("lang"))
+    if(lst[i].has_attribute("lang"))
     {
-      set_description(parse_language(lst[i].getAttribute("lang").toString()),
+      set_description(parse_language(lst[i].get_attribute("lang").to_string()),
                       contents);
     }
     else

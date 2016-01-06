@@ -19,7 +19,7 @@ using namespace utils;
 
 XmlAttribute::XmlAttribute(const XmlAttribute &a)
 {
-    *this = a;
+  *this = a;
 }
 
 XmlAttribute &XmlAttribute::operator =(const XmlAttribute &a)
@@ -51,106 +51,94 @@ MXml &MXml::operator =(const MXml &mx)
 }
 
 
-std::string MXml::getName() const
+std::string MXml::get_name() const
 {
-	return name;
+  return name;
 }
 
-bool MXml::hasChild(std::string balise_name, std::string att_name, std::string att_value) const
+bool MXml::has_child(std::string balise_name,
+		    std::string att_name,
+		    std::string att_value) const
 {
-  for(unsigned int i = 0; i < children.size(); i++)
-	{
-		if(children[i].name.compare(balise_name) == 0)
-		{
-		  if(children[i].hasAttribute(att_name))
-		  {
-		    if(children[i].getAttribute(att_name).string_value.compare(att_value) == 0)
-		      return true;
-		  }
-		}
-	}
-    return false;
+  for(auto &child: children)
+    if((child.name == balise_name)
+       && (child.has_attribute(att_name))
+       && (child.get_attribute(att_name).string_value == att_value))
+      return true;
+  return false;
 }
 
-MXml MXml::getChild(std::string balise_name, std::string att_name, std::string att_value)
+MXml MXml::get_child(std::string balise_name,
+		    std::string att_name,
+		    std::string att_value)
 {
-	for(unsigned int i = 0; i < children.size(); i++)
-	{
-		if(children[i].name.compare(balise_name) == 0)
-		{
-			if(children[i].getAttribute(att_name).string_value.compare(att_value) == 0)
-				return children[i];
-		}
-	}
-	log_anomaly(main_log, "XML child not found: %s in %s where %s = %s.",
-	 balise_name.c_str(), name.c_str(), att_name.c_str(), att_value.c_str());
-	return MXml();
+  for(auto &child: children)
+    if((child.name == balise_name)
+       && (child.get_attribute(att_name).string_value == att_value))
+	return child;
+
+  log_anomaly(main_log, "XML child not found: %s in %s where %s = %s.",
+	      balise_name.c_str(), name.c_str(),
+	      att_name.c_str(), att_value.c_str());
+  return MXml();
 }
 
-bool MXml::hasChild(std::string name) const
+bool MXml::has_child(std::string name) const
 {
-    for(unsigned int i = 0; i < children.size(); i++)
-    {
-        if(children[i].name.compare(name) == 0)
-            return true;
-    }
-    return false;
+  for(auto &ch: children)
+    if(ch.name == name)
+      return true;
+  return false;
 }
 
-MXml MXml::getChild(std::string name) const
+MXml MXml::get_child(std::string name) const
 {
-	for(unsigned int i = 0; i < children.size(); i++)
-	{
-		if(children[i].name.compare(name) == 0)
-			return children[i];
-	}
-	log_anomaly(main_log, "Child not found: %s in %s.", name.c_str(), this->name.c_str());
-	return MXml();
+  for(auto &ch: children)
+    if(ch.name == name)
+      return ch;
+  log_anomaly(main_log, "Child not found: %s in %s.",
+	      name.c_str(), this->name.c_str());
+  return MXml();
 }
 
  
-void MXml::get_children(std::string name, std::vector<const MXml *> &res) const
+void MXml::get_children(std::string name,
+			std::vector<const MXml *> &res) const
 {
-  unsigned int n = children.size();
-  for(unsigned int i = 0; i < n; i++)
+  for(auto &ch: children)
   {
-    if(children[i].name.compare(name) == 0)
-      res.push_back(&(children[i]));
+    if(ch.name == name)
+      res.push_back(&ch);
   }
 }
 
-std::vector<MXml> MXml::getChildren(std::string name) const
+std::vector<MXml> MXml::get_children(std::string name) const
 {
   std::vector<MXml> res;
-  for(unsigned int i = 0; i < children.size(); i++)
+  for(auto &ch: children)
   {
-    if(children[i].name.compare(name) == 0)
-      res.push_back(children[i]);
+    if(ch.name == name)
+      res.push_back(ch);
   }
   return res;
 }
 
-bool MXml::hasAttribute(std::string name) const
+bool MXml::has_attribute(std::string name) const
 {
-	for(unsigned int i = 0; i < attributes.size(); i++)
-	{
-		if(attributes[i].name.compare(name) == 0)
-			return true;
-	}
-	return false;
+  for(auto &att: attributes)
+    if(att.name == name)
+      return true;
+  return false;
 }
 
-XmlAttribute MXml::getAttribute(std::string name) const
+XmlAttribute MXml::get_attribute(std::string name) const
 {
-	for(unsigned int i = 0; i < attributes.size(); i++)
-	{
-		if(attributes[i].name.compare(name) == 0)
-			return attributes[i];
-	}
-	//xml_trace("MXml::getAttribute(" + name + "): attribute not found.\n");
-
-	log_anomaly(main_log, "getAttribute(%s): attribute not found in %s.", name.c_str(), this->name.c_str());
-	return XmlAttribute();
+  for(auto &att: attributes)
+    if(att.name == name)
+      return att;
+  log_anomaly(main_log, "getAttribute(%s): attribute not found in %s.",
+	      name.c_str(), this->name.c_str());
+  return XmlAttribute();
 }
 
 MXml::MXml(std::string name, std::vector<XmlAttribute> *attributes, std::vector<MXml> *children)
@@ -227,96 +215,89 @@ int MXml::from_string(std::string s)
 
 void MXml::add_child(const MXml &mx)
 {
-    order.push_back(true);
-    children.push_back(mx);
+  order.push_back(true);
+  children.push_back(mx);
 }
 
 void MXml::add_text(std::string s)
 {
-    order.push_back(false);
-    text.push_back(str::latin_to_utf8(s));
+  order.push_back(false);
+  text.push_back(str::latin_to_utf8(s));
 }
 
-std::string MXml::dumpContent() const
+std::string MXml::dump_content() const
 {
-    std::string res = "";
-    int index_el = 0;
-    int index_tx = 0;
-    for(unsigned int i = 0; i < order.size(); i++)
+  std::string res = "";
+  int index_el = 0;
+  int index_tx = 0;
+  for(unsigned int i = 0; i < order.size(); i++)
+  {
+    if(order[i])
+      res += children[index_el++].dump();
+    else
+      res += text[index_tx++];
+  }
+  const char *s = res.c_str();
+  bool only_spaces = true;
+  for(unsigned int i = 0; i < strlen(s); i++)
+  {
+    if(s[i] != ' ')
     {
-        if(order[i])
-            res += children[index_el++].dump();
-        else
-            res += text[index_tx++];
+      only_spaces = false;
+      break;
     }
-    const char *s = res.c_str();
-    bool only_spaces = true;
-    for(unsigned int i = 0; i < strlen(s); i++)
-    {
-        if(s[i] != ' ')
-        {
-            only_spaces = false;
-            break;
-        }
-    }
-    if(only_spaces)
-        return "";
-    return res;
+  }
+  if(only_spaces)
+    return "";
+  return res;
 }
 
 std::string MXml::dump() const
 {
-    std::string res = "<" + name;
+  std::string res = "<" + name;
 
-    if((attributes.size() == 0) && (order.size() == 0))
-      return res + "/>";
+  if((attributes.size() == 0) && (order.size() == 0))
+    return res + "/>";
 
-
-    for (unsigned int i = 0; i < attributes.size(); i++) 
-        res += " " + attributes[i].name + "=\"" + attributes[i].string_value + "\"";
-    res += ">";
-    int index_el = 0;
-    int index_tx = 0;
-    for(unsigned int i = 0; i < order.size(); i++)
-    {
-        if(order[i])
-            res += children[index_el++].dump();
-        else
-            res += text[index_tx++];
-    }
-    /*
-    std::vector<MXml>::iterator it2;
-    for (int i = 0; i < children.size(); i++) 
-        res += children[i].dump();
-    res += text;*/
-    res += "</" + name + ">";
-    return res;
+  for (auto &att: attributes) 
+    res += " " + att.name + "=\"" + att.string_value + "\"";
+  
+  res += ">";
+  int index_el = 0;
+  int index_tx = 0;
+  for(unsigned int i = 0; i < order.size(); i++)
+  {
+    if(order[i])
+      res += children[index_el++].dump();
+    else
+      res += text[index_tx++];
+  }
+  res += "</" + name + ">";
+  return res;
 }
 
 XmlAttribute::XmlAttribute()
 {
-    this->string_value = "?";
-    name = "?";
+  this->string_value = "?";
+  name = "?";
 }
 
 XmlAttribute::XmlAttribute(std::string name, std::string value)
 {
-    this->string_value = str::latin_to_utf8(value);
-    this->name = name;
+  this->string_value = str::latin_to_utf8(value);
+  this->name = name;
 }
 
-int XmlAttribute::toInt()
+int XmlAttribute::to_int() const
 {
-	char temp[20];
-	sprintf(temp, "%s", string_value.c_str());
-	int val = -1;
-        //std::cout << "Scanning '" << std::string(temp) << "' : ";
-	sscanf(temp, "%d", &val);
-        //printf("%d\n", val);
-	return val;
+  char temp[20];
+  sprintf(temp, "%s", string_value.c_str());
+  int val = -1;
+  sscanf(temp, "%d", &val);
+  return val;
 }
 
-std::string XmlAttribute::toString()  const
+std::string XmlAttribute::to_string()  const
 {
   const char *s = string_value.c_str();
   char buf[1000];
@@ -338,18 +319,18 @@ std::string XmlAttribute::toString()  const
   return std::string(buf);
 }
 
-bool XmlAttribute::toBool()
+bool XmlAttribute::to_bool() const
 {
-  return (string_value.compare("true") == 0);
+  return string_value == "true";
 }
 
-double XmlAttribute::toDouble()
+double XmlAttribute::to_double() const
 {
-	char temp[30];
-	sprintf(temp, "%s", string_value.c_str());
-	float val = -1;
-	sscanf(temp, "%f", &val);
-	return val;
+  char temp[30];
+  sprintf(temp, "%s", string_value.c_str());
+  float val = -1;
+  sscanf(temp, "%f", &val);
+  return val;
 }
 
 
