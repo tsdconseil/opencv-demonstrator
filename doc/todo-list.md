@@ -8,6 +8,9 @@ Valera and Shervin, please feel free to add your own ideas too!
  - Russian translations -> vr
  - Clean-up of the code
  - Fix the eye detection demo (do not work anymore since image downsizing)
+ - Simplifying XML files:
+    - schema of each demo in the `model.xml` file (no need to edit 2 files to add a demo)
+    - Splitting `model.xml` in one file by main category
  - Adding new demonstrations: see subsection below 
  - Improving of current demonstrations: see subsection below
  - Doing an analysis of the new functions available in OpenCV 3.0 / 3.1 
