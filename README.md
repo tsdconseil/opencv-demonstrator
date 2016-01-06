@@ -46,18 +46,15 @@ have a look to the
 
 ## Road map
 
-- clean up source code
-- write detailed and thorough build instructions for Windows, Linux, and Mac OSX
-- create separate build targets for Windows, Linux, and Mac OSX
-- provide `deb` and `rpm` installation packages for Linux distributions
-- provide a `brew` installation package for Mac OSX
-- improve i18n support (switch to full UTF-8)
-- add Russian translations
-- better documentation
-- increase coverage of OpenCV functions
-- tests
+- Better documentation and clean-up of the code to enable easier contributions from the community
+- Better support for Windows, Linux, and Mac OSX (detailled build instructions, binary packages)
+- Improve localization (e.g. translations)
+- Increase coverage of OpenCV functions
+- Tests
 - GUI improvements (multiple filters, scripting support, etc.)
 
+**Note:** For a detailled description of forecasted technical enhancements,
+please have a look at the list issues tagged as "enhancement".
 
 ## Authors
 
