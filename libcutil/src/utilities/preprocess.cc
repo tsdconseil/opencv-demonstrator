@@ -57,7 +57,7 @@ void handle_element(const MXml &mx)
   
   if(mx.name.compare("include") == 0)
   {
-    std::string fn = mx.getAttribute("path").toString();
+    std::string fn = mx.get_attribute("path").to_string();
 
     MXml xinc;
     log.trace("Loading included file: %s...", fn.c_str());
@@ -78,7 +78,7 @@ void handle_element(const MXml &mx)
   /** Add labels to TOC */
   if(mx.name.compare("label") == 0)
   {
-    toc_os << "    <toc-label name=\"" << str::utf8_to_latin(mx.getAttribute("name").toString()) << "\" ";
+    toc_os << "    <toc-label name=\"" << str::utf8_to_latin(mx.get_attribute("name").to_string()) << "\" ";
     toc_os << "section=\"" << str::utf8_to_latin(current_section) << "\" ";
     toc_os << "part=\"" << str::utf8_to_latin(current_part) << "\"/>\n";
   }
@@ -86,9 +86,9 @@ void handle_element(const MXml &mx)
   if(mx.name.compare("section") == 0)
   {
     std::string lname, name;
-    name = mx.getAttribute("name").toString();
-    if(mx.hasAttribute("label"))
-      lname = mx.getAttribute("label").toString();
+    name = mx.get_attribute("name").to_string();
+    if(mx.has_attribute("label"))
+      lname = mx.get_attribute("label").to_string();
     else
     {
       lname = name;
@@ -102,9 +102,9 @@ void handle_element(const MXml &mx)
   if(mx.name.compare("sub-section") == 0)
     {
       std::string lname, name;
-      name = str::utf8_to_latin(mx.getAttribute("name").toString());
-      if(mx.hasAttribute("label"))
-        lname = str::utf8_to_latin(mx.getAttribute("label").toString());
+      name = str::utf8_to_latin(mx.get_attribute("name").to_string());
+      if(mx.has_attribute("label"))
+        lname = str::utf8_to_latin(mx.get_attribute("label").to_string());
       else
       {
         lname = name;
@@ -118,9 +118,9 @@ void handle_element(const MXml &mx)
   if(mx.name.compare("part") == 0)
   {
     std::string lname, name;
-    name = str::utf8_to_latin(mx.getAttribute("name").toString());
-    if(mx.hasAttribute("label"))
-      lname = str::utf8_to_latin(mx.getAttribute("label").toString());
+    name = str::utf8_to_latin(mx.get_attribute("name").to_string());
+    if(mx.has_attribute("label"))
+      lname = str::utf8_to_latin(mx.get_attribute("label").to_string());
     else
     {
       lname = name;

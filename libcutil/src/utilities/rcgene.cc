@@ -20,13 +20,13 @@ int main(int argc, char **argv)
   
   int maj, min, build;
   std::string company, copyright, file_desc, original_file;
-  maj = mx.getAttribute("maj").toInt();
-  min = mx.getAttribute("min").toInt();
-  build = mx.getAttribute("build").toInt();
-  company = mx.getAttribute("company").toString();
-  copyright = mx.getAttribute("copyright").toString();
-  file_desc = mx.getAttribute("file_desc").toString();
-  original_file = mx.getAttribute("original_file").toString();
+  maj = mx.get_attribute("maj").to_int();
+  min = mx.get_attribute("min").to_int();
+  build = mx.get_attribute("build").to_int();
+  company = mx.get_attribute("company").to_string();
+  copyright = mx.get_attribute("copyright").to_string();
+  file_desc = mx.get_attribute("file_desc").to_string();
+  original_file = mx.get_attribute("original_file").to_string();
   
   printf("rcgene: revision = %d.%d...\n", maj, min);
 
