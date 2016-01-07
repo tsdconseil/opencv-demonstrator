@@ -24,12 +24,16 @@ compatibility of it's GCC (MINGW) version with the GTK DLLs*.
 Open a MSYS terminal, and execute the following commands.
 
 ```
+$ export OCVIPATH="put here the path where the OpenCV include files are installed"
+$ export OCVLPATH="put here the path where the OpenCV library files are installed"
 $ cd ~/
 $ git clone https://github.com/tsdconseil/opencv-demonstrator.git
 $ cd opencv-demonstrator
 $ make windows
 ```
 
+Note: typically, `OCVIPATH` would be `path-choosen-to-build-opencv/install/include`,
+and `OCVLPATH` would be `path-choosen-to-build-opencv/install/x86/mingw/lib`.
 
 ## Build instruction for Linux (Ubuntu)
 
@@ -38,6 +42,10 @@ and **OpenCV demonstrator (GUI)** into the home folder.
 
 
 ### Step 1 - Building and installing OpenCV 3.0 (dev)
+
+**Note:** In case you have already another OpenCV version installated on your machine,
+you should first uninstall it, prior to OpenCV 3.0 installation (there is also the possibility
+to not install OpenCV 3.0, but only build it, see additionnal instructions below).
 
 ```
 $ cd ~/
@@ -70,6 +78,18 @@ $ sudo make install
 $ sudo ldconfig
 ```
 
+
+### Optionnal: keeping another OpenCV version as the installed one 
+
+If you wish to let the previously installed OpenCV version untouched,
+then you should skip the `sudo make install` step in the previous instructions.
+Then, however, OpenCV 3.0 include files and libraries will not be
+available in the default linux folders. So you can tell the OpenCV demonstrator
+where to find it through the following prior definitions:
+```
+$ export OCVIPATH="~/opencv-3.0.0/build/install/include"
+$ export OCVLPATH="~/opencv-3.0.0/build/install/x86/lib"
+```
 
 ### Step 2 - Building the OpenCV demonstrator
 
