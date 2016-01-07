@@ -34,8 +34,6 @@ endif
 ########################################
 ifeq ($(TARGET),LINUX)
 ECHO=  echo
-BISON= bison
-FLEX=  flex
 TSUF   :=
 EXESUF :=
 COPTADD  = -DLINUX -DLINUX_RUN -fPIC -isystem /usr/include/gtkmm-3.0
@@ -44,8 +42,6 @@ GTKREV  = 3.0
 
 GTK_DIR= `pkg-config --cflags gtkmm-$(GTKREV)`
 GTK_LIB= `pkg-config --libs gtkmm-$(GTKREV)` -lpthread
-
-PRS_LIB=  -ly -lfl
 LOPTADD   := -lrt
 else
 ########################################
@@ -53,21 +49,12 @@ else
 ########################################
 ifeq ($(TARGET),PPC)
 ECHO=  echo -e
-BISON= bison
-FLEX=  flex
-# Powerpc toolchain path not specified ?
-ifeq ($(PPC_PATH),)
-PPC_PATH = /home/jar/bsp/QorIQ-DPAA-SDK-20110609-systembuilder/freescale-2010.09/bin
-endif
 # GCC=   $(PPC_PATH)/powerpc-linux-gnu-gcc
 # GPP=   $(PPC_PATH)/powerpc-linux-gnu-g++
 TSUF := -ppc
 EXESUF :=
 COPTADD= -DLINUX -DLINUX_RUN -fPIC
-
 GTKREV  =0
-PRS_LIB=  -ly -lfl
-#/usr/lib/liby.a /usr/lib/libfl.a
 LOPTADD   := -lrt
 else
 ########################################
@@ -75,15 +62,13 @@ else
 ########################################
 ECHO= echo -e
 TARGET= WIN
-BISON= c:/GnuWin32/bin/bison.exe
-FLEX= c:/GnuWin32/bin/flex.exe
 TSUF :=
 EXESUF := .exe
 COPTADD= -DWIN  -isystem c:/GTK/include/gtkmm-2.4 -Ic:/GnuWin32/include -D_USE_MATH_DEFINES
 GTKREV  =3.0
 GTK_DIR= `pkg-config --cflags gtkmm-$(GTKREV)`
 GTK_LIB= `pkg-config --libs gtkmm-$(GTKREV)` -lgthread-2.0
-PRS_LIB= C:/MinGW3/lib/liby.a C:/MinGW3/lib/libfl.a -ly -lfl
+
 
 LOPTADD := -lws2_32 -lwinmm  -lpng -LC:/GnuWin32/lib
 
@@ -141,7 +126,6 @@ COPT = $(COPTADD) -Wall -MMD -MP -MF $(BUILD_DIR)/.dep/$(@F).d -Wno-write-string
 
 ifeq ($(RMODE),debug)
 COPT += -g -O1 -DDEBUG_MODE
-#-O1
 else
 COPT += -O3 -DRELEASE_MODE
 endif
@@ -157,7 +141,7 @@ CXXFLAGS += $(COPT) -std=c++0x
 # External libraries
 ELIBS   := $(CURRENT_LIB) $(EXT_LIBS)
 
-LDFLAGS+= $(ELIBS) $(LOPTADD) $(GTK_LIB) $(PRS_LIB) $(ADDITIONNAL_LOPT)
+LDFLAGS+= $(ELIBS) $(LOPTADD) $(GTK_LIB) $(ADDITIONNAL_LOPT)
 
 ifeq ($(RMODE),release)
 LDFLAGS+= $(LOPT) -Wl,-s
