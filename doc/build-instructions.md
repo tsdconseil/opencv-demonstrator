@@ -43,7 +43,7 @@ and **OpenCV demonstrator (GUI)** into the home folder.
 
 ### Step 1 - Building and installing OpenCV 3.0 (dev)
 
-**Note:** In case you have already another OpenCV version installated on your machine,
+**Note:** In case you have already another OpenCV version instaled on your machine,
 you should first uninstall it, prior to OpenCV 3.0 installation (there is also the possibility
 to not install OpenCV 3.0, but only build it, see additionnal instructions below).
 
