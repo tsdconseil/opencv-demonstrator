@@ -258,21 +258,17 @@ void OCVDemo::update()
         if(demo->props.requiert_mosaique)
           this->img_selecteur.get_list(demo->params.mosaique);
 
-	// A remplacer par un appel au thread de calcul?
 
+	// Appel au thread de calcul
 	ODEvent evt;
 	evt.type = ODEvent::CALCUL;
 	evt.img  = I1;
 	evt.demo = demo;
 	event_fifo.push(evt);
-
+	// Attente fin de calcul
 	signal_calcul_termine.wait();
 
-	int retcode = calcul_status;
-	
-        //int retcode = demo->calcul(modele, I1);
-
-        if(retcode)
+        if(calcul_status)
         {
           journal.warning("ocvdemo: Echec calcul.");
           auto s = demo->sortie.errmsg;
