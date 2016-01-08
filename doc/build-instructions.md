@@ -14,7 +14,7 @@ Ensure that the following packages are already installed:
 - OpenCV 3.0
 - git
 
-**Important note:** the difficulty of installing this various libraries on
+**Important note:** the difficulty of installing those various libraries on
 Windows should not be underestimated, especially *one should check the
 compatibility of it's GCC (MINGW) version with the GTK DLLs*.
 
