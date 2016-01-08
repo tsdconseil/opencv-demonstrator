@@ -26,7 +26,7 @@ PROJECT= ocvdemo
 RPATH = ..
 
 # Definition of individual files to compiled
-SOURCES_BASE= image-selecteur photographie image-mosaic filter-demo morpho-demo gradient-demo reco-demo histo seuillage video-demo espaces-de-couleurs 3d boutils-image demos-registration
+SOURCES_BASE= image-selecteur photographie image-mosaic filter-demo morpho-demo gradient-demo reco-demo histo seuillage video-demo espaces-de-couleurs 3d boutils-image demos-registration gestion-souris ocvdemo-mmi ocvdemo-export
 
 # (Optionnal) Sources requiring a graphic toolkit -> will not be included in the reduced library
 SOURCES_IHM=

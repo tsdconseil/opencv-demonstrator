@@ -23,7 +23,7 @@
 #ifndef GRADIENT_DEMO_HPP_
 #define GRADIENT_DEMO_HPP_
 
-#include "ocvdemo.hpp"
+#include "ocvdemo-item.hpp"
 
 class NetDemo: public OCVDemoItem
 {

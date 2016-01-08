@@ -23,7 +23,7 @@
 #ifndef COLOR_DEMO_HPP
 #define COLOR_DEMO_HPP
 
-#include "ocvdemo.hpp"
+#include "ocvdemo-item.hpp"
 
 class HSVDemo: public OCVDemoItem
 {

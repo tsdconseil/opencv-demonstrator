@@ -24,7 +24,7 @@
 #ifndef HISTO_HPP_
 #define HISTO_HPP_
 
-#include "ocvdemo.hpp"
+#include "ocvdemo-item.hpp"
 
 
 extern int calc_hist(const cv::Mat &I, cv::Rect &roi, cv::MatND &hist);

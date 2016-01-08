@@ -21,10 +21,8 @@
  **/
 
 #include "ocvdemo.hpp"
-#include <glibmm.h>
 
-#define VMAJ 1
-#define VMIN 3
+
 
 // Conversion latin -> utf8:
 // iconv -f latin1 -t utf-8 data/lang8859.xml > data/lang.xml
@@ -33,6 +31,67 @@ using utils::model::Localized;
 
 static OCVDemo *instance = nullptr;
 
+
+void OCVDemo::thread_calcul()
+{
+  for(;;)
+  {
+    auto evt = event_fifo.pop();
+
+    switch(evt.type)
+    {
+      // Fin de l'application
+      case ODEvent::FIN:
+	journal.trace_major("Fin du thread de calcul.");
+	signal_thread_calcul_fin.raise();
+	return;
+      // Calcul sur une image
+      case ODEvent::CALCUL:
+
+        calcul_status = evt.demo->calcul(modele, evt.img);
+	
+	signal_calcul_termine.raise();
+	break;
+      default:
+	journal.anomaly("%s: invalid event.", __func__);
+	return;
+    }
+  }
+}
+
+bool OCVDemo::on_timeout(int unused)
+{
+  if(entree_video)
+  {
+    mutex.lock();
+    if(video_capture.isOpened())
+    {
+      journal.trace("lecture trame...");
+      Mat tmp;
+      video_capture >> tmp;
+      if(tmp.empty())
+      {
+        journal.trace("Fin de vidéo : redémarrage.");
+        if(video_fp.size() > 0)
+        {
+          video_capture.release();
+          video_capture.open(video_fp);
+
+          int nf = video_capture.get(CAP_PROP_FRAME_COUNT);
+          journal.trace("*** nframes = %d.", nf);
+
+        }
+        mutex.unlock();
+        return true;
+      }
+      I0 = tmp;
+      journal.trace("recalcul, I0: %d * %d...", I0.cols, I0.rows);
+      update();
+    }
+    mutex.unlock();
+  }
+  return true;
+}
 
 
 void OCVDemo::on_b_masque_raz()
@@ -110,80 +169,7 @@ void OCVDemo::masque_raz()
   item_en_cours->params.masque = cv::Mat::zeros(I0.size(), CV_8U);
 }
 
-void OCVDemo::mouse_callback(int image, int event, int x, int y, int flags)
-{
-  mutex.lock();
-  journal.trace("ocvdemo mouse callback img = %d, x = %d, y = %d.", image, x, y);
-  switch (event)
-  {
-    case CV_EVENT_LBUTTONDOWN:
-    {
-      journal.trace("LB DOWN x = %d, y = %d.", x, y);
-      //Point seedPoint = cvPoint(x,y); //setting mouse clicked location as seed point
 
-      rdi0.x = x;
-      rdi0.y = y;
-      rdi1 = rdi0;
-      etat_souris = 1;
-
-      if((item_en_cours != nullptr) && (item_en_cours->props.requiert_masque))
-      {
-        masque_clic(x,y);
-        compute_Ia();
-        update_Ia();
-      }
-
-      //floodFill(I0, seedPoint, Scalar(0,255,0));
-      //update();
-      break;
-    }
-    case CV_EVENT_MOUSEMOVE:
-    {
-      if(etat_souris == 1)
-      {
-        //Ia = I1.clone();
-        rdi1.x = x;
-        rdi1.y = y;
-
-        if((item_en_cours != nullptr) && (item_en_cours->props.requiert_masque))
-          masque_clic(x,y);
-
-        //cv::rectangle(Ia, roi0, roi1, Scalar(0,255,0), 3);
-        compute_Ia();
-        update_Ia();
-        journal.trace("updated ia.");
-      }
-      break;
-    }
-    case CV_EVENT_LBUTTONUP:
-    {
-      journal.trace("LB UP x = %d, y = %d.", x, y);
-      if(etat_souris == 1)
-      {
-        //Ia = I1.clone();
-        rdi1.x = x;
-        rdi1.y = y;
-        compute_Ia();
-        //cv::rectangle(Ia, roi0, roi1, Scalar(0,255,0), 3);
-        etat_souris = 0;
-        if(item_en_cours != nullptr)
-        {
-          int minx = min(rdi0.x, rdi1.x);
-          int miny = min(rdi0.y, rdi1.y);
-          int maxx = max(rdi0.x, rdi1.x);
-          int maxy = max(rdi0.y, rdi1.y);
-          Rect roi(minx, miny, maxx - minx, maxy - miny);
-          journal.trace_major("Set roi(%d,%d,%d,%d).",
-                              roi.x, roi.y, roi.width, roi.height);
-          item_en_cours->set_roi(I0, roi);
-        }
-        update();
-      }
-      break;
-    }
-  }
-  mutex.unlock();
-}
 
 void OCVDemo::update_Ia()
 {
@@ -255,8 +241,6 @@ void OCVDemo::update()
         }
         else
           img_selecteur.hide();
-
-
       }
 
       try
@@ -274,7 +258,19 @@ void OCVDemo::update()
         if(demo->props.requiert_mosaique)
           this->img_selecteur.get_list(demo->params.mosaique);
 
-        int retcode = demo->calcul(modele, I1);
+	// A remplacer par un appel au thread de calcul?
+
+	ODEvent evt;
+	evt.type = ODEvent::CALCUL;
+	evt.img  = I1;
+	evt.demo = demo;
+	event_fifo.push(evt);
+
+	signal_calcul_termine.wait();
+
+	int retcode = calcul_status;
+	
+        //int retcode = demo->calcul(modele, I1);
 
         if(retcode)
         {
@@ -295,9 +291,8 @@ void OCVDemo::update()
           else if(demo->sortie.nb_sorties > 0)
             sortie_en_cours = demo->sortie.O[demo->sortie.nb_sorties - 1];
           else
-            sortie_en_cours = I1;//demo->O[0];
+            sortie_en_cours = I1;
         }
-
       }
       catch(...)
       {
@@ -428,21 +423,15 @@ void OCVDemo::setup_demo(std::string id)
   if(item_en_cours && (item_en_cours->props.requiert_masque))
     barre_outil_dessin.montre();
 
-
-
   maj_bts();
 }
 
 
 void OCVDemo::maj()
 {
-  /*if(lock)
-    return;*/
   if(item_en_cours == nullptr)
     return;
 
-
-  //lock = true;
   entree_video = false;
 
   std::string fp = "";
@@ -525,7 +514,6 @@ void OCVDemo::maj()
   I1 = I0.clone();
   Ia = I0.clone();
   maj_bts();
-  //lock = false;
 }
 
 
@@ -605,49 +593,6 @@ OCVDemo *OCVDemo::get_instance()
   return instance;
 }
 
-namespace utils
-{
-  extern Localized::Language current_language;
-}
-
-void OCVDemo::maj_langue_systeme()
-{
-  int sel = modele_global.get_attribute_as_int("langue");
-
-
-  // TODO: remove this stupid redondance
-  utils::current_language = (Localized::LanguageEnum) (sel + Localized::LANG_FR);
-  langue.current_language = Localized::language_id(utils::current_language);
-}
-
-void OCVDemo::maj_langue()
-{
-  auto prev_lg = langue.current_language;
-  maj_langue_systeme();
-
-  b_save.set_label(langue.get_item("save"));
-  b_save.set_tooltip_markup(langue.get_item("save-tt"));
-  b_exit.set_label(langue.get_item("quitter"));
-  b_exit.set_tooltip_markup(langue.get_item("quitter-tt"));
-  b_infos.set_label(langue.get_item("apropos"));
-  b_infos.set_tooltip_markup(langue.get_item("apropos-tt"));
-  b_entree.set_label(langue.get_item("entree"));
-  b_entree.set_tooltip_markup(langue.get_item("entree-tt"));
-  // Apparently OpenCV windows support only ISO-8859-1
-  titre_principal = utils::str::utf8_to_latin(langue.get_item("resultats"));
-  wnd.set_title(langue.get_item("main-title"));
-
-  if(langue.current_language != prev_lg)
-  {
-    lock = true;
-    vue_arbre.maj_langue();
-    lock = false;
-    utils::mmi::SelectionChangeEvent sce;
-    sce.new_selection = vue_arbre.get_selection();
-    this->on_event(sce);
-  }
-  barre_outil_dessin.maj_lang();
-}
 
 OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 {
@@ -752,28 +697,14 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 
   vue_arbre.utils::CProvider<utils::mmi::SelectionChangeEvent>::add_listener(this);
 
-  //rtitle = utils::str::utf8_to_latin(langue.get_item("resultats"));
-
-  //hbox.pack_start(vbox, Gtk::PACK_EXPAND_WIDGET);
-  //vbox.pack_start(tree_view, Gtk::PACK_EXPAND_WIDGET);
-
-
-
   hpaned.pack1(vue_arbre, true, true);
   hpaned.pack2(cadre_proprietes, true, true);
   vue_arbre.set_size_request(300, 300);
   hpaned.set_border_width(5);
   hpaned.set_position(300);
 
-
-
-
-  //vbox.pack_start(*(view->get_widget()), Gtk::PACK_EXPAND_WIDGET);
   wnd.show_all_children(true);
   wnd.set_size_request(730,500);
-
-  //utils::mmi::DialogManager::setup_window(&wnd);
-
 
   sigc::slot<bool> my_slot = sigc::bind(sigc::mem_fun(*this, &OCVDemo::on_timeout), 0);
   sigc::connection conn = Glib::signal_timeout().connect(my_slot, 250); // 100 ms
@@ -825,155 +756,11 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 
   wnd.signal_delete_event().connect(sigc::mem_fun(*this,&OCVDemo::on_delete_event));
 
+  utils::hal::thread_start(this, &OCVDemo::thread_calcul);
+
   Gtk::Main::run(wnd);
 }
 
-void OCVDemo::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, const Gtk::SelectionData& selection_data, guint info, guint time)
-{
- if ((selection_data.get_length() >= 0) && (selection_data.get_format() == 8))
- {
-   std::vector<Glib::ustring> file_list;
-
-   file_list = selection_data.get_uris();
-
-   if(file_list.size() > 0)
-   {
-     Glib::ustring path = Glib::filename_from_uri(file_list[0]);
-     //do something here with the 'filename'. eg open the file for reading
-
-     std::string s = path;//file_list[0];//path;
-
-     journal.trace("DnD: %s.", s.c_str());
-
-     Node new_model = Node::create_ram_node(modele_global.schema());
-     new_model.copy_from(modele_global);
-     new_model.set_attribute("sel", 1);
-     new_model.set_attribute("file-schema/path", s);
-     modele_global.copy_from(new_model);
-
-     context->drag_finish(true, false, time);
-     return;
-   }
- }
- context->drag_finish(false, false, time);
-}
-
-
-
-std::string OCVDemo::export_demos(utils::model::Node &cat, Localized::Language lg)
-{
-  std::string s;
-  auto nb_demos = cat.get_children_count("demo");
-  for(auto i = 0u; i < nb_demos; i++)
-  {
-    auto demo = cat.get_child_at("demo", i);
-    s += "<tr>";
-    if(i == 0)
-    {
-      s += "<td rowspan=\"" + utils::str::int2str(nb_demos) + "\"><b>";
-      s +=  cat.get_localized().get_value(lg);
-      s += "</b></td>";
-    }
-    s += "<td>" + demo.get_localized().get_value(lg) + "</td>";
-
-
-    //s += "<td>" + demo.get_localized().get_description(lg) + "</td>";
-
-    auto id = demo.name();
-    NodeSchema *ns = fs_racine->get_schema(id);
-
-    if(ns != nullptr)
-    {
-      std::string s2 = "<br/><img src=\"imgs/" + id + ".jpg\" alt=\"" + demo.get_localized().get_value(lg) + "\"/>";
-      s += "<td>" + ns->name.get_description(lg) + s2 + "</td>";
-    }
-    else
-    {
-      s += "<td></td>";
-      journal.warning("Pas de schema / description pour %s.", id.c_str());
-    }
-
-    s += "</tr>";
-  }
-  return s;
-}
-
-std::string OCVDemo::export_html(Localized::Language lg)
-{
-  std::string s = "<table class=\"formtable\">\n";
-  if(lg == Localized::Language::LANG_FR)
-    s += std::string(R"(<tr><td colspan="2"><b>Démonstration</b></td><td><b>Description</b></td></tr>)") + "\n";
-  else
-    s += std::string(R"(<tr><td colspan="2"><b>Demonstration</b></td><td><b>Description</b></td></tr>)") + "\n";
-  for(auto cat1: tdm.children("cat"))
-  {
-    for(auto cat2: cat1.children("cat"))
-    {
-      s += export_demos(cat2, lg);
-    }
-    s += export_demos(cat1, lg);
-  }
-  s += "</table>\n";
-
-  return s;
-}
-
-void OCVDemo::export_captures()
-{
-  for(auto cat1: tdm.children("cat"))
-  {
-    for(auto cat2: cat1.children("cat"))
-    {
-      export_captures(cat2);
-    }
-    export_captures(cat1);
-  }
-}
-
-void OCVDemo::export_captures(utils::model::Node &cat)
-{
-  auto nb_demos = cat.get_children_count("demo");
-  for(auto i = 0u; i < nb_demos; i++)
-  {
-
-    auto demo = cat.get_child_at("demo", i);
-    auto id = demo.get_attribute_as_string("name");
-
-    journal.trace_major("Export démo [%s]...", id.c_str());
-
-    //setup_demo(id);
-    setup_demo_p(demo);
-
-    std::string s = "../../../site/data/log/opencv/demo/list/imgs/";
-
-    s += id + ".jpg";
-
-    Mat A = get_current_output();
-
-
-    A = mosaique.get_global_img();
-
-    if(A.data == nullptr)
-    {
-      journal.warning("A.data == nullptr");
-      continue;
-    }
-
-    cv::pyrDown(A, A);
-    cv::pyrDown(A, A);
-
-    journal.verbose("taille finale = %d * %d.", A.cols, A.rows);
-    imwrite(s, A);
-  }
-}
-
-void OCVDemo::on_b_exit()
-{
-  journal.trace_major("Fin normale de l'application.");
-  utils::files::delete_file(lockfile);
-  wnd.hide();
-  exit(0);
-}
 
 bool OCVDemo::has_output()
 {
@@ -985,219 +772,11 @@ Mat OCVDemo::get_current_output()
   return sortie_en_cours;
 }
 
-void OCVDemo::maj_bts()
-{
-  int ho = has_output();
-  journal.trace("maj bts: has output: %d.", ho);
-  b_save.set_sensitive(ho);
-}
-
-void OCVDemo::on_b_save()
-{
-  journal.trace("Save.");
-  if(!has_output())
-  {
-    journal.warning("Pas de sortie dispo.");
-    return;
-  }
-  //auto s = utils::mmi::dialogs::save_dialog(langue.get_item("title-save"),
-  //"*.jpg,*.jp2,*.png,*.bmp", "Image");
-
-  std::string s, title = langue.get_item("title-save");
-
-  Gtk::FileChooserDialog dialog(title, Gtk::FILE_CHOOSER_ACTION_SAVE);
-  dialog.set_position(Gtk::WIN_POS_CENTER_ALWAYS);
-  if(utils::mmi::mainWindow != nullptr)
-    dialog.set_transient_for(*utils::mmi::mainWindow);
-  dialog.set_modal(true);
-  //Add response buttons the the dialog:
-  dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-  dialog.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
-
-  //Add filters, so that only certain file types can be selected:
 
 
 
-  Glib::RefPtr<Gtk::FileFilter> filter;
 
-  filter = Gtk::FileFilter::create();
-  filter->set_name("Image JPEG");
-  filter->add_mime_type("*.jpg");
-  dialog.add_filter(filter);
 
-  filter = Gtk::FileFilter::create();
-  filter->set_name("Image PNG");
-  filter->add_mime_type("*.png");
-  dialog.add_filter(filter);
-
-  filter = Gtk::FileFilter::create();
-  filter->set_name("Image JPEG 2000");
-  filter->add_mime_type("*.j2");
-  dialog.add_filter(filter);
-
-  filter = Gtk::FileFilter::create();
-  filter->set_name("Image BMP");
-  filter->add_mime_type("*.bmp");
-  dialog.add_filter(filter);
-
-  //Show the dialog and wait for a user response:
-  int result = dialog.run();
-
-  //Handle the response:
-  if(result == Gtk::RESPONSE_OK)
-  {
-    std::string filename = dialog.get_filename();
-
-    std::string ext = utils::files::get_extension(filename);
-    if(ext.size() == 0)
-    {
-      auto s = dialog.get_filter()->get_name();
-      if(s == "Image JPEG")
-        ext = ".jpg";
-      else if(s == "Image JPEG 2000")
-        ext = ".jp2";
-      else if(s == "Image BMP")
-        ext = ".bmp";
-      else if(s == "Image PNG")
-        ext = ".png";
-      filename += ext;
-    }
-
-    dialog.hide();
-    imwrite(filename, get_current_output());
-  }
-}
-
-void OCVDemo::on_b_infos()
-{
-  Gtk::AboutDialog ad;
-  ad.set_copyright("(C) 2015 TSD Conseil / J.A.");
-  Glib::RefPtr<Gdk::Pixbuf>  pix = Gdk::Pixbuf::create_from_file(utils::get_img_path() + "/logo.png");
-  ad.set_logo(pix);
-  //ad.set_logo_icon_name("OpenCV demonstrator");
-  ad.set_name(langue.get_item("main-title") + "\n");
-  ad.set_program_name(langue.get_item("main-title"));
-
-  char buf[500];
-  std::string s = langue.get_item("rev");
-  sprintf(buf, s.c_str(), VMAJ, VMIN);
-
-  ad.set_version(buf);
-  ad.set_copyright("(C) 2015 TSD Conseil / J.A.");
-  ad.set_license("LGPL");
-  ad.set_license_type(Gtk::LICENSE_LGPL_3_0);
-  ad.set_website("http://www.tsdconseil.fr");
-  ad.set_website_label("http://www.tsdconseil.fr");
-  std::vector<Glib::ustring> v;
-  v.push_back("J.A. / TSD Conseil");
-  ad.set_authors(v);
-
-  //ad.set_comments("bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla ");
-
-  std::string cmts;
-
-  cmts += langue.get_item("credit-image") + "\n";
-  cmts += langue.get_item("credit-image-opencv") + "\n";
-  cmts += langue.get_item("credit-image-carte") + "\n";
-  cmts += langue.get_item("credit-image-autre");
-
-  ad.set_comments(cmts);
-
-  /*std::vector<Glib::ustring> v2;
-  v2.push_back(langue.get_item("credit-image-opencv"));
-  v2.push_back("J.A.");
-  v2.push_back(langue.get_item("credit-image-carte"));
-  ad.add_credit_section(langue.get_item("credit-image"), v2);*/
-  ad.set_wrap_license(true);
-
-  ad.set_position(Gtk::WIN_POS_CENTER);
-  ad.run();
-}
-
-bool OCVDemo::on_timeout(int unused)
-{
-  if(entree_video)
-  {
-    mutex.lock();
-    if(video_capture.isOpened())
-    {
-      journal.trace("lecture trame...");
-      Mat tmp;
-      video_capture >> tmp;
-      if(tmp.empty())
-      {
-        journal.trace("Fin de vidéo : redémarrage.");
-        if(video_fp.size() > 0)
-        {
-          video_capture.release();
-          video_capture.open(video_fp);
-
-          int nf = video_capture.get(CAP_PROP_FRAME_COUNT);
-          journal.trace("*** nframes = %d.", nf);
-
-        }
-        mutex.unlock();
-        return true;
-      }
-      I0 = tmp;
-      journal.trace("recalcul, I0: %d * %d...", I0.cols, I0.rows);
-      update();
-    }
-    mutex.unlock();
-  }
-  return true;
-}
-
-void OCVDemo::setup_menu()
-{
-  agroup = Gtk::ActionGroup::create();
-  agroup->add( Gtk::Action::create("MenuMain", "_Menu") );
-  agroup->add( Gtk::Action::create("Input", langue.get_item("menu-entree")),
-    sigc::mem_fun(*this, &OCVDemo::on_menu_entree) );
-  agroup->add( Gtk::Action::create("Quit", langue.get_item("menu-quitter")),
-    sigc::mem_fun(*this, &OCVDemo::on_menu_quitter) );
-  Glib::RefPtr<Gtk::UIManager> m_refUIManager =
-      Gtk::UIManager::create();
-  m_refUIManager->insert_action_group(agroup);
-  wnd.add_accel_group(m_refUIManager->get_accel_group());
-
-  Glib::ustring ui_info =
-      "<ui>"
-      "  <menubar name='MenuBar'>"
-      "    <menu action='MenuMain'>"
-      "      <menuitem action='Input'/>"
-      "      <menuitem action='Quit'/>"
-      "    </menu>"
-      "  </menubar>"
-      "</ui>";
-
-  m_refUIManager->add_ui_from_string(ui_info);
-  Gtk::Widget *pMenuBar = m_refUIManager->get_widget("/MenuBar");
-  vbox.pack_start(*pMenuBar, Gtk::PACK_SHRINK);
-}
-
-void OCVDemo::on_menu_entree()
-{
-  journal.trace("menu entree.");
-
-  auto cp = utils::model::Node::create_ram_node(modele_global.schema());
-
-  cp.copy_from(modele_global);
-
-  if(utils::mmi::NodeDialog::display_modal(cp) == 0)
-    modele_global.copy_from(cp);
-}
-
-void OCVDemo::on_menu_quitter()
-{
-  on_b_exit();
-}
-
-bool OCVDemo::on_delete_event(GdkEventAny *event)
-{
-  on_b_exit();
-  return true;
-}
 
 int main(int argc, char **argv)
 {

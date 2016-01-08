@@ -23,7 +23,7 @@
 #ifndef OPTFLOWDEMO_HPP
 #define OPTFLOWDEMO_HPP
 
-#include "ocvdemo.hpp"
+#include "ocvdemo-item.hpp"
 #include "opencv2/video/video.hpp"
 
 /** @brief Démonstration flux optique */

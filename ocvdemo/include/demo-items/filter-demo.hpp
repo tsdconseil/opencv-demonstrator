@@ -23,7 +23,7 @@
 #ifndef FILTER_DEMO_HPP
 #define FILTER_DEMO_HPP
 
-#include "ocvdemo.hpp"
+#include "ocvdemo-item.hpp"
 
 struct FilterDemoConfig
 {

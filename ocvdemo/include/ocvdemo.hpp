@@ -45,6 +45,16 @@ using namespace utils::model;
 using namespace utils::mmi;
 using namespace cv;
 
+#define VMAJ 1
+#define VMIN 3
+
+// TODO: remove this ugly hack
+namespace utils
+{
+  extern Localized::Language current_language;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 /** @brief Classe principale pour le démonstrateur OpenCV */
 class OCVDemo:
@@ -75,6 +85,9 @@ public:
   void mouse_callback(int image, int event, int x, int y, int flags);
 
 private:
+
+  void thread_calcul();
+  
   void export_captures(utils::model::Node &cat);
   Mat  get_current_output();
   bool has_output();
@@ -172,6 +185,32 @@ private:
   int outil_dessin_en_cours;
   cv::Mat sortie_en_cours;
   ImageSelecteur img_selecteur;
+
+
+  // Objets envoyés dans la fifo de calcul
+  struct ODEvent
+  {
+    enum
+    {
+      // Requiert la fin du thread (fin de l'application)
+      FIN,
+      // Calcul sur une image
+      CALCUL
+    } type;
+    cv::Mat img;
+    OCVDemoItem *demo;
+  };
+  
+
+  // FIFO pour envoyer les commandes au thread de calcul
+  utils::hal::Fifo<ODEvent> event_fifo;
+
+  // Fin du dernier calcul demandé
+  utils::hal::Signal signal_calcul_termine;
+  int calcul_status;
+  
+  // Confirmation de la terminaison du thread de calcul
+  utils::hal::Signal signal_thread_calcul_fin;
 };
 
 

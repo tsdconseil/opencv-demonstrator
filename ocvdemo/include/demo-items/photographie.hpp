@@ -23,7 +23,7 @@
 #ifndef PHOTO_HPP
 #define PHOTO_HPP
 
-#include "ocvdemo.hpp"
+#include "ocvdemo-item.hpp"
 
 class HDRDemo: public OCVDemoItem
 {

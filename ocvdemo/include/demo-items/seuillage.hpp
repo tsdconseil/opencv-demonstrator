@@ -23,7 +23,7 @@
 #ifndef SEUILLAGE_HPP
 #define SEUILLAGE_HPP
 
-#include "ocvdemo.hpp"
+#include "ocvdemo-item.hpp"
 
 
 /** @brief Démonstration réparation d'image */

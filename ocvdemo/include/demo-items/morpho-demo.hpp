@@ -23,7 +23,7 @@
 #ifndef MORPHO_DEMO_HPP_
 #define MORPHO_DEMO_HPP_
 
-#include "ocvdemo.hpp"
+#include "ocvdemo-item.hpp"
 
 class MorphoDemo: public OCVDemoItem
 {
