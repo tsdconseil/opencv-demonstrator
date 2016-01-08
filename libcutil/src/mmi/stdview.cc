@@ -973,19 +973,20 @@ void NodeView::populate_notebook() {
   sub_views.clear();
 
   /* Place sub-panels */
-  for (unsigned int i = 0; i < schema->children.size(); i++) {
+  for (unsigned int i = 0; i < schema->children.size(); i++)
+  {
     SubSchema os = schema->children[i];
 
-    if (!(is_notebook_display(os) && model.has_child(os.name.get_id())
-        && (!os.is_exclusive))) 
-    {
-      log.trace("not for notebook: %s.", os.name.get_id().c_str());
-      log.trace("OS = %s.", os.to_string().c_str());
-      if (!is_notebook_display(os))
-        log.trace("!is_notebook_display");
-      if (!model.has_child(os.name.get_id()))
-        log.trace("no such child");
-    }
+    //if (!(is_notebook_display(os) && model.has_child(os.name.get_id())
+    //    && (!os.is_exclusive))) 
+    //{
+      //log.trace("not for notebook: %s.", os.name.get_id().c_str());
+      //log.trace("OS = %s.", os.to_string().c_str());
+      //if (!is_notebook_display(os))
+      //  log.trace("!is_notebook_display");
+      //if (!model.has_child(os.name.get_id()))
+      // log.trace("no such child");
+    //}
 
     if (is_notebook_display(os) && model.has_child(os.name.get_id())
         && (!os.is_exclusive)) 
@@ -1895,7 +1896,7 @@ AttributeListView::AttributeListView(Node model,
   if (row > 0)
   {
     table1.resize(row, 3);
-    log.verbose("Dim table1: %d * %d.", row, 3);
+    //log.verbose("Dim table1: %d * %d.", row, 3);
   }
   if (row_indicators > 0)
     table_indicators.resize(row_indicators, 3);

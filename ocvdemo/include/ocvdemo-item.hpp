@@ -110,7 +110,14 @@ public:
   virtual int calcul(Node &model, cv::Mat &I) = 0;
 
   /** Constructeur */
-  OCVDemoItem(){sortie.nb_sorties = -1; props.requiert_roi = false; props.requiert_masque = false; props.requiert_mosaique = false;}
+  OCVDemoItem()
+  {
+    sortie.nb_sorties = -1;
+    props.requiert_roi = false;
+    props.requiert_masque = false;
+    props.requiert_mosaique = false;
+    journal.setup("ocvdemo-item","");
+  }
 
   /** Destructeur */
   virtual ~OCVDemoItem(){}

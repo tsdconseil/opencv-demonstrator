@@ -40,7 +40,7 @@ void OCVDemo::mouse_callback(int image, int event, int x, int y, int flags)
       rdi1 = rdi0;
       etat_souris = 1;
 
-      if((item_en_cours != nullptr) && (item_en_cours->props.requiert_masque))
+      if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_masque))
       {
         masque_clic(x,y);
         compute_Ia();
@@ -59,7 +59,7 @@ void OCVDemo::mouse_callback(int image, int event, int x, int y, int flags)
         rdi1.x = x;
         rdi1.y = y;
 
-        if((item_en_cours != nullptr) && (item_en_cours->props.requiert_masque))
+        if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_masque))
           masque_clic(x,y);
 
         //cv::rectangle(Ia, roi0, roi1, Scalar(0,255,0), 3);
@@ -80,16 +80,16 @@ void OCVDemo::mouse_callback(int image, int event, int x, int y, int flags)
         compute_Ia();
         //cv::rectangle(Ia, roi0, roi1, Scalar(0,255,0), 3);
         etat_souris = 0;
-        if(item_en_cours != nullptr)
+        if(demo_en_cours != nullptr)
         {
           int minx = min(rdi0.x, rdi1.x);
           int miny = min(rdi0.y, rdi1.y);
           int maxx = max(rdi0.x, rdi1.x);
           int maxy = max(rdi0.y, rdi1.y);
-          Rect roi(minx, miny, maxx - minx, maxy - miny);
-          journal.trace_major("Set roi(%d,%d,%d,%d).",
-                              roi.x, roi.y, roi.width, roi.height);
-          item_en_cours->set_roi(I0, roi);
+          Rect rdi(minx, miny, maxx - minx, maxy - miny);
+          journal.trace_major("Set rdi(%d,%d,%d,%d).",
+                              rdi.x, rdi.y, rdi.width, rdi.height);
+          demo_en_cours->set_roi(I0, rdi);
         }
         update();
       }

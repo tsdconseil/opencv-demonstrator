@@ -85,7 +85,12 @@ int CamShiftDemo::calcul(Node &model, cv::Mat &I)
     tw3.y = tw2.y + tw2.height / 2 - tw3.height / 2;
     trackwindow = tw3;
     if(trackwindow.width * trackwindow.height > 0)
+    {
       cv::rectangle(I, trackwindow, Scalar(255,255,0), 3);
+      journal.verbose("trackwindow: %d, %d, %d, %d.",
+		      trackwindow.x, trackwindow.y,
+		      trackwindow.width, trackwindow.height);
+    }
     else
       journal.warning("tracwindow: aire nulle.");
   }

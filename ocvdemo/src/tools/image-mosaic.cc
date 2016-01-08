@@ -21,7 +21,8 @@
     along with OCVDemo.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#include "ocvdemo.hpp"
+#include "tools/image-mosaique.hpp"
+#include "ocvdemo.hpp" // TODO : separer avec un motif provider/lister au lieu de l'appel direct
 
 // Adapté d'après http://code.opencv.org/projects/opencv/wiki/DisplayManyImages
 
@@ -29,6 +30,7 @@
 ImageMosaique::ImageMosaique()
 {
   callback_init_ok = false;
+  journal.setup("ocvdemo", "image-mosaic");
 }
 
 void mouse_callback(int event, int x, int y, int flags, void *param)
@@ -55,6 +57,7 @@ void ImageMosaique::mouse_callback(int event, int x, int y, int flags)
 
 void ImageMosaique::update_image(int index, const cv::Mat &img)
 {
+  mutex.lock();
   cv::Rect rect(img_pos[index].x, img_pos[index].y,
                 img_pos[index].width, img_pos[index].height);
   cv::Mat roi(disp_img, rect);
@@ -69,12 +72,14 @@ void ImageMosaique::update_image(int index, const cv::Mat &img)
 
   cv::resize(im, roi, roi.size());
   cv::imshow(title.c_str(), disp_img);
+  mutex.unlock();
 }
 
 int ImageMosaique::show_multiple_images(std::string title,
                                       std::vector<cv::Mat> lst,
                                       std::vector<std::string> titles)
 {
+  mutex.lock();
   this->title = title;
   cv::Mat img;
   unsigned int nArgs = lst.size();
@@ -100,21 +105,22 @@ int ImageMosaique::show_multiple_images(std::string title,
  // return without displaying
  if(nArgs <= 0) {
    printf("Number of arguments too small....\n");
+   mutex.unlock();
    return -1;
  }
  else if(nArgs > 12) {
    printf("Number of arguments too large....\n");
+   mutex.unlock();
    return -1;
  }
  // Determine the size of the image,
  // and the number of rows/cols
  // from number of arguments
- else if (nArgs == 1) {
+ else if (nArgs == 1)
+ {
    w = h = 1;
-   //sizex = 1000;
-   //sizey = 1000;
    sizex = lst[0].cols;
-   sizey = lst[1].rows;
+   sizey = lst[0].rows;
    show_deco = false;
  }
  else if (nArgs == 2) {
@@ -149,6 +155,8 @@ int ImageMosaique::show_multiple_images(std::string title,
  if(nArgs > 1)
    sizey = (sizex * lst[0].rows) / lst[0].cols;
 
+ 
+
  uint16_t W = 100 + sizex*w;
  uint16_t H = 20 + (sizey+30)*h;
 
@@ -158,7 +166,7 @@ int ImageMosaique::show_multiple_images(std::string title,
    H = sizey;
  }
 
- journal.trace("ImageMosaic::show_multiple_images (sizex = %d, sizey = %d, w = %d, h = %d, W = %d, H = %d)",
+ journal.trace("show_multiple_images (sizex = %d, sizey = %d, w = %d, h = %d, W = %d, H = %d)",
                sizex, sizey, w, h, W, H);
 
  // Create a new 3 channel image
@@ -212,6 +220,7 @@ int ImageMosaique::show_multiple_images(std::string title,
     cv::resize(im, roi, roi.size());
   }
 
+     
 
   img_pos.push_back(rect);
   img_sizes.push_back(Size(img.cols, img.rows));
@@ -237,22 +246,32 @@ int ImageMosaique::show_multiple_images(std::string title,
 
   // Create a new window, and show the Single Big Image
 
+ journal.verbose("namedWindow...");
+ if(nArgs == 1)
+ {
+   cv::namedWindow(title.c_str(), CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL);
+   cv::resizeWindow(title.c_str(), lst[0].cols, lst[0].rows);
+ }
+ else
+   cv::namedWindow(title.c_str(), 1);
+ 
+ journal.verbose("imwrite");
+ cv::imwrite("./essai.jpg", disp_img); // OK
+ journal.verbose("imshow: [%s], %d * %d", title.c_str(), disp_img.cols, disp_img.rows); 
+ cv::imshow(title.c_str(), disp_img);
 
-   if(nArgs == 1)
-   {
-     cv::namedWindow(title.c_str(), CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL);
-     cv::resizeWindow(title.c_str(), lst[0].cols, lst[0].rows);
-   }
-   else
-     cv::namedWindow(title.c_str(), 1);
-  cv::imshow(title.c_str(), disp_img);
+ //cv::moveWindow(title.c_str(), 0, 0);
 
-  //cv::moveWindow(title.c_str(), 0, 0);
 
-  if(!callback_init_ok)
-  {
-    setMouseCallback(title, ::mouse_callback, this);
-    callback_init_ok = true;
-  }
-  return 0;
+ if(!callback_init_ok)
+ {
+   journal.verbose("cbinit");
+   setMouseCallback(title, ::mouse_callback, this);
+   callback_init_ok = true;
+ }
+  
+
+ journal.trace("done.");
+ mutex.unlock();
+ return 0;
 }

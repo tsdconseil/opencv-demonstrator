@@ -32,6 +32,15 @@ using utils::model::Localized;
 static OCVDemo *instance = nullptr;
 
 
+static void prepare_image(cv::Mat &I)
+{
+  if(I.channels() == 1)
+    cv::cvtColor(I, I, CV_GRAY2BGR);
+
+  if(I.depth() == CV_32F)
+    I.convertTo(I, CV_8UC3);
+}
+
 void OCVDemo::thread_calcul()
 {
   for(;;)
@@ -40,16 +49,28 @@ void OCVDemo::thread_calcul()
 
     switch(evt.type)
     {
+      ////////////////////////////	
       // Fin de l'application
+      ////////////////////////////	
       case ODEvent::FIN:
 	journal.trace_major("Fin du thread de calcul.");
 	signal_thread_calcul_fin.raise();
 	return;
+      ////////////////////////////	
       // Calcul sur une image
+      ////////////////////////////
       case ODEvent::CALCUL:
-
-        calcul_status = evt.demo->calcul(modele, evt.img);
-	
+	try
+	{
+	  calcul_status = evt.demo->calcul(evt.modele, evt.img);
+	}
+	catch(...)
+        {
+	  // TODO -> transmettre msg erreur
+	  //utils::mmi::dialogs::show_error(langue.get_item("err-opencv-title"),
+	  //				  langue.get_item("err-opencv-msg"), langue.get_item("err-opencv-msg2"));
+	  break;
+	}
 	signal_calcul_termine.raise();
 	break;
       default:
@@ -59,38 +80,67 @@ void OCVDemo::thread_calcul()
   }
 }
 
-bool OCVDemo::on_timeout(int unused)
+void OCVDemo::thread_video()
 {
-  if(entree_video)
+  Mat tmp;
+  for(;;)
   {
-    mutex.lock();
-    if(video_capture.isOpened())
+    if(video_stop)
     {
-      journal.trace("lecture trame...");
-      Mat tmp;
-      video_capture >> tmp;
-      if(tmp.empty())
-      {
-        journal.trace("Fin de vidéo : redémarrage.");
-        if(video_fp.size() > 0)
-        {
-          video_capture.release();
-          video_capture.open(video_fp);
-
-          int nf = video_capture.get(CAP_PROP_FRAME_COUNT);
-          journal.trace("*** nframes = %d.", nf);
-
-        }
-        mutex.unlock();
-        return true;
-      }
-      I0 = tmp;
-      journal.trace("recalcul, I0: %d * %d...", I0.cols, I0.rows);
-      update();
+      video_stop = false;
+      video_en_cours = false;
+      signal_video_suspendue.raise();
+      signal_video_demarre.wait();
     }
-    mutex.unlock();
+    
+    while(!entree_video || (!video_capture.isOpened()))
+    {
+      video_en_cours = false;
+      signal_video_suspendue.raise();
+      signal_video_demarre.wait();
+    }
+    video_en_cours = true;
+
+    mutex_video.lock();
+    journal.verbose("[tvideo] lecture trame...");
+    video_capture >> tmp;
+    journal.verbose("[tvideo] ok.");
+    if(tmp.empty())
+    {
+      journal.trace("[tvideo] Fin de vidéo : redémarrage.");
+      if(video_fp.size() > 0)
+      {
+	video_capture.release();
+	video_capture.open(video_fp);
+      }
+      mutex_video.unlock();
+      continue;
+    }
+    mutex_video.unlock();
+
+    // Prévention deadlock
+    if(video_stop)
+    {
+      video_stop = false;
+      video_en_cours = false;
+      signal_video_suspendue.raise();
+      signal_video_demarre.wait();
+      continue;
+    }
+      
+    gtk_dispatcher.on_event(tmp);
+    signal_image_video_traitee.wait();
   }
-  return true;
+}
+
+int OCVDemo::on_video_image(const cv::Mat &tmp)
+{
+  // Récupération d'une trame vidéo (mais ici on est dans le thread GTK)
+  I0 = tmp;
+  journal.trace("recalcul, I0: %d * %d...", I0.cols, I0.rows);
+  update();
+  signal_image_video_traitee.raise();
+  return 0;
 }
 
 
@@ -101,38 +151,6 @@ void OCVDemo::on_b_masque_raz()
   update();
 }
 
-void OCVDemo::on_b_masque_gomme()
-{
-  barre_outil_dessin.b_remplissage.set_active(false);
-  barre_outil_dessin.b_gomme.set_active(true);
-  outil_dessin_en_cours = 0;
-}
-
-void OCVDemo::on_b_masque_remplissage()
-{
-  barre_outil_dessin.b_gomme.set_active(false);
-  barre_outil_dessin.b_remplissage.set_active(true);
-  outil_dessin_en_cours = 1;
-}
-
-
-void OCVDemo::compute_Ia()
-{
-  if((item_en_cours != nullptr) && (item_en_cours->props.requiert_roi))
-  {
-    Ia = I1.clone();
-    cv::rectangle(Ia, rdi0, rdi1, Scalar(0,255,0), 3);
-  }
-  else if((item_en_cours != nullptr) && (item_en_cours->props.requiert_masque))
-  {
-    if((Ia.data == nullptr) || (Ia.size() != I1.size()))
-      Ia = I1.clone();
-  }
-  else
-  {
-    Ia = I1;
-  }
-}
 
 void OCVDemo::masque_clic(int x0, int y0)
 {
@@ -147,7 +165,7 @@ void OCVDemo::masque_clic(int x0, int y0)
         Ia.at<Vec3b>(y,x).val[0] = 255;
         Ia.at<Vec3b>(y,x).val[1] = 255;
         Ia.at<Vec3b>(y,x).val[2] = 255;
-        item_en_cours->params.masque.at<unsigned char>(y,x) = 255;
+        demo_en_cours->params.masque.at<unsigned char>(y,x) = 255;
       }
     }
   }
@@ -157,215 +175,155 @@ void OCVDemo::masque_clic(int x0, int y0)
     cv::Mat mymask = Mat::zeros(Ia.rows+2,Ia.cols+2,CV_8U);
     cv::floodFill(Ia, mymask, Point(x0,y0), Scalar(255,255,255));
     Mat roi(mymask, Rect(1,1,Ia.cols,Ia.rows));
-    this->item_en_cours->params.masque |= roi;
+    this->demo_en_cours->params.masque |= roi;
     update();
   }
-
 }
 
-void OCVDemo::masque_raz()
-{
-  Ia = I0.clone();
-  item_en_cours->params.masque = cv::Mat::zeros(I0.size(), CV_8U);
-}
-
-
-
-void OCVDemo::update_Ia()
-{
-  mosaique.update_image(0, Ia);
-}
-
-static void prepare_image(cv::Mat &I)
-{
-  if(I.channels() == 1)
-    cv::cvtColor(I, I, CV_GRAY2BGR);
-
-  if(I.depth() == CV_32F)
-    I.convertTo(I, CV_8UC3);
-}
-
+// Calcul d'une sortie à partir de l'image I0
+// avec mise à jour de la mosaique de sortie.
 void OCVDemo::update()
 {
+  if(demo_en_cours == nullptr)
+    return;
+
+  // Première fois que la démo est appelée avec des entrées (I0) valides ?
+  if(first_processing)
+  {
+    first_processing = false;
+    if(demo_en_cours->props.requiert_masque)
+      demo_en_cours->params.masque = cv::Mat::zeros(I0.size(), CV_8U);
+  }
+  
+  journal.verbose("Acquisition mutex_update...");
+  mutex_update.lock();
+  journal.verbose("mutex_update ok.");
+  
   this->sortie_en_cours = Mat();
 
 
   if(modele_demo.is_nullptr())
-    return;
-
-  journal.trace("full update.");
-  auto id = modele_demo.get_attribute_as_string("name");
-  unsigned int i, j;
-  namedWindow(titre_principal, CV_WINDOW_NORMAL);
-  for(i = 0u; i < items.size(); i++)
   {
-    auto demo = items[i];
-    if(demo->props.id == id)
-    {
-      item_en_cours = demo;
-
-      if(first_entry)
-      {
-        first_entry = false;
-        rdi0.x = demo->params.roi.x;
-        rdi0.y = demo->params.roi.y;
-        rdi1.x = demo->params.roi.x + demo->params.roi.width;
-        rdi1.y = demo->params.roi.y + demo->params.roi.height;
-
-
-
-        demo->params.modele = modele;
-        demo->setup_model(modele);
-
-        if(demo->configure_ui())
-          break;
-
-        maj();
-
-        if(item_en_cours->props.requiert_masque)
-        {
-          item_en_cours->params.masque = cv::Mat::zeros(I0.size(), CV_8U);
-          barre_outil_dessin.montre();
-        }
-        else
-          barre_outil_dessin.cache();
-
-        if(item_en_cours->props.requiert_mosaique)
-        {
-          img_selecteur.show();
-          img_selecteur.present();
-          img_selecteur.raz();
-          for(const auto &img: modele_demo.children("img"))
-            img_selecteur.ajoute_fichier(img.get_attribute_as_string("path"));
-
-        }
-        else
-          img_selecteur.hide();
-      }
-
-      try
-      {
-        I1 = I0.clone();
-
-        auto s = modele.to_xml();
-
-        journal.trace("Calcul [%s], img: %d*%d, %d chn, model =\n%s",
-                      demo->props.id.c_str(),
-                      I1.cols, I1.rows, I1.channels(),
-                      s.c_str());
-
-
-        if(demo->props.requiert_mosaique)
-          this->img_selecteur.get_list(demo->params.mosaique);
-
-
-	// Appel au thread de calcul
-	ODEvent evt;
-	evt.type = ODEvent::CALCUL;
-	evt.img  = I1;
-	evt.demo = demo;
-	event_fifo.push(evt);
-	// Attente fin de calcul
-	signal_calcul_termine.wait();
-
-        if(calcul_status)
-        {
-          journal.warning("ocvdemo: Echec calcul.");
-          auto s = demo->sortie.errmsg;
-          if(langue.has_item(s))
-            s = langue.get_item(s);
-          utils::mmi::dialogs::show_warning("Erreur de traitement",
-                      langue.get_item("echec-calcul"), s);
-          break;
-        }
-        else
-        {
-          journal.verbose("Calcul [%s] ok.", demo->props.id.c_str());
-
-          if(demo->sortie.vrai_sortie.data != nullptr)
-            sortie_en_cours = demo->sortie.vrai_sortie;
-          else if(demo->sortie.nb_sorties > 0)
-            sortie_en_cours = demo->sortie.O[demo->sortie.nb_sorties - 1];
-          else
-            sortie_en_cours = I1;
-        }
-      }
-      catch(...)
-      {
-        utils::mmi::dialogs::show_error(langue.get_item("err-opencv-title"),
-            langue.get_item("err-opencv-msg"), langue.get_item("err-opencv-msg2"));
-        break;
-      }
-
-
-      std::vector<cv::Mat> lst;
-      compute_Ia();
-      prepare_image(Ia);
-      lst.push_back(Ia);
-      unsigned int img_count = modele_demo.get_attribute_as_int("img-count");
-
-      if(demo->sortie.nb_sorties >= 0)
-        img_count = 1 + demo->sortie.nb_sorties;
-
-      if((img_count > 1) && (demo->sortie.O[0].data == nullptr))
-      {
-        img_count = 1;
-        journal.warning("Img count = 2, et image O non initialisée.");
-      }
-
-      std::vector<std::string> titres;
-
-
-      for(j = 0; j < img_count; j++)
-      {
-        if(j > 0)
-        {
-          prepare_image(demo->sortie.O[j-1]);
-          lst.push_back(demo->sortie.O[j-1]);
-        }
-
-        char buf[50];
-        sprintf(buf, "o[id=%d]", j);
-        std::string s = "";
-        if((j + 1 == img_count) && (img_count > 1))
-          s = langue.get_item("img-sortie");
-        if((j == 0) && (img_count > 1))
-          s = langue.get_item("img-entree");
-        if(modele_demo.has_child(std::string(buf)))
-        {
-          auto n = modele_demo.get_child(std::string(buf));
-          s = n.get_localized().get_localized();
-        }
-        if((j < 4) && (item_en_cours->sortie.outname[j].size() > 0))
-        {
-          s = item_en_cours->sortie.outname[j];
-          if(langue.has_item(s))
-            s = langue.get_item(s);
-        }
-        titres.push_back(utils::str::utf8_to_latin(s));;
-      }
-
-      mosaique.show_multiple_images(titre_principal, lst, titres);
-      break;
-    }
+    mutex_update.unlock();
+    return;
   }
+
+  I1 = I0.clone();
+  auto s = modele.to_xml();
+
+  journal.trace("Calcul [%s], img: %d*%d, %d chn, model =\n%s",
+		demo_en_cours->props.id.c_str(),
+		I1.cols, I1.rows, I1.channels(),
+		s.c_str());
+
+    
+  if(demo_en_cours->props.requiert_mosaique)
+    this->img_selecteur.get_list(demo_en_cours->params.mosaique);
+
+
+  // Appel au thread de calcul
+  ODEvent evt;
+  evt.type = ODEvent::CALCUL;
+  evt.img  = I1;
+  evt.demo = demo_en_cours;
+  evt.modele = modele;
+  event_fifo.push(evt);
+  // Attente fin de calcul
+  signal_calcul_termine.wait();
+
+  if(calcul_status)
+  {
+    journal.warning("ocvdemo: Echec calcul.");
+    auto s = demo_en_cours->sortie.errmsg;
+    if(langue.has_item(s))
+      s = langue.get_item(s);
+    utils::mmi::dialogs::show_warning("Erreur de traitement",
+				      langue.get_item("echec-calcul"), s);
+    mutex_update.unlock();
+    return;
+  }
+  else
+  {
+    journal.trace("Calcul [%s] ok.", demo_en_cours->props.id.c_str());
+    
+    if(demo_en_cours->sortie.vrai_sortie.data != nullptr)
+      sortie_en_cours = demo_en_cours->sortie.vrai_sortie;
+    else if(demo_en_cours->sortie.nb_sorties > 0)
+      sortie_en_cours = demo_en_cours->sortie.O[demo_en_cours->sortie.nb_sorties - 1];
+    else
+      sortie_en_cours = I1;
+  }
+
+  std::vector<cv::Mat> lst;
+  compute_Ia();
+  prepare_image(Ia);
+  lst.push_back(Ia);
+  unsigned int img_count = modele_demo.get_attribute_as_int("img-count");
+
+  if(demo_en_cours->sortie.nb_sorties >= 0)
+    img_count = 1 + demo_en_cours->sortie.nb_sorties;
+
+  if((img_count > 1) && (demo_en_cours->sortie.O[0].data == nullptr))
+  {
+    img_count = 1;
+    journal.warning("Img count = 2, et image O non initialisée.");
+  }
+
+  std::vector<std::string> titres;
+
+
+  for(auto j = 0u; j < img_count; j++)
+  {
+    if(j > 0)
+    {
+      prepare_image(demo_en_cours->sortie.O[j-1]);
+      lst.push_back(demo_en_cours->sortie.O[j-1]);
+    }
+
+    char buf[50];
+    sprintf(buf, "o[id=%d]", j);
+    std::string s = "";
+    if((j + 1 == img_count) && (img_count > 1))
+      s = langue.get_item("img-sortie");
+    if((j == 0) && (img_count > 1))
+      s = langue.get_item("img-entree");
+    if(modele_demo.has_child(std::string(buf)))
+    {
+      auto n = modele_demo.get_child(std::string(buf));
+      s = n.get_localized().get_localized();
+    }
+    if((j < 4) && (demo_en_cours->sortie.outname[j].size() > 0))
+    {
+      s = demo_en_cours->sortie.outname[j];
+      if(langue.has_item(s))
+	s = langue.get_item(s);
+    }
+    titres.push_back(utils::str::utf8_to_latin(s));;
+  }
+  
+  mosaique.show_multiple_images(titre_principal, lst, titres);
+
   maj_bts();
-  if(i == items.size())
-    journal.warning("Demo not found: %s", id.c_str());
-  cv::waitKey(10);
+  journal.verbose("Liberation mutex_update...");
+  mutex_update.unlock();
+
+  cv::waitKey(10); // Encore nécessaire à cause de la fenêtre OpenCV
 }
 
-void OCVDemo::maj_entree()
-{
-  maj();
-  this->first_entry = true;
-  update();
-  maj_bts();
-}
 
+
+
+///////////////////////////////////////////////////////////////
+// Détection d'un changement sur le modèle
+//  - global
+//    ==> maj_entree
+//  - ou de la démo en cours
+//    ==> update_demo, update 
+///////////////////////////////////////////////////////////////
 void OCVDemo::on_event(const ChangeEvent &ce)
 {
-  journal.verbose("change-event: %d / %s", (int) ce.type, ce.path[0].name.c_str());
+  journal.verbose("change-event: %d / %s",
+		  (int) ce.type, ce.path[0].name.c_str());
 
   if(ce.type != ChangeEvent::GROUP_CHANGE)
     return;
@@ -387,10 +345,8 @@ void OCVDemo::on_event(const ChangeEvent &ce)
   }
 
   journal.verbose("Change event detected.");
-
   update();
   lock = false;
-
   maj_bts();
 }
 
@@ -404,30 +360,19 @@ void OCVDemo::on_event(const ImageSelecteurRefresh &e)
   maj_bts();
 }
 
-void OCVDemo::setup_demo(std::string id)
+
+
+
+///////////////////////////////////
+// Mise à jour du flux / image d'entrée
+// Requiert : demo_en_cours bien défini
+///////////////////////////////////
+void OCVDemo::maj_entree()
 {
-
-  ChangeEvent ce;
-  ce.type = ChangeEvent::GROUP_CHANGE;
-  on_event(ce);
-  this->wnd.present();
-
-  if(item_en_cours->props.requiert_mosaique)
-    img_selecteur.present();
-
-
-  if(item_en_cours && (item_en_cours->props.requiert_masque))
-    barre_outil_dessin.montre();
-
-  maj_bts();
-}
-
-
-void OCVDemo::maj()
-{
-  if(item_en_cours == nullptr)
+  if(demo_en_cours == nullptr)
     return;
 
+  first_processing = true;
   entree_video = false;
 
   std::string fp = "";
@@ -449,18 +394,21 @@ void OCVDemo::maj()
     idx = 0;//global_model.get_attribute_as_int("cam-schema/idx");
   }
 
-
-
   std::string ext;
   if(sel != 2)
     ext = utils::files::get_extension(fp);
 
+  journal.verbose("lock...");
+  mutex_video.lock();
+  journal.verbose("lock ok.");
+  
   if(video_capture.isOpened())
     video_capture.release();
 
   if(sel == 2)
   {
     journal.trace_major("Ouverture camera usb #%d...", idx);
+    
     if(!video_capture.open(idx))
     {
       journal.warning("Camera non détectée: reset sel = 0...");
@@ -469,34 +417,38 @@ void OCVDemo::maj()
       utils::mmi::dialogs::show_error(langue.get_item("ech-cam-tit"),
           langue.get_item("ech-cam-sd"),
           langue.get_item("ech-cam-d"));
-      //lock = false;
-      maj();
+      mutex_video.unlock();
       return;
     }
     video_fp    = "";
     video_idx   = idx;
     entree_video = true;
-    video_capture >> I0;
+    video_capture >> I0; // TODO: à supprimer
+    mutex_video.unlock();
+    signal_video_demarre.raise();
   }
   else if((ext == "mpg") || (ext == "avi") || (ext == "mp4") || (ext == "wmv"))
   {
     journal.trace("Ouverture fichier video [%s]...", fp.c_str());
+
     if(!video_capture.open(fp))
     {
       utils::mmi::dialogs::show_error(langue.get_item("ech-vid-tit"),
           langue.get_item("ech-vid-sd"),
           langue.get_item("ech-vid-d") + "\n" + fp);
       modele_global.set_attribute("sel", (int) 0);
-      //lock = false;
-      maj();
+      mutex_video.unlock();
       return;
     }
     video_fp = fp;
     entree_video = true;
-    video_capture >> I0;
+    video_capture >> I0; // TODO: à supprimer
+    mutex_video.unlock();
+    signal_video_demarre.raise();
   }
   else
   {
+    mutex_video.unlock();
     journal.trace("Ouverture fichier image [%s]...", fp.c_str());
     I0 = cv::imread(fp.c_str());
     if(I0.data == nullptr)
@@ -506,63 +458,127 @@ void OCVDemo::maj()
       destroyWindow(titre_principal);
       mosaique.callback_init_ok = false;
     }
+    update();
   }
-  I1 = I0.clone();
-  Ia = I0.clone();
   maj_bts();
 }
 
 
-void OCVDemo::setup_demo_p(const Node &sel)
+void OCVDemo::setup_demo(const Node &sel)
 {
   auto id = sel.get_attribute_as_string("name");
   auto s = sel.get_localized_name();
-  journal.verbose("Selection changed: %s (%s).", id.c_str(), s.c_str());
+  journal.trace_major("Selection changed: %s (%s).", id.c_str(), s.c_str());
 
-  first_entry = true;
+  while(video_en_cours)
+  {
+    signal_video_demarre.clear();
+    signal_video_suspendue.clear();
+    video_stop = true;
+    journal.trace("interruption flux video...");
+    signal_video_suspendue.wait();
+    journal.trace("Flux video interrompu.");
+  }
+  
+  mutex_update.lock();
+  journal.verbose("Debut setup...");
 
+  cadre_proprietes.remove();
   if (rp != nullptr)
   {
-    //log.trace("Removing prop. contents...");
-    cadre_proprietes.remove();
     delete rp;
     rp = nullptr;
   }
-  else
-  {
-    cadre_proprietes.remove();
-  }
 
-  modele_demo = sel;//tree_view.get_selection();
+  modele_demo = sel;
 
-  if(sel.schema()->name.get_id() == "demo")
-  {
-
-    auto schema = fs_racine->get_schema(id);
-    maj();
-
-    if(schema != nullptr)
-    {
-      modele = utils::model::Node::create_ram_node(schema);
-      modele.add_listener(this);
-      utils::mmi::NodeViewConfiguration vconfig;
-      vconfig.show_desc = true;
-      vconfig.show_main_desc = true;
-      rp = new utils::mmi::NodeView(&wnd, modele, vconfig);
-      cadre_proprietes.set_label(s);
-      cadre_proprietes.add(*(rp->get_widget()));
-      cadre_proprietes.show();
-      cadre_proprietes.show_all_children(true);
-      journal.trace("setup demo...");
-      setup_demo(id);
-    }
-  }
-  else
+  if((sel.schema()->name.get_id() != "demo")
+     || (fs_racine->get_schema(id) == nullptr))
   {
     destroyWindow(titre_principal);
     mosaique.callback_init_ok = false;
+    mutex_update.unlock();
+    maj_bts();
+    return;
   }
+
+  auto schema = fs_racine->get_schema(id);
+  modele = utils::model::Node::create_ram_node(schema);
+      
+  modele.add_listener(this);
+  {
+    utils::mmi::NodeViewConfiguration vconfig;
+    vconfig.show_desc = true;
+    vconfig.show_main_desc = true;
+    rp = new utils::mmi::NodeView(&wnd, modele, vconfig);
+    cadre_proprietes.set_label(s);
+    cadre_proprietes.add(*(rp->get_widget()));
+    cadre_proprietes.show();
+    cadre_proprietes.show_all_children(true);
+  }
+  journal.verbose("setup demo...");
+
+  ///////////////////////////////////////////
+  // - Localise la demo parmi les démos enregistrées
+  // - Initialise les zones d'intérêt
+  // - Appel maj_entree()
+  // - Affiche la barre d'outil si nécessaire
+  ///////////////////////////////////////////
+      
+  journal.verbose("update_demo()...");
+  namedWindow(titre_principal, CV_WINDOW_NORMAL);
+
+  demo_en_cours = nullptr;
+  for(auto demo: items)
+  {
+    if(demo->props.id == id)
+    {
+      demo_en_cours = demo;
+      
+      
+      rdi0.x = demo->params.roi.x;
+      rdi0.y = demo->params.roi.y;
+      rdi1.x = demo->params.roi.x + demo->params.roi.width;
+      rdi1.y = demo->params.roi.y + demo->params.roi.height;
+	  
+      demo->params.modele = modele;
+      demo->setup_model(modele);
+	  
+      if(demo->configure_ui())
+	break;
+	  
+      if(demo_en_cours->props.requiert_masque)
+	barre_outil_dessin.montre();
+      else
+	barre_outil_dessin.cache();
+
+      if(demo_en_cours->props.requiert_mosaique)
+      {
+	img_selecteur.show();
+	img_selecteur.present();
+	img_selecteur.raz();
+	for(const auto &img: modele_demo.children("img"))
+	  img_selecteur.ajoute_fichier(img.get_attribute_as_string("path"));
+      }
+      else
+	img_selecteur.hide();
+    }  
+  }
+  if(demo_en_cours == nullptr)
+    journal.warning("Demo not found: %s", id.c_str());
+
+  
+  this->wnd.present();
+
+  if((demo_en_cours != nullptr) && demo_en_cours->props.requiert_mosaique)
+    img_selecteur.present();
+
+  if(demo_en_cours && (demo_en_cours->props.requiert_masque))
+    barre_outil_dessin.montre();
+
   maj_bts();
+  mutex_update.unlock();
+  maj_entree();
 }
 
 
@@ -581,7 +597,51 @@ void OCVDemo::on_event(const utils::mmi::SelectionChangeEvent &e)
     return;
   }
 
-  setup_demo_p(e.new_selection);
+  setup_demo(e.new_selection);
+}
+
+void OCVDemo::on_b_masque_gomme()
+{
+  barre_outil_dessin.b_remplissage.set_active(false);
+  barre_outil_dessin.b_gomme.set_active(true);
+  outil_dessin_en_cours = 0;
+}
+
+void OCVDemo::on_b_masque_remplissage()
+{
+  barre_outil_dessin.b_gomme.set_active(false);
+  barre_outil_dessin.b_remplissage.set_active(true);
+  outil_dessin_en_cours = 1;
+}
+
+
+void OCVDemo::compute_Ia()
+{
+  if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_roi))
+  {
+    Ia = I1.clone();
+    cv::rectangle(Ia, rdi0, rdi1, Scalar(0,255,0), 3);
+  }
+  else if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_masque))
+  {
+    if((Ia.data == nullptr) || (Ia.size() != I1.size()))
+      Ia = I1.clone();
+  }
+  else
+  {
+    Ia = I1;
+  }
+}
+
+void OCVDemo::masque_raz()
+{
+  Ia = I0.clone();
+  demo_en_cours->params.masque = cv::Mat::zeros(I0.size(), CV_8U);
+}
+
+void OCVDemo::update_Ia()
+{
+  mosaique.update_image(0, Ia);
 }
 
 OCVDemo *OCVDemo::get_instance()
@@ -592,12 +652,14 @@ OCVDemo *OCVDemo::get_instance()
 
 OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 {
+  journal.setup("", "ocvdemo");
   utils::current_language = Localized::LANG_EN;
   langue.current_language = "en";
+  video_en_cours = false;
+  video_stop = false;
   outil_dessin_en_cours = 0;
   entree_video = false;
-  first_entry = true;
-  item_en_cours = nullptr;
+  demo_en_cours = nullptr;
   etat_souris = 0;
   instance = this;
   lock = false;
@@ -702,10 +764,6 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   wnd.show_all_children(true);
   wnd.set_size_request(730,500);
 
-  sigc::slot<bool> my_slot = sigc::bind(sigc::mem_fun(*this, &OCVDemo::on_timeout), 0);
-  sigc::connection conn = Glib::signal_timeout().connect(my_slot, 250); // 100 ms
-
-
   if(cmdeline.has_option("-s"))
   {
     journal.trace_major("Export tableau des fonctions supportees...");
@@ -723,8 +781,6 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
       export_captures();
     }
   }
-
-
 
 
   barre_outil_dessin.b_raz.signal_clicked().connect(sigc::mem_fun(*this,
@@ -745,14 +801,14 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 
   maj_bts();
 
-  //ImageSelecteur *is = new ImageSelecteur();
-  //Gtk::Main::run(*is);
-
   this->img_selecteur.CProvider<ImageSelecteurRefresh>::add_listener(this);
-
   wnd.signal_delete_event().connect(sigc::mem_fun(*this,&OCVDemo::on_delete_event));
 
   utils::hal::thread_start(this, &OCVDemo::thread_calcul);
+  utils::hal::thread_start(this, &OCVDemo::thread_video);
+
+  //gtk_dispatcher = new utils::mmi::GtkDispatcher<cv::Mat>;
+  gtk_dispatcher.add_listener(this, &OCVDemo::on_video_image);
 
   Gtk::Main::run(wnd);
 }

@@ -116,7 +116,6 @@ void OCVDemo::on_b_infos()
 void OCVDemo::maj_bts()
 {
   int ho = has_output();
-  journal.trace("maj bts: has output: %d.", ho);
   b_save.set_sensitive(ho);
 }
 

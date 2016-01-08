@@ -24,6 +24,9 @@
 #ifndef IMAGE_MOSAIQUE_HPP
 #define IMAGE_MOSAIQUE_HPP
 
+#include "opencv2/imgproc/imgproc.hpp"
+#include "cutil.hpp"
+#include <string>
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -66,6 +69,8 @@ private:
 
   /** Titre principal */
   std::string title;
+
+  utils::hal::Mutex mutex;
 };
 
 #endif

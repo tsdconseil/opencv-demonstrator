@@ -35,6 +35,7 @@ MatchDemo::MatchDemo()
 {
   props.id = "corner-match";
   lock = false;
+  sortie.nb_sorties = 0;
 }
 
 void MatchDemo::setup_model(Node &model)
@@ -70,7 +71,7 @@ int MatchDemo::calcul(Node &model, cv::Mat &I)
       }
       imgs.push_back(img);
     }
-    //uint16_t n = imgs.size();
+
 
 
 #   ifdef OCV240

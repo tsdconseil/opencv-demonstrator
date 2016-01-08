@@ -87,23 +87,22 @@ public:
 private:
 
   void thread_calcul();
-  
+  void thread_video();
+  int  on_video_image(const cv::Mat &tmp);
   void export_captures(utils::model::Node &cat);
   Mat  get_current_output();
   bool has_output();
+  void setup_demo(const Node &sel);
   void maj_bts();
   void maj_langue();
   void maj_langue_systeme();
-  void setup_demo_p(const Node &sel);
   std::string export_demos(utils::model::Node &cat, Localized::Language lg);
-  void maj();
   void maj_entree();
   void add_demos();
-  bool on_timeout(int unused);
   void on_menu_entree();
   void on_menu_quitter();
   void setup_menu();
-  void setup_demo(std::string id);
+  //void setup_demo(std::string id);
   void on_event(const ChangeEvent &ce);
   void on_event(const utils::mmi::SelectionChangeEvent &e);
   void on_event(const ImageSelecteurRefresh &e);
@@ -112,6 +111,7 @@ private:
   void on_b_save();
   void on_b_exit();
   void on_b_infos();
+
   void update();
   void update_Ia();
   void compute_Ia();
@@ -122,14 +122,23 @@ private:
   void on_b_masque_remplissage();
 
 
+
+  // To communicate from the video thread to the main GTK thread 
+  utils::mmi::GtkDispatcher<cv::Mat> gtk_dispatcher;
+
+  // Lock for video stream access.
+  utils::hal::Mutex mutex_video;
+
+  // Lock for update current output.
+  utils::hal::Mutex mutex_update;
+
   std::string lockfile; // Chemin du fichier de lock
+  // Obsolete ?
   utils::hal::Mutex mutex; // Verrou pour les calculs VS video
   // Dialogue de démarrage
   utils::mmi::NodeDialog *entree_dial;
   // Pour le menu
   Glib::RefPtr<Gtk::ActionGroup> agroup;
-  // Vrai seulement au premier appel
-  bool first_entry;
   // Fenêtre principale
   Gtk::Window wnd;
   // Conteneur principal
@@ -138,7 +147,7 @@ private:
   Gtk::HPaned hpaned;
   // Modèles
   utils::model::Node modele, modele_global, tdm;
-  utils::model::Node modele_demo;
+  utils::model::Node modele_demo; // Modèle dans la TOC
   // Configuration de la démo en cours
   utils::mmi::NodeView *rp;
   // Logs
@@ -158,7 +167,7 @@ private:
   // Liste des démos supportées
   std::vector<OCVDemoItem *> items;
   // Démo en cours
-  OCVDemoItem *item_en_cours;
+  OCVDemoItem *demo_en_cours;
   // I0 : image originale
   // I1 : telle que modifiée par le processus
   // Ia : avec rectangle utilisateur
@@ -185,7 +194,8 @@ private:
   int outil_dessin_en_cours;
   cv::Mat sortie_en_cours;
   ImageSelecteur img_selecteur;
-
+  bool video_en_cours, video_stop;
+  bool first_processing;
 
   // Objets envoyés dans la fifo de calcul
   struct ODEvent
@@ -199,6 +209,7 @@ private:
     } type;
     cv::Mat img;
     OCVDemoItem *demo;
+    utils::model::Node modele;
   };
   
 
@@ -211,6 +222,10 @@ private:
   
   // Confirmation de la terminaison du thread de calcul
   utils::hal::Signal signal_thread_calcul_fin;
+
+  utils::hal::Signal signal_video_demarre,
+    signal_image_video_traitee,
+    signal_video_suspendue;
 };
 
 

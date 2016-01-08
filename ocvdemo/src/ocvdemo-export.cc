@@ -105,8 +105,7 @@ void OCVDemo::export_captures(utils::model::Node &cat)
 
     journal.trace_major("Export démo [%s]...", id.c_str());
 
-    //setup_demo(id);
-    setup_demo_p(demo);
+    setup_demo(demo);
 
     std::string s = "../../../site/data/log/opencv/demo/list/imgs/";
 
