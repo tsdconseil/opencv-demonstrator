@@ -82,7 +82,7 @@ public:
   struct OCVDemoItemSortie
   {
     /** Nombre d'images produites */
-    int nb_sorties;
+    int nout;
 
     /** Images de sortie */
     cv::Mat O[5];
@@ -112,7 +112,7 @@ public:
   /** Constructeur */
   OCVDemoItem()
   {
-    sortie.nb_sorties = -1;
+    sortie.nout = 1;
     props.requiert_roi = false;
     props.requiert_masque = false;
     props.requiert_mosaique = false;

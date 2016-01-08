@@ -35,7 +35,7 @@ MatchDemo::MatchDemo()
 {
   props.id = "corner-match";
   lock = false;
-  sortie.nb_sorties = 0;
+  sortie.nout = 1;
 }
 
 void MatchDemo::setup_model(Node &model)
@@ -143,9 +143,9 @@ int MatchDemo::calcul(Node &model, cv::Mat &I)
 #   endif
 
 
-    I = Mat::zeros(Size(640*2,480*2), CV_8UC3);
+    sortie.O[0] = Mat::zeros(Size(640*2,480*2), CV_8UC3);
 
-    cv::drawMatches(imgs[0], kpts[0], imgs[1], kpts[1], good_matches, I);
+    cv::drawMatches(imgs[0], kpts[0], imgs[1], kpts[1], good_matches, sortie.O[0]);
 
     journal.trace("draw match ok: %d assoc, %d ok.",
         matches.size(), good_matches.size());
@@ -196,7 +196,7 @@ int MatchDemo::calcul(Node &model, cv::Mat &I)
 #   endif
     }
 
-    sortie.nb_sorties = 0;
+    sortie.nout = 1;
     sortie.outname[0] = "Correspondances";
     lock = false;
   }
@@ -214,7 +214,7 @@ PanoDemo::PanoDemo()
   props.id = "pano";
   lock = false;
   props.requiert_mosaique = true;
-  sortie.nb_sorties = 0;
+  sortie.nout = 1;
 }
 
 int PanoDemo::calcul(Node &model, cv::Mat &I)
@@ -230,7 +230,7 @@ int PanoDemo::calcul(Node &model, cv::Mat &I)
     auto status = stitcher.stitch(params.mosaique, pano);
     t0 = getTickCount() - t0;
 
-    I = pano;
+    sortie.O[0] = pano;
     sortie.vrai_sortie = pano;
     sortie.outname[0] = "Panorama";
 
@@ -306,11 +306,10 @@ int CornerDemo::calcul(Node &model, cv::Mat &I)
 
   //if(keypoints.size() > max_pts)
     //keypoints.resize(max_pts);
-
+  sortie.O[0] = I.clone();
   journal.trace("drawK");
-  drawKeypoints(I, keypoints, I, Scalar(0, 0, 255));
+  drawKeypoints(I, keypoints, sortie.O[0], Scalar(0, 0, 255));
   journal.trace("ok");
-  sortie.nb_sorties = 0;
   return 0;
 }
 
@@ -331,7 +330,7 @@ VisageDemo::VisageDemo(): rng(12345)
     journal.anomaly("--(!)Error loading\n");
     return;
   }
-  sortie.nb_sorties = 0;
+  sortie.nout = 1;
   sortie.outname[0] = " ";
 }
 
@@ -359,11 +358,10 @@ int VisageDemo::calcul(Node &model, cv::Mat &I)
 
 
   journal.trace("Détecté %d visages.", faces.size());
-
   for(size_t i = 0; i < faces.size(); i++ )
   {
     Point center( faces[i].x + faces[i].width * 0.5, faces[i].y + faces[i].height * 0.5 );
-    cv::rectangle(I, Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar(0,255,0), 3);
+    cv::rectangle(sortie.O[0], Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar(0,255,0), 3);
     Mat faceROI = frame_gray(faces[i]);
     std::vector<Rect> eyes;
     //-- In each face, detect eyes
@@ -375,7 +373,7 @@ int VisageDemo::calcul(Node &model, cv::Mat &I)
     {
       Point center( faces[i].x + eyes[j].x + eyes[j].width * 0.5, faces[i].y + eyes[j].y + eyes[j].height * 0.5 );
       int radius = cvRound( (eyes[j].width + eyes[j].height) * 0.25 );
-      circle(I, center, radius, Scalar( 255, 0, 0 ), 4, CV_AA, 0);
+      circle(sortie.O[0], center, radius, Scalar( 255, 0, 0 ), 4, CV_AA, 0);
     }
   }
 
@@ -413,7 +411,7 @@ CascGenDemo::CascGenDemo(std::string id): rng(12345)
     return;
   }
 
-  sortie.nb_sorties = 0;
+  sortie.nout = 0;
 
   unsigned int i = 0;
   for(auto cname: cnames)

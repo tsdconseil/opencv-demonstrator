@@ -27,7 +27,7 @@ HDRDemo::HDRDemo()
 {
   props.id = "hdr";
   props.requiert_mosaique = true;
-  sortie.nb_sorties = 0;
+  sortie.nout = 1;
 }
 
 
@@ -37,6 +37,6 @@ int HDRDemo::calcul(Node &model, cv::Mat &I)
   Mat tmp, tmp2;
   merge_mertens->process(params.mosaique, tmp);
   tmp.convertTo(tmp2, CV_8UC3, 255, 0);
-  I = tmp2;
+  sortie.O[0] = tmp2;
   return 0;
 }

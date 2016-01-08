@@ -50,7 +50,7 @@ DispMapDemo::DispMapDemo()
   props.requiert_mosaique = 1;
   props.mosaique.min = 2;
   props.mosaique.max = 2;
-  sortie.nb_sorties = 2;
+  sortie.nout = 2;
 }
 
 
@@ -75,10 +75,10 @@ int DispMapDemo::calcul(Node &model, cv::Mat &I)
   sbm->compute(imgs[0], imgs[1], disp);
   normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
 
-  I = imgs[0];
-  sortie.O[0] = imgs[1];
-  sortie.O[1] = disp8;
-  sortie.nb_sorties = 2;
+  sortie.O[0]  = imgs[0];
+  sortie.O[1] = imgs[1];
+  sortie.O[2] = disp8;
+  sortie.nout = 3;
   sortie.outname[0] = "Image 1";
   sortie.outname[1] = "Image 2";
   sortie.outname[2] = langue.get_item("disp-map");
@@ -94,10 +94,10 @@ int DispMapDemo::calcul(Node &model, cv::Mat &I)
 CamCalDemo::CamCalDemo()
 {
   props.id = "cam-cal";
-  sortie.nb_sorties = 1;//2;
+  sortie.nout = 2;
   sortie.outname[0] = "Detection des coins";
   sortie.outname[1] = "Distortion corrigee";
-  sortie.outname[2] = "Infos";
+  //sortie.outname[2] = "Infos";
 }
 
 
@@ -210,8 +210,9 @@ int CamCalDemo::calcul(Node &model, cv::Mat &I)
   //cvtColor(I, O[0], CV_GRAY2BGR);
 
   Mat Ior = I.clone();
+  sortie.O[0] = I;
   if(found)
-   cv::drawChessboardCorners(I, board_size, Mat(pointbuf), found);
+   cv::drawChessboardCorners(sortie.O[0], board_size, Mat(pointbuf), found);
 
   journal.trace_major("Trouvé %d coins (found = %d).",
       pointbuf.size(), (int) found);
@@ -256,20 +257,20 @@ int CamCalDemo::calcul(Node &model, cv::Mat &I)
     journal.trace("RMS error reported by calibrateCamera: %g\n", rms);
 
 
-    cv::undistort(Ior, sortie.O[0], cameraMatrix, distCoeffs);
+    cv::undistort(Ior, sortie.O[1], cameraMatrix, distCoeffs);
 
     Size sz = I.size();
     sz.height = sz.width = max(sz.width, sz.height);
     sz.height = sz.width = max(sz.width, 500);
 
-    sortie.O[1] = cv::Mat::zeros(sz, CV_8UC3);
+    sortie.O[2] = cv::Mat::zeros(sz, CV_8UC3);
 
     double fovx, fovy, focal, ar;
     Point2d ppoint;
     cv::calibrationMatrixValues(cameraMatrix, I.size(), 1, 1, fovx, fovy, focal, ppoint, ar);
 
 
-    MatText mt(sortie.O[1]);
+    MatText mt(sortie.O[2]);
 
     std::stringstream str;
 

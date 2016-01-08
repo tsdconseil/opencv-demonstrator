@@ -30,7 +30,7 @@ CamShiftDemo::CamShiftDemo()
   props.id                = "camshift";
   props.requiert_roi         = true;
   bp_init_ok        = false;
-  sortie.nb_sorties  = 1;
+  sortie.nout  = 2;
 }
 
 void CamShiftDemo::set_roi(const cv::Mat &I, const cv::Rect &new_roi)
@@ -69,7 +69,8 @@ int CamShiftDemo::calcul(Node &model, cv::Mat &I)
     cv::MatND backproj;
     calc_bp(I, hist, backproj);
 
-    cvtColor(backproj, sortie.O[0], CV_GRAY2BGR);
+    sortie.O[0] = I;
+    cvtColor(backproj, sortie.O[1], CV_GRAY2BGR);
 
     journal.verbose("camshift, %d...", trackwindow.width);
     cv::Rect tw3;
@@ -101,11 +102,8 @@ SousArrierePlanDemo::SousArrierePlanDemo()
 {
   props.id  = "sous-arriere-plan";
   nframes = 0;
-# ifdef OCV240
-  sortie.nb_sorties = 2;
-# endif
-  sortie.outname[1] = "ap/av";
-  sortie.outname[1] = "Segmentation";
+  sortie.outname[1] = "masque";
+  sortie.nout = 2;
   osel = -1;
   //this->mog2 = createBackgroundSubtractorMOG2();
 }
@@ -127,6 +125,7 @@ int SousArrierePlanDemo::calcul(Node &model, cv::Mat &I)
   int sel = model.get_attribute_as_int("sel");
   update_sel(sel);
 
+  
   Mat tmp, mask;
 
   /*if(I.empty())
@@ -144,7 +143,7 @@ int SousArrierePlanDemo::calcul(Node &model, cv::Mat &I)
   journal.trace("MOG...");
   algo->apply(tmp, mask);
   journal.trace("ok.");
-  resize(mask,sortie.O[0],Size(0,0),4,4);
+  resize(mask,sortie.O[1],Size(0,0),4,4);
 
   nframes++;
 
@@ -191,12 +190,12 @@ OptFlowDemo::OptFlowDemo()
   reset = true;
   algo = createOptFlow_DualTVL1();
   sortie.outname[1] = "Flux optique";
+  sortie.nout = 2;
 }
 
 int OptFlowDemo::calcul(Node &model, cv::Mat &I)
 {
-  //O = I.clone();
-  //return 0;
+  sortie.O[0] = I;
 
   //  computed flow image that has the same size as prev and type CV_32FC2
   Mat flow;
@@ -209,7 +208,7 @@ int OptFlowDemo::calcul(Node &model, cv::Mat &I)
   {
     reset = false;
     cv::cvtColor(I, Iprec, CV_BGR2GRAY);
-    sortie.O[0] = Mat::zeros(I.size(), CV_8UC3);
+    sortie.O[1] = Mat::zeros(I.size(), CV_8UC3);
     return 0;
   }
 
@@ -225,10 +224,10 @@ int OptFlowDemo::calcul(Node &model, cv::Mat &I)
   _hsv[1] = 1.0 * Mat::ones(angle.size(), CV_32F); // Chromaticité = 1
   _hsv[2] = nmag; // Luminance
   merge(_hsv, 3, hsv);
-  sortie.O[0] = Mat(hsv.size(), CV_8UC3);
-  cvtColor(hsv, sortie.O[0], cv::COLOR_HSV2BGR);
-  sortie.O[0].convertTo(sortie.O[0], CV_8UC3, 255);
-  journal.verbose("fait: %d * %d, depth = %d.", sortie.O[0].cols, sortie.O[0].rows, sortie.O[0].depth());
+  sortie.O[1] = Mat(hsv.size(), CV_8UC3);
+  cvtColor(hsv, sortie.O[1], cv::COLOR_HSV2BGR);
+  sortie.O[1].convertTo(sortie.O[1], CV_8UC3, 255);
+  journal.verbose("fait: %d * %d, depth = %d.", sortie.O[1].cols, sortie.O[1].rows, sortie.O[1].depth());
   return 0;
 }
 
