@@ -256,7 +256,7 @@ int ImageMosaique::show_multiple_images(std::string title,
    cv::namedWindow(title.c_str(), 1);
  
  journal.verbose("imwrite");
- cv::imwrite("./essai.jpg", disp_img); // OK
+ //cv::imwrite("./essai.jpg", disp_img); // OK
  journal.verbose("imshow: [%s], %d * %d", title.c_str(), disp_img.cols, disp_img.rows); 
  cv::imshow(title.c_str(), disp_img);
 
