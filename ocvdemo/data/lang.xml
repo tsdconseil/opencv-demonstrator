@@ -100,7 +100,7 @@
         fr   = "Enregistrement du fichier journal"
         en   = "Log file saving"/>
   <item name = "check-lock-3"
-        fr   = "Lors de la précédente exécution du démonstrateur OpenCV, l'application s'est interrompue de manière innatendue. Nous sommes désolé pour ce désagrément. Souhaitez-vous enregistrer le dernier fichier journal ? Vous pouvez ensuite le transmettre au support technique avec une description du bug (adresse mail : contact@tsdconseil.fr)."
+        fr   = "Lors de la précédente exécution du démonstrateur OpenCV, l'application s'est interrompue de manière innatendue. Nous sommes désolé pour ce désagrément. Souhaitez-vous enregistrer le dernier fichier journal ? Vous pouvez ensuite le transmettre au support technique avec une description du bug (adresse mail : ocvdemo@tsdconseil.fr)."
         en   = "During the previous execution of the OpenCV demonstrator, the application stopped in an unexpected way. We are sorry for the disagreement. Do you wish to save the log file? You can them send it to the support team (email address: contact@tsdconseil.fr), with a description of the bug, and we will try to solve this problem."/>
   <item name = "save-log-title"
         fr   = "Enregistrement du fichier journal"
