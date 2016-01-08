@@ -23,7 +23,7 @@
 #ifndef RECO_DEMO_HPP_
 #define RECO_DEMO_HPP_
 
-#include "ocvdemo.hpp"
+#include "ocvdemo-item.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
 #include "opencv2/features2d/features2d.hpp"
 
