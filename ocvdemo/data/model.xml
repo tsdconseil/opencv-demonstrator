@@ -297,9 +297,13 @@
               default-img="data/img/left01.jpg"/>
               
               
-<!--       <cat name = "stereo"
+       <cat name = "stereo"
             fr   = "Traitements stéréo"
-            en   = "Stereo processing">-->
+            en   = "Stereo processing">
+	 <demo name = "stereo-cal"
+	       fr   = "Calibration stéréo"
+	       en   = "Stereo calibration"/>
+       </cat>
 
 
         <!--<demo name="homography"

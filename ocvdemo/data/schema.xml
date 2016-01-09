@@ -652,6 +652,7 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 <description lang="en">This demonstration enables you to fusion low resolution (8 bits) image, using the HDR module of OpenCV.</description>
 </node>
 
+<node name="stereo-cal"/>
 
   
 </schema>

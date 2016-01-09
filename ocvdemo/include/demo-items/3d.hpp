@@ -25,6 +25,16 @@
 
 #include "ocvdemo-item.hpp"
 
+
+/****************************************/
+/** @brief Epipolar lines demonstration */
+class StereoCalDemo: public OCVDemoItem
+{
+public:
+  StereoCalDemo();
+  int calcul(Node &model, cv::Mat &I);
+};
+
 /****************************************/
 /** @brief Epipolar lines demonstration */
 class EpiDemo: public OCVDemoItem

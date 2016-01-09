@@ -85,9 +85,6 @@ public:
   void export_captures();
 
 private:
-
-
-  
   void thread_calcul();
   void thread_video();
 

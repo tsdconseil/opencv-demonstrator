@@ -57,7 +57,8 @@ public:
 
     struct MosaiqueProps
     {
-      int min, max; // Nombre min / max d'images nécessaires
+      // Nombre min / max d'images nécessaires
+      int min, max;
       MosaiqueProps(){min = -1; max = -1;}
     } mosaique;
   };
