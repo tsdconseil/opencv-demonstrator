@@ -208,7 +208,7 @@ void OCVDemo::update()
     return;
   }
 
-  //I1 = I0.clone();
+  I1 = I0.clone();
   auto s = modele.to_xml();
 
   journal.trace("Calcul [%s], img: %d*%d, %d chn, model =\n%s",
@@ -221,12 +221,12 @@ void OCVDemo::update()
     this->img_selecteur.get_list(demo_en_cours->params.mosaique);
 
 
-  demo_en_cours->sortie.O[0] = I0; // Par défaut
+  demo_en_cours->sortie.O[0] = I1; // Par défaut
   
   // Appel au thread de calcul
   ODEvent evt;
   evt.type = ODEvent::CALCUL;
-  evt.img  = I0;
+  evt.img  = I1;
   evt.demo = demo_en_cours;
   evt.modele = modele;
   event_fifo.push(evt);
@@ -621,7 +621,7 @@ void OCVDemo::compute_Ia()
 {
   if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_roi))
   {
-    Ia = demo_en_cours->sortie.O[0];//I1.clone();
+    Ia = I0.clone();//demo_en_cours->sortie.O[0];//I1.clone();
     cv::rectangle(Ia, rdi0, rdi1, Scalar(0,255,0), 3);
   }
   else if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_masque))
