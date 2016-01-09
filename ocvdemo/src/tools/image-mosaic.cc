@@ -22,10 +22,11 @@
  **/
 
 #include "tools/image-mosaique.hpp"
-#include "ocvdemo.hpp" // TODO : separer avec un motif provider/lister au lieu de l'appel direct
+#include "opencv2/highgui/highgui.hpp"
+
+using namespace cv;
 
 // Adapté d'après http://code.opencv.org/projects/opencv/wiki/DisplayManyImages
-
 
 ImageMosaique::ImageMosaique()
 {
@@ -50,7 +51,13 @@ void ImageMosaique::mouse_callback(int event, int x, int y, int flags)
     {
       int x2 = ((x - r.x) * img_sizes[j].width) / r.width;
       int y2 = ((y - r.y) * img_sizes[j].height) / r.height;
-      OCVDemo::get_instance()->mouse_callback(j, event, x2, y2, flags);
+      OCVMouseEvent me;
+      me.image = j;
+      me.event = event;
+      me.x = x2;
+      me.y = y2;
+      me.flags = flags;
+      dispatch(me);
     }
   }
 }

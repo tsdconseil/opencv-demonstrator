@@ -29,11 +29,23 @@
 #include <string>
 
 
+/** Evenement souris sur la fenêtre d'affichage */
+struct OCVMouseEvent
+{
+  // Numéro d'image surlaquelle l'utilisateur a cliqué
+  int image;
+  // Code évenement souris
+  int event;
+  // Position dans la sous-fenêtre concernée
+  int x, y;
+  int flags;
+};
+
 ////////////////////////////////////////////////////////////////////////////
 /** @brief Fenêtre afficher un ou plusieurs images
  *  (utilisé pour afficher les résultats des traitements)
  *  @todo Réécrire à base de fenêtre GTK. */
-class ImageMosaique
+class ImageMosaique: public utils::CProvider<OCVMouseEvent>                           
 {
 public:
   /** Constructeur */

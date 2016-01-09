@@ -66,7 +66,10 @@ class OCVDemo:
     private CListener<ChangeEvent>,
 
     // Changement dans le sélecteur d'image
-    private CListener<ImageSelecteurRefresh>
+    private CListener<ImageSelecteurRefresh>,
+
+    // Evenement souris
+    private CListener<OCVMouseEvent>
 {
 public:
   /** Constructeur (devrait être privé !) */
@@ -81,14 +84,19 @@ public:
   /** Export des images pour la doc HTML */
   void export_captures();
 
-  /** Evénement souris à partir de la fenêtre d'image */
-  void mouse_callback(int image, int event, int x, int y, int flags);
-
 private:
 
+
+  
   void thread_calcul();
   void thread_video();
+
+  /** Demande le recalcul avec la dernière image d'entrée prête (dans I0) */
+  void update();
+
+  /** Réceptacle GTK pour une trame à partir du flux vidéo */
   int  on_video_image(const cv::Mat &tmp);
+  
   void export_captures(utils::model::Node &cat);
   Mat  get_current_output();
   bool has_output();
@@ -102,17 +110,28 @@ private:
   void on_menu_entree();
   void on_menu_quitter();
   void setup_menu();
-  //void setup_demo(std::string id);
+  
+  // Evenement souris sur la fenêtre d'affichage
+  void on_event(const OCVMouseEvent &me);
+
+  // Changement modèle (démo en cours ou schéma global)
   void on_event(const ChangeEvent &ce);
+
+  // Sélection d'une autre démo
   void on_event(const utils::mmi::SelectionChangeEvent &e);
+
+  // Nouvelle image sélectionnée
   void on_event(const ImageSelecteurRefresh &e);
-  void on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, const Gtk::SelectionData& selection_data, guint info, guint time);
+  
+  // Drag & drop
+  void on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context,
+		       int x, int y, const Gtk::SelectionData& selection_data,
+		       guint info, guint time);
   bool on_delete_event(GdkEventAny *event);
   void on_b_save();
   void on_b_exit();
   void on_b_infos();
 
-  void update();
   void update_Ia();
   void compute_Ia();
   void masque_clic(int x, int y);
@@ -120,8 +139,6 @@ private:
   void on_b_masque_raz();
   void on_b_masque_gomme();
   void on_b_masque_remplissage();
-
-
 
   // To communicate from the video thread to the main GTK thread 
   utils::mmi::GtkDispatcher<cv::Mat> gtk_dispatcher;
@@ -227,8 +244,5 @@ private:
     signal_image_video_traitee,
     signal_video_suspendue;
 };
-
-
-
 
 #endif

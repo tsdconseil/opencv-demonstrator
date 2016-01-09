@@ -727,6 +727,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   barre_outils.add(b_infos);
   barre_outils.add(b_exit);
 
+  mosaique.add_listener(this);
 
   b_save.set_stock_id(Gtk::Stock::SAVE);
   b_exit.set_stock_id(Gtk::Stock::QUIT);

@@ -24,45 +24,40 @@
 
 
 
-void OCVDemo::mouse_callback(int image, int event, int x, int y, int flags)
+//void OCVDemo::mouse_callback(int image, int event, int x, int y, int flags)
+void OCVDemo::on_event(const OCVMouseEvent &me)
 {
   mutex.lock();
-  journal.trace("ocvdemo mouse callback img = %d, x = %d, y = %d.", image, x, y);
-  switch (event)
+  journal.trace("ocvdemo mouse callback img = %d, x = %d, y = %d.",
+		me.image, me.x, me.y);
+  switch (me.event)
   {
     case CV_EVENT_LBUTTONDOWN:
     {
-      journal.trace("LB DOWN x = %d, y = %d.", x, y);
-      //Point seedPoint = cvPoint(x,y); //setting mouse clicked location as seed point
-
-      rdi0.x = x;
-      rdi0.y = y;
+      //journal.verbose("LB DOWN x = %d, y = %d.", me.x, me.y);
+      rdi0.x = me.x;
+      rdi0.y = me.y;
       rdi1 = rdi0;
       etat_souris = 1;
 
       if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_masque))
       {
-        masque_clic(x,y);
+        masque_clic(me.x,me.y);
         compute_Ia();
         update_Ia();
       }
-
-      //floodFill(I0, seedPoint, Scalar(0,255,0));
-      //update();
       break;
     }
     case CV_EVENT_MOUSEMOVE:
     {
       if(etat_souris == 1)
       {
-        //Ia = I1.clone();
-        rdi1.x = x;
-        rdi1.y = y;
+        rdi1.x = me.x;
+        rdi1.y = me.y;
 
         if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_masque))
-          masque_clic(x,y);
+          masque_clic(me.x,me.y);
 
-        //cv::rectangle(Ia, roi0, roi1, Scalar(0,255,0), 3);
         compute_Ia();
         update_Ia();
         journal.trace("updated ia.");
@@ -71,14 +66,12 @@ void OCVDemo::mouse_callback(int image, int event, int x, int y, int flags)
     }
     case CV_EVENT_LBUTTONUP:
     {
-      journal.trace("LB UP x = %d, y = %d.", x, y);
+      //journal.verbose("LB UP x = %d, y = %d.", me.x, me.y);
       if(etat_souris == 1)
       {
-        //Ia = I1.clone();
-        rdi1.x = x;
-        rdi1.y = y;
+        rdi1.x = me.x;
+        rdi1.y = me.y;
         compute_Ia();
-        //cv::rectangle(Ia, roi0, roi1, Scalar(0,255,0), 3);
         etat_souris = 0;
         if(demo_en_cours != nullptr)
         {
