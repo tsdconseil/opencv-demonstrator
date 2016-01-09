@@ -1,5 +1,6 @@
 #include "mxml.hpp"
 #include "cutil.hpp"
+#include "pugixml.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -16,6 +17,8 @@ namespace model
 using namespace utils;
 
 
+static void load_from_pugi_node(MXml &mx, pugi::xml_node node);
+  
 
 XmlAttribute::XmlAttribute(const XmlAttribute &a)
 {
@@ -152,29 +155,29 @@ MXml::MXml(std::string name, std::vector<XmlAttribute> *attributes, std::vector<
 
 
 
-void MXml::load_from_pugi_node(pugi::xml_node node)
+static void load_from_pugi_node(MXml &mx, pugi::xml_node node)
 {
-  name = node.name();
+  mx.name = node.name();
   for(auto att: node.attributes())
   {
     XmlAttribute xatt;
     xatt.name = att.name();
     xatt.string_value = att.value();
-    attributes.push_back(xatt);
+    mx.attributes.push_back(xatt);
   }
   for(auto ch: node.children())
   {
     auto type = ch.type();
     if(type == pugi::xml_node_type::node_pcdata)
     {
-      add_text(ch.text().get());
+      mx.add_text(ch.text().get());
     } 
     else if((type == pugi::xml_node_type::node_element) 
 	    || (type == pugi::xml_node_type::node_element))
     {
       MXml child;
-      child.load_from_pugi_node(ch);
-      add_child(child);
+      load_from_pugi_node(child, ch);
+      mx.add_child(child);
     }
   }
 }
@@ -192,7 +195,7 @@ int MXml::from_file(std::string filename)
 
   auto elt = doc.document_element();
   //elt.print(std::cout);
-  load_from_pugi_node(elt);
+  load_from_pugi_node(*this, elt);
   return 0;
 }
 
@@ -208,7 +211,7 @@ int MXml::from_string(std::string s)
   }
 
   auto elt = doc.document_element();
-  load_from_pugi_node(elt);
+  load_from_pugi_node(*this, elt);
   return 0;
 }
 

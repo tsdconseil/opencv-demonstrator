@@ -1,7 +1,7 @@
 #ifndef MXML_H
 #define MXML_H
 
-#include "pugixml.hpp"
+
 #include "trace.hpp"
 
 #include <vector>
@@ -66,8 +66,6 @@ public:
   static std::string xml_string_to_ascii(std::string s);
   /** @brief convert "&amp;" to "&" */
   static std::string ascii_string_to_xml(std::string s);
-private:
-  void load_from_pugi_node(pugi::xml_node node);
 };
 
 }
