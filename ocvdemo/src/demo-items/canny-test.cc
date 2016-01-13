@@ -1,4 +1,4 @@
-/** @file demo-skeleton.hpp
+/** @file demo-skeleton.cc
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 
@@ -20,18 +20,24 @@
     along with OCVDemo.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef MY_DEMO_HPP
-#define MY_DEMO_HPP
 
-#include "ocvdemo-item.hpp"
+
+#include "demo-items/canny-test.hpp" // REPLACE BY NAME OF YOUR INCLUDE FILE
+
 
 // Replace "MyDemo" by the name of your class
-class canny-test: public OCVDemoItem
+int Canny_test::calcul(Node &model, cv::Mat &I)
 {
-public:
-  int calcul(Node &model, cv::Mat &I);
-};
+  // Place your code here:
+  // The input image is I
+  // The output image(s) should be stored in sortie.O[0], sortie.O[1], ...
+
+  // For instance, a dummy copy of the input image
+
+  sortie.O[0] = I;
 
 
+  // Return code: 0 if computing is successfull
+  return 0;
+}
 
-#endif

@@ -32,7 +32,7 @@
 #include "demo-items/video-demo.hpp"
 #include "demo-items/espaces-de-couleurs.hpp"
 #include "demo-items/3d.hpp"
-
+#include "demo-items/canny-test.hpp"
 void OCVDemo::add_demos()
 {
   items.push_back(new StereoCalDemo());
@@ -71,6 +71,7 @@ void OCVDemo::add_demos()
   items.push_back(new CascGenDemo("casc-yeux"));
   items.push_back(new CascGenDemo("casc-plate"));
   items.push_back(new CascGenDemo("casc-sil"));
+  items.push_back(new Canny_test());
 }
 
 

@@ -26,7 +26,7 @@
 #include "ocvdemo-item.hpp"
 
 // Replace "MyDemo" by the name of your class
-class canny-test: public OCVDemoItem
+class Canny_test: public OCVDemoItem
 {
 public:
   int calcul(Node &model, cv::Mat &I);

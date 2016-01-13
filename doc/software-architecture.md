@@ -10,6 +10,8 @@ Source file are organized in 3 main folders:
  - ocvdemo: OpenCV demonstrator project
  - ocvext:  Some additional image processing routine (Deriche gradient and Hough transform)
  - libcutil: Helper classes to generate a MMI from a XML file
+    1.Multimodal Interaction Activity (MMI)  https://en.wikipedia.org/wiki/Multimodal_interaction
+    2.XML parcing with Pugixml https://github.com/zeux/pugixml
 
 ## Configuration files
 

@@ -654,5 +654,14 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 
 <node name="stereo-cal"/>
 
+<node name="canny-test">
+
+<description lang="fr">Image pour l'échelle de gris , puis flou gaussien puis Canny .http://docs.opencv.org/2.4/modules/highgui/doc/reading_and_writing_images_and_video.html</description>
+<description lang="en">Image to gray scale then gaussian blur then canny.  http://docs.opencv.org/2.4/modules/highgui/doc/reading_and_writing_images_and_video.html</description>
+
+<description lang="ru">изображение серой шкалы затем Gaussian Blur , то хитрый  http://docs.opencv.org/2.4/modules/highgui/doc/reading_and_writing_images_and_video.html</description>
+
+</node>
+
   
 </schema>

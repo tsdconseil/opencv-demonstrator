@@ -65,7 +65,13 @@
             fr   = "Délimitation des contours" 
             en   = "Contours delimitation"
             default-img="data/img/pic5.png"/>
-      
+
+      <demo name = "canny-test" 
+            fr   = "grandes lignes" 
+            en   = "Outline"
+            ru   = "контуры"
+            default-img="data/img/a.wmv"/>
+ 
     </cat>
           
     <cat name = "hough"
