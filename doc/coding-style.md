@@ -10,6 +10,10 @@ This document describe the coding rules to be applied in the project, so as to p
  - All classes and structures names should be written according to the "CamelCase" convention (first letter in uppercase, seperation by the uppercase)
  - All files should be named in lowercase letters, with the different words separated by a `-` symbol.
 
+ - All text based files to utf-8, and Unix style line endings. Unix uses just line feed ("\n"). 
+    1.  See issue #5 [https://github.com/tsdconseil/opencv-demonstrator/issues/5]
+    2.  See also [https://help.github.com/articles/dealing-with-line-endings/] 
+    3.  Note also the file .gitattributes in the root directory.
 
 Other rules may be added in the future.
 
