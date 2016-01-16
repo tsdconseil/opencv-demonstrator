@@ -1,0 +1,10 @@
+# Enforce Unix style line endings.
+* text eol=lf
+
+# Denote all files that are truly binary and should not be modified.
+*.png binary
+*.jpg binary
+*.wmv binary
+*.mpg binary
+*.ico binary
+
