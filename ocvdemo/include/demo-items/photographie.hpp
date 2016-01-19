@@ -29,7 +29,7 @@ class HDRDemo: public OCVDemoItem
 {
 public:
   HDRDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 

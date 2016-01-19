@@ -27,10 +27,9 @@
 
 CamShiftDemo::CamShiftDemo()
 {
-  props.id                = "camshift";
-  props.requiert_roi         = true;
-  bp_init_ok        = false;
-  out.nout  = 2;
+  props.id           = "camshift";
+  props.requiert_roi = true;
+  bp_init_ok         = false;
 }
 
 void CamShiftDemo::set_roi(const cv::Mat &I, const cv::Rect &new_roi)
@@ -55,8 +54,9 @@ void CamShiftDemo::set_roi(const cv::Mat &I, const cv::Rect &new_roi)
   bp_init_ok = true;
 }
 
-int CamShiftDemo::calcul(Node &model, cv::Mat &I)
+int CamShiftDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
+  auto I = input.images[0];
   out.outname[1] = "back-projection histo.";
   if(!bp_init_ok)
   {
@@ -69,8 +69,8 @@ int CamShiftDemo::calcul(Node &model, cv::Mat &I)
     cv::MatND backproj;
     calc_bp(I, hist, backproj);
 
-    out.O[0] = I;
-    cvtColor(backproj, out.O[1], CV_GRAY2BGR);
+    out.images[0] = I;
+    cvtColor(backproj, out.images[1], CV_GRAY2BGR);
 
     journal.verbose("camshift, %d...", trackwindow.width);
     cv::Rect tw3;
@@ -120,19 +120,15 @@ void SousArrierePlanDemo::update_sel(int nsel)
   }
 }
 
-int SousArrierePlanDemo::calcul(Node &model, cv::Mat &I)
+int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  int sel = model.get_attribute_as_int("sel");
+  int sel = input.model.get_attribute_as_int("sel");
   update_sel(sel);
 
   
   Mat tmp, mask;
 
-  /*if(I.empty())
-  {
-    journal.warning("%s: I is empty.", __func__);
-    return -1;
-  }*/
+  auto I = input.images[0];
 
   resize(I,tmp,Size(0,0),0.25,0.25);
 
@@ -143,13 +139,13 @@ int SousArrierePlanDemo::calcul(Node &model, cv::Mat &I)
   journal.trace("MOG...");
   algo->apply(tmp, mask);
   journal.trace("ok.");
-  resize(mask,out.O[1],Size(0,0),4,4);
+  resize(mask,out.images[1],Size(0,0),4,4);
 
   nframes++;
 
   if(nframes < 5)
   {
-    out.O[1] = I.clone();
+    out.images[1] = I.clone();
     return 0;
   }
 
@@ -171,10 +167,10 @@ int SousArrierePlanDemo::calcul(Node &model, cv::Mat &I)
   segmentMotion(mhi, segmask, brects, nframes - 5, seuil);
 
   journal.trace("rects...");
-  O[1] = tmp.clone();
+  images[1] = tmp.clone();
   for(auto r: brects)
-    cv::rectangle(O[1], r, Scalar(0,255,0));
-  resize(O[1], O[1], Size(0,0), 4, 4);
+    cv::rectangle(images[1], r, Scalar(0,255,0));
+  resize(images[1], images[1], Size(0,0), 4, 4);
 
   this->outname[1] = langue.get_item("mask-arr");
   this->outname[2] = "Segmentation";
@@ -189,26 +185,24 @@ OptFlowDemo::OptFlowDemo()
   props.id = "flux-optique";
   reset = true;
   algo = createOptFlow_DualTVL1();
-  out.outname[1] = "Flux optique";
-  out.nout = 2;
+  out.outname[0] = "Flux optique";
 }
 
-int OptFlowDemo::calcul(Node &model, cv::Mat &I)
+int OptFlowDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  out.O[0] = I;
-
   //  computed flow image that has the same size as prev and type CV_32FC2
   Mat flow;
 
   Mat I1;
   Mat _hsv[3], hsv;
   Mat xy[2], mag, nmag, angle;
+  auto I = input.images[0];
 
   if(reset)
   {
     reset = false;
     cv::cvtColor(I, Iprec, CV_BGR2GRAY);
-    out.O[1] = Mat::zeros(I.size(), CV_8UC3);
+    out.images[0] = Mat::zeros(I.size(), CV_8UC3);
     return 0;
   }
 
@@ -224,10 +218,10 @@ int OptFlowDemo::calcul(Node &model, cv::Mat &I)
   _hsv[1] = 1.0 * Mat::ones(angle.size(), CV_32F); // Chromaticité = 1
   _hsv[2] = nmag; // Luminance
   merge(_hsv, 3, hsv);
-  out.O[1] = Mat(hsv.size(), CV_8UC3);
-  cvtColor(hsv, out.O[1], cv::COLOR_HSV2BGR);
-  out.O[1].convertTo(out.O[1], CV_8UC3, 255);
-  journal.verbose("fait: %d * %d, depth = %d.", out.O[1].cols, out.O[1].rows, out.O[1].depth());
+  out.images[0] = Mat(hsv.size(), CV_8UC3);
+  cvtColor(hsv, out.images[0], cv::COLOR_HSV2BGR);
+  out.images[0].convertTo(out.images[0], CV_8UC3, 255);
+  journal.verbose("fait: %d * %d, depth = %d.", out.images[0].cols, out.images[0].rows, out.images[0].depth());
   return 0;
 }
 

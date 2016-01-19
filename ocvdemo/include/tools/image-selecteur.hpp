@@ -47,6 +47,7 @@ public:
   void raz();
 
   void get_list(std::vector<cv::Mat> &list);
+  unsigned int get_nb_images() const;
 
 private:
   void on_size_change(Gtk::Allocation &alloc);

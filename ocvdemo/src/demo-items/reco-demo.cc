@@ -34,10 +34,12 @@
 MatchDemo::MatchDemo()
 {
   props.id = "corner-match";
+  props.input_min = 2;
+  props.input_max = 2;
   lock = false;
-  out.nout = 1;
 }
 
+#if 0
 void MatchDemo::setup_model(Node &model)
 {
   if(!lock)
@@ -52,15 +54,16 @@ void MatchDemo::setup_model(Node &model)
     lock = false;
   }
 }
+#endif
 
-int MatchDemo::calcul(Node &model, cv::Mat &I)
+int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   if(!lock)
   {
     lock = true;
 
-    imgs.clear();
-    for(auto i: model.children("pano-img"))
+    /*imgs.clear();
+    for(auto i: input.model.children("pano-img"))
     {
       auto s = i.get_attribute_as_string("path");
       auto img = imread(s);
@@ -70,7 +73,8 @@ int MatchDemo::calcul(Node &model, cv::Mat &I)
         return -1;
       }
       imgs.push_back(img);
-    }
+    }*/
+    imgs = input.images;
 
 
 
@@ -143,9 +147,9 @@ int MatchDemo::calcul(Node &model, cv::Mat &I)
 #   endif
 
 
-    out.O[0] = Mat::zeros(Size(640*2,480*2), CV_8UC3);
+    out.images[0] = Mat::zeros(Size(640*2,480*2), CV_8UC3);
 
-    cv::drawMatches(imgs[0], kpts[0], imgs[1], kpts[1], good_matches, out.O[0]);
+    cv::drawMatches(imgs[0], kpts[0], imgs[1], kpts[1], good_matches, out.images[0]);
 
     journal.trace("draw match ok: %d assoc, %d ok.",
         matches.size(), good_matches.size());
@@ -213,11 +217,12 @@ PanoDemo::PanoDemo()
 {
   props.id = "pano";
   lock = false;
-  props.requiert_mosaique = true;
+  props.input_max = -1;
+  //props.requiert_mosaique = true;
   out.nout = 1;
 }
 
-int PanoDemo::calcul(Node &model, cv::Mat &I)
+int PanoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   if(!lock)
   {
@@ -227,12 +232,12 @@ int PanoDemo::calcul(Node &model, cv::Mat &I)
     Mat pano;
 
     auto t0 = getTickCount();
-    auto status = stitcher.stitch(params.mosaique, pano);
+    auto status = stitcher.stitch(input.images, pano);
     t0 = getTickCount() - t0;
 
-    out.O[0] = pano;
-    out.vrai_sortie = pano;
-    out.outname[0] = "Panorama";
+    output.images[0] = pano;
+    output.vrai_sortie = pano;
+    output.outname[0] = "Panorama";
 
     journal.verbose("%.2lf sec\n",  t0 / getTickFrequency());
 
@@ -253,10 +258,10 @@ CornerDemo::CornerDemo()
   props.id = "corner-det";
 }
 
-int CornerDemo::calcul(Node &model, cv::Mat &I)
+int CornerDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  int sel = model.get_attribute_as_int("sel");
-  int max_pts = model.get_attribute_as_int("max-pts");
+  int sel = input.model.get_attribute_as_int("sel");
+  int max_pts = input.model.get_attribute_as_int("max-pts");
   Ptr<FeatureDetector> detector;
 
   // Shi-Tomasi
@@ -299,16 +304,16 @@ int CornerDemo::calcul(Node &model, cv::Mat &I)
   Mat gris;
   //GoodFeaturesToTrackDetector harris_detector(1000, 0.01, 10, 3, true );
   vector<KeyPoint> keypoints;
-  cvtColor(I, gris, CV_BGR2GRAY);
+  cvtColor(input.images[0], gris, CV_BGR2GRAY);
 
   journal.trace("detection...");
   detector->detect(gris, keypoints);
 
   //if(keypoints.size() > max_pts)
     //keypoints.resize(max_pts);
-  out.O[0] = I.clone();
+  output.images[0] = input.images[0].clone();
   journal.trace("drawK");
-  drawKeypoints(I, keypoints, out.O[0], Scalar(0, 0, 255));
+  drawKeypoints(input.images[0], keypoints, output.images[0], Scalar(0, 0, 255));
   journal.trace("ok");
   return 0;
 }
@@ -335,15 +340,18 @@ VisageDemo::VisageDemo(): rng(12345)
 }
 
 
-int VisageDemo::calcul(Node &model, cv::Mat &I)
+int VisageDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   std::vector<Rect> faces;
   Mat frame_gray;
+  auto I = input.images[0];
   cvtColor(I, frame_gray, CV_BGR2GRAY);
   equalizeHist(frame_gray, frame_gray);
 
-  int minsizex = model.get_attribute_as_int("minsizex");
-  int minsizey = model.get_attribute_as_int("minsizey");
+  output.images[0] = I.clone();
+
+  int minsizex = input.model.get_attribute_as_int("minsizex");
+  int minsizey = input.model.get_attribute_as_int("minsizey");
   //int maxsizex = model.get_attribute_as_int("maxsizex");
   //int maxsizey = model.get_attribute_as_int("maxsizey");
 
@@ -361,7 +369,7 @@ int VisageDemo::calcul(Node &model, cv::Mat &I)
   for(size_t i = 0; i < faces.size(); i++ )
   {
     Point center( faces[i].x + faces[i].width * 0.5, faces[i].y + faces[i].height * 0.5 );
-    cv::rectangle(out.O[0], Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar(0,255,0), 3);
+    cv::rectangle(output.images[0], Point(faces[i].x, faces[i].y), Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height), Scalar(0,255,0), 3);
     Mat faceROI = frame_gray(faces[i]);
     std::vector<Rect> eyes;
     //-- In each face, detect eyes
@@ -373,7 +381,7 @@ int VisageDemo::calcul(Node &model, cv::Mat &I)
     {
       Point center( faces[i].x + eyes[j].x + eyes[j].width * 0.5, faces[i].y + eyes[j].y + eyes[j].height * 0.5 );
       int radius = cvRound( (eyes[j].width + eyes[j].height) * 0.25 );
-      circle(out.O[0], center, radius, Scalar( 255, 0, 0 ), 4, CV_AA, 0);
+      circle(output.images[0], center, radius, Scalar( 255, 0, 0 ), 4, CV_AA, 0);
     }
   }
 
@@ -434,10 +442,12 @@ CascGenDemo::CascGenDemo(std::string id): rng(12345)
 }
 
 
-int CascGenDemo::calcul(Node &model, cv::Mat &I)
+int CascGenDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   if(!cascade_ok)
     return -1;
+
+  auto I = input.images[0];
 
   std::vector<Rect> faces;
   Mat frame_gray;
@@ -446,16 +456,14 @@ int CascGenDemo::calcul(Node &model, cv::Mat &I)
 
   int sel = 0;
 
-  if(model.has_attribute("sel"))
-    sel = model.get_attribute_as_int("sel");
+  if(input.model.has_attribute("sel"))
+    sel = input.model.get_attribute_as_int("sel");
 
   if(sel >= (int) cnames.size())
     sel = 0;
 
-  int minsizex = model.get_attribute_as_int("minsizex");
-  int minsizey = model.get_attribute_as_int("minsizey");
-  //int maxsizex = model.get_attribute_as_int("maxsizex");
-  //int maxsizey = model.get_attribute_as_int("maxsizey");
+  int minsizex = input.model.get_attribute_as_int("minsizex");
+  int minsizey = input.model.get_attribute_as_int("minsizey");
 
   //-- Detect faces
   cascade[sel].detectMultiScale(frame_gray, faces,
@@ -465,14 +473,13 @@ int CascGenDemo::calcul(Node &model, cv::Mat &I)
                                 Size(minsizex,minsizey),
                                 Size(/*maxsizex,maxsizey*/));
 
+  output.images[0] = I.clone();
 
   journal.trace("Détecté %d objets.", faces.size());
   for(size_t i = 0; i < faces.size(); i++ )
   {
     Point center( faces[i].x + faces[i].width * 0.5, faces[i].y + faces[i].height * 0.5 );
-    cv::rectangle(I, faces[i],
-                  //Point(faces[i].x, faces[i].y),
-                  //Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height),
+    cv::rectangle(output.images[0], faces[i],
                   Scalar(0,255,0), 3);
   }
   return 0;

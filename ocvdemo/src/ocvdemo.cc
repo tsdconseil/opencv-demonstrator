@@ -32,6 +32,17 @@ using utils::model::Localized;
 static OCVDemo *instance = nullptr;
 
 
+OCVDemoItem::OCVDemoItem()
+{
+  out.nout = 1;
+  props.requiert_roi = false;
+  props.requiert_masque = false;
+  //props.requiert_mosaique = false;
+  props.input_min = 1;
+  props.input_max = 1;
+  journal.setup("ocvdemo-item","");
+}
+
 static void prepare_image(cv::Mat &I)
 {
   if(I.channels() == 1)
@@ -62,7 +73,7 @@ void OCVDemo::thread_calcul()
       case ODEvent::CALCUL:
 	try
 	{
-	  calcul_status = evt.demo->calcul(evt.modele, evt.img);
+	  calcul_status = evt.demo->proceed(evt.demo->params, evt.demo->out);
 	}
 	catch(...)
         {
@@ -165,7 +176,7 @@ void OCVDemo::masque_clic(int x0, int y0)
         Ia.at<Vec3b>(y,x).val[0] = 255;
         Ia.at<Vec3b>(y,x).val[1] = 255;
         Ia.at<Vec3b>(y,x).val[2] = 255;
-        demo_en_cours->params.masque.at<unsigned char>(y,x) = 255;
+        demo_en_cours->params.mask.at<unsigned char>(y,x) = 255;
       }
     }
   }
@@ -175,7 +186,7 @@ void OCVDemo::masque_clic(int x0, int y0)
     cv::Mat mymask = Mat::zeros(Ia.rows+2,Ia.cols+2,CV_8U);
     cv::floodFill(Ia, mymask, Point(x0,y0), Scalar(255,255,255));
     Mat roi(mymask, Rect(1,1,Ia.cols,Ia.rows));
-    this->demo_en_cours->params.masque |= roi;
+    this->demo_en_cours->params.mask |= roi;
     update();
   }
 }
@@ -192,7 +203,7 @@ void OCVDemo::update()
   {
     first_processing = false;
     if(demo_en_cours->props.requiert_masque)
-      demo_en_cours->params.masque = cv::Mat::zeros(I0.size(), CV_8U);
+      demo_en_cours->params.mask = cv::Mat::zeros(I0.size(), CV_8U);
   }
   
   journal.verbose("Acquisition mutex_update...");
@@ -217,11 +228,11 @@ void OCVDemo::update()
 		s.c_str());
 
     
-  if(demo_en_cours->props.requiert_mosaique)
-    this->img_selecteur.get_list(demo_en_cours->params.mosaique);
+  //if(demo_en_cours->props.requiert_mosaique)
+  this->img_selecteur.get_list(demo_en_cours->params.images);
 
 
-  demo_en_cours->out.O[0] = I1; // Par défaut
+  demo_en_cours->out.images[0] = I1; // Par défaut
   
   // Appel au thread de calcul
   ODEvent evt;
@@ -251,7 +262,7 @@ void OCVDemo::update()
     if(demo_en_cours->out.vrai_sortie.data != nullptr)
       sortie_en_cours = demo_en_cours->out.vrai_sortie;
     else if(demo_en_cours->out.nout > 0)
-      sortie_en_cours = demo_en_cours->out.O[demo_en_cours->out.nout];
+      sortie_en_cours = demo_en_cours->out.images[demo_en_cours->out.nout];
     else
       sortie_en_cours = I0;
   }
@@ -265,7 +276,7 @@ void OCVDemo::update()
 
   img_count = demo_en_cours->out.nout;
 
-  if(demo_en_cours->out.O[img_count - 1 ].data == nullptr)
+  if(demo_en_cours->out.images[img_count - 1 ].data == nullptr)
   {
     img_count = 0;
     journal.warning("Img count = %d, et image de sortie non initialisée.", img_count);
@@ -278,8 +289,8 @@ void OCVDemo::update()
   {
     if(j > 0)
     {
-      prepare_image(demo_en_cours->out.O[j]);
-      lst.push_back(demo_en_cours->out.O[j]);
+      prepare_image(demo_en_cours->out.images[j]);
+      lst.push_back(demo_en_cours->out.images[j]);
     }
 
     char buf[50];
@@ -497,6 +508,7 @@ void OCVDemo::setup_demo(const Node &sel)
   if((sel.schema()->name.get_id() != "demo")
      || (fs_racine->get_schema(id) == nullptr))
   {
+    img_selecteur.hide();
     destroyWindow(titre_principal);
     mosaique.callback_init_ok = false;
     mutex_update.unlock();
@@ -543,7 +555,7 @@ void OCVDemo::setup_demo(const Node &sel)
       rdi1.x = demo->params.roi.x + demo->params.roi.width;
       rdi1.y = demo->params.roi.y + demo->params.roi.height;
 	  
-      demo->params.modele = modele;
+      demo->params.model = modele;
       demo->setup_model(modele);
 	  
       if(demo->configure_ui())
@@ -554,26 +566,32 @@ void OCVDemo::setup_demo(const Node &sel)
       else
 	barre_outil_dessin.cache();
 
-      if(demo_en_cours->props.requiert_mosaique)
-      {
-	img_selecteur.show();
-	img_selecteur.present();
-	img_selecteur.raz();
-	for(const auto &img: modele_demo.children("img"))
-	  img_selecteur.ajoute_fichier(img.get_attribute_as_string("path"));
-      }
-      else
-	img_selecteur.hide();
-    }  
+  //if(demo_en_cours->props.requiert_mosaique)
+  {
+    img_selecteur.show();
+    //img_selecteur.present();
+    img_selecteur.raz();
+    for(const auto &img: modele_demo.children("img"))
+      img_selecteur.ajoute_fichier(img.get_attribute_as_string("path"));
+    int nmissing = demo->props.input_min - img_selecteur.get_nb_images();
+    if(nmissing > 0)
+    {
+      for(auto i = 0; i < nmissing; i++)
+        img_selecteur.ajoute_fichier(utils::get_fixed_data_path() + "/img/lena.jpg");
+    }
   }
+  //else
+    //img_selecteur.hide();
+  }
+}
   if(demo_en_cours == nullptr)
     journal.warning("Demo not found: %s", id.c_str());
 
   
   this->wnd.present();
 
-  if((demo_en_cours != nullptr) && demo_en_cours->props.requiert_mosaique)
-    img_selecteur.present();
+  //if((demo_en_cours != nullptr) )//&& demo_en_cours->props.requiert_mosaique)
+    //img_selecteur.present();
 
   if(demo_en_cours && (demo_en_cours->props.requiert_masque))
     barre_outil_dessin.montre();
@@ -627,10 +645,10 @@ void OCVDemo::compute_Ia()
   else if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_masque))
   {
     if((Ia.data == nullptr) || (Ia.size() != I1.size()))
-      Ia = demo_en_cours->out.O[0];//Ia = I1.clone();
+      Ia = demo_en_cours->out.images[0];//Ia = I1.clone();
   }
   else if(demo_en_cours != nullptr)
-    Ia = demo_en_cours->out.O[0];
+    Ia = demo_en_cours->out.images[0];
   else
     Ia = I0;
 }
@@ -638,7 +656,7 @@ void OCVDemo::compute_Ia()
 void OCVDemo::masque_raz()
 {
   Ia = I0.clone();
-  demo_en_cours->params.masque = cv::Mat::zeros(I0.size(), CV_8U);
+  demo_en_cours->params.mask = cv::Mat::zeros(I0.size(), CV_8U);
 }
 
 void OCVDemo::update_Ia()

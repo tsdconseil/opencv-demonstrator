@@ -32,7 +32,7 @@ class StereoCalDemo: public OCVDemoItem
 {
 public:
   StereoCalDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 /****************************************/
@@ -41,7 +41,7 @@ class EpiDemo: public OCVDemoItem
 {
 public:
   EpiDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 /***************************************/
@@ -51,7 +51,7 @@ class DispMapDemo: public OCVDemoItem
 {
 public:
   DispMapDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 /********************************************/
@@ -61,7 +61,7 @@ class CamCalDemo: public OCVDemoItem
 {
 public:
   CamCalDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 

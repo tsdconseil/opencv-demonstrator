@@ -70,8 +70,9 @@ class FilterDemo: public OCVDemoItem
 {
 public:
   FilterDemo();
-  int calcul(Node &model, cv::Mat &I);
-  int proceed(const FilterDemoConfig &conf, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+private:
+  int proceed(const FilterDemoConfig &conf, cv::Mat &I, OCVDemoItemOutput &output);
 };
 
 //extern int filter_demo(const FilterDemoConfig &conf);

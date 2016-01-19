@@ -31,8 +31,7 @@ class InpaintDemo: public OCVDemoItem
 {
 public:
   InpaintDemo();
-  int calcul(Node &model, cv::Mat &I);
-  //void set_roi(const cv::Mat &I, const cv::Rect &new_roi);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 private:
   
 };
@@ -42,7 +41,7 @@ class Seuillage: public OCVDemoItem
 {
 public:
   Seuillage();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 /** @brief Démonstration algorithme grabcut */
@@ -50,7 +49,7 @@ class GrabCutDemo: public OCVDemoItem
 {
 public:
   GrabCutDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 /** @brief Démonstration algorithme watershed */
@@ -58,7 +57,7 @@ class WShedDemo: public OCVDemoItem
 {
 public:
   WShedDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 /** @brief Démonstration transformée de distance */
@@ -66,7 +65,7 @@ class DTransDemo: public OCVDemoItem
 {
 public:
   DTransDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 

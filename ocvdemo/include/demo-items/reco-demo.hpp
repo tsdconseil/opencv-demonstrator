@@ -31,8 +31,8 @@ class MatchDemo: public OCVDemoItem
 {
 public:
   MatchDemo();
-  int calcul(Node &model, cv::Mat &I);
-  void setup_model(Node &model);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+  //void setup_model(Node &model);
 private:
   bool lock;
   std::vector<cv::Mat> imgs;
@@ -43,7 +43,7 @@ class PanoDemo: public OCVDemoItem
 {
 public:
   PanoDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 private:
   bool lock;
 };
@@ -52,7 +52,7 @@ class CornerDemo: public OCVDemoItem
 {
 public:
   CornerDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 private:
 };
 
@@ -60,7 +60,7 @@ class VisageDemo: public OCVDemoItem
 {
 public:
   VisageDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 private:
   CascadeClassifier face_cascade, eyes_cascade;
   RNG rng;
@@ -71,7 +71,7 @@ class CascGenDemo: public OCVDemoItem
 {
 public:
   CascGenDemo(std::string id);
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 private:
   std::vector<std::string> cnames;
   CascadeClassifier cascade[3];

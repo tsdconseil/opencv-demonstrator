@@ -26,7 +26,7 @@
 
 
 // Replace "MyDemo" by the name of your class
-int MyDemo::calcul(Node &model, cv::Mat &I)
+int MyDemo::proceed(Node &model, cv::Mat &I)
 {
   // Place your code here:
   // The input image is I
@@ -34,7 +34,7 @@ int MyDemo::calcul(Node &model, cv::Mat &I)
 
   // For instance, a dummy copy of the input image
 
-  out.O[0] = I;
+  out.images[0] = I;
 
 
   // Return code: 0 if computing is successfull

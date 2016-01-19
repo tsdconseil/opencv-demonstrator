@@ -241,6 +241,11 @@ void ImageSelecteur::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& conte
 }
 
 
+unsigned int ImageSelecteur::get_nb_images() const
+{
+  return images.size();
+}
+
 void ImageSelecteur::get_list(std::vector<cv::Mat> &list)
 {
   list.clear();

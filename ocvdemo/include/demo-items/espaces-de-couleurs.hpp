@@ -29,14 +29,14 @@ class HSVDemo: public OCVDemoItem
 {
 public:
   HSVDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 class DFTDemo: public OCVDemoItem
 {
 public:
   DFTDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 

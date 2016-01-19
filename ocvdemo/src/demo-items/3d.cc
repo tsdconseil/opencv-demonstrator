@@ -34,7 +34,7 @@ StereoCalDemo::StereoCalDemo()
   props.id = "stereo-cal";
 }
 
-int StereoCalDemo::calcul(Node &model, cv::Mat &I)
+int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   return 0;
 }
@@ -48,7 +48,7 @@ EpiDemo::EpiDemo()
   props.id = "epi";
 }
 
-int EpiDemo::calcul(Node &model, cv::Mat &I)
+int EpiDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
 
   return 0;
@@ -61,16 +61,14 @@ int EpiDemo::calcul(Node &model, cv::Mat &I)
 DispMapDemo::DispMapDemo()
 {
   props.id = "disp-map";
-  props.requiert_mosaique = 1;
-  props.mosaique.min = 2;
-  props.mosaique.max = 2;
-  out.nout = 2;
+  props.input_min = 2;
+  props.input_max = 2;
 }
 
 
-int DispMapDemo::calcul(Node &model, cv::Mat &I)
+int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  if(params.mosaique.size() != 2)
+  if(input.images.size() != 2)
   {
     out.errmsg = "Disparity map demo: needs 2 input images.";
     return -1;
@@ -83,19 +81,19 @@ int DispMapDemo::calcul(Node &model, cv::Mat &I)
 # endif
   Mat disp, disp8;
   Mat imgs[2];
-  cvtColor(params.mosaique[0], imgs[0], CV_BGR2GRAY);
-  cvtColor(params.mosaique[1], imgs[1], CV_BGR2GRAY);
+  cvtColor(input.images[0], imgs[0], CV_BGR2GRAY);
+  cvtColor(input.images[1], imgs[1], CV_BGR2GRAY);
   //sbm(imgs[0], imgs[1], disp);
   sbm->compute(imgs[0], imgs[1], disp);
   normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
 
-  out.O[0]  = imgs[0];
-  out.O[1] = imgs[1];
-  out.O[2] = disp8;
-  out.nout = 3;
-  out.outname[0] = "Image 1";
-  out.outname[1] = "Image 2";
-  out.outname[2] = langue.get_item("disp-map");
+  output.nout = 3;
+  output.images[0] = imgs[0];
+  output.images[1] = imgs[1];
+  output.images[2] = disp8;
+  output.outname[0] = "Image 1";
+  output.outname[1] = "Image 2";
+  output.outname[2] = langue.get_item("disp-map");
   return 0;
 }
 
@@ -111,7 +109,6 @@ CamCalDemo::CamCalDemo()
   out.nout = 2;
   out.outname[0] = "Detection des coins";
   out.outname[1] = "Distortion corrigee";
-  //sortie.outname[2] = "Infos";
 }
 
 
@@ -193,18 +190,18 @@ private:
 };
 
 
-int CamCalDemo::calcul(Node &model, cv::Mat &I)
+int CamCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   Mat Ig;
-  int sel = model.get_attribute_as_int("sel");
-  int bw = model.get_attribute_as_int("bw");
-  int bh = model.get_attribute_as_int("bh");
+  int sel = input.model.get_attribute_as_int("sel");
+  int bw = input.model.get_attribute_as_int("bw");
+  int bh = input.model.get_attribute_as_int("bh");
 
   Size board_size(bw,bh);
   vector<vector<Point2f>> imagePoints;
   vector<Point2f> pointbuf;
 
-  cvtColor(I, Ig, CV_BGR2GRAY);
+  cvtColor(input.images[0], Ig, CV_BGR2GRAY);
   bool found;
   if(sel == 0)
   {
@@ -223,10 +220,10 @@ int CamCalDemo::calcul(Node &model, cv::Mat &I)
 
   //cvtColor(I, O[0], CV_GRAY2BGR);
 
-  Mat Ior = I.clone();
-  out.O[0] = I;
+  Mat Ior = input.images[0].clone();
+  output.images[0] = Ior.clone();
   if(found)
-   cv::drawChessboardCorners(out.O[0], board_size, Mat(pointbuf), found);
+   cv::drawChessboardCorners(output.images[0], board_size, Mat(pointbuf), found);
 
   journal.trace_major("Trouvé %d coins (found = %d).",
       pointbuf.size(), (int) found);
@@ -265,26 +262,26 @@ int CamCalDemo::calcul(Node &model, cv::Mat &I)
     vector<Mat> rvecs, tvecs;
     // Fonction obsoléte ?
     double rms = cv::calibrateCamera(objectPoints,
-                                     imagePoints, I.size(),
+                                     imagePoints, Ior.size(),
                     cameraMatrix, distCoeffs, rvecs, tvecs,
                     CALIB_FIX_K4 | CALIB_FIX_K5);
     journal.trace("RMS error reported by calibrateCamera: %g\n", rms);
 
 
-    cv::undistort(Ior, out.O[1], cameraMatrix, distCoeffs);
+    cv::undistort(Ior, out.images[1], cameraMatrix, distCoeffs);
 
-    Size sz = I.size();
+    Size sz = Ior.size();
     sz.height = sz.width = max(sz.width, sz.height);
     sz.height = sz.width = max(sz.width, 500);
 
-    out.O[2] = cv::Mat::zeros(sz, CV_8UC3);
+    out.images[2] = cv::Mat::zeros(sz, CV_8UC3);
 
     double fovx, fovy, focal, ar;
     Point2d ppoint;
-    cv::calibrationMatrixValues(cameraMatrix, I.size(), 1, 1, fovx, fovy, focal, ppoint, ar);
+    cv::calibrationMatrixValues(cameraMatrix, Ior.size(), 1, 1, fovx, fovy, focal, ppoint, ar);
 
 
-    MatText mt(out.O[2]);
+    MatText mt(out.images[2]);
 
     std::stringstream str;
 

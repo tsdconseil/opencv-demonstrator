@@ -26,17 +26,18 @@
 HDRDemo::HDRDemo()
 {
   props.id = "hdr";
-  props.requiert_mosaique = true;
+  //props.requiert_mosaique = true;
+  props.input_max = -1;
   out.nout = 1;
 }
 
 
-int HDRDemo::calcul(Node &model, cv::Mat &I)
+int HDRDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   Ptr<MergeMertens> merge_mertens = createMergeMertens();
   Mat tmp, tmp2;
-  merge_mertens->process(params.mosaique, tmp);
+  merge_mertens->process(input.images, tmp);
   tmp.convertTo(tmp2, CV_8UC3, 255, 0);
-  out.O[0] = tmp2;
+  out.images[0] = tmp2;
   return 0;
 }

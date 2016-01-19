@@ -31,11 +31,11 @@ DFTDemo::DFTDemo()
   out.nout = 2;
 }
 
-int DFTDemo::calcul(Node &model, cv::Mat &I)
+int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   Mat Ig, padded;                            //expand input image to optimal size
 
-  cvtColor(I, Ig, CV_BGR2GRAY);
+  cvtColor(input.images[0], Ig, CV_BGR2GRAY);
 
   int m = getOptimalDFTSize( Ig.rows );
   int n = getOptimalDFTSize( Ig.cols ); // on the border add zero values
@@ -79,7 +79,7 @@ int DFTDemo::calcul(Node &model, cv::Mat &I)
 
   normalize(magI, magI, 0, 255, NORM_MINMAX); // Transform the matrix with float values into a
                                           // viewable image form (float between values 0 and 1).
-  out.O[1] = magI;
+  out.images[0] = magI;
 
   return 0;
 }
@@ -87,16 +87,16 @@ int DFTDemo::calcul(Node &model, cv::Mat &I)
 HSVDemo::HSVDemo()
 {
   props.id = "hsv";
-  out.nout = 0;
   out.outname[0] = "Couleur";
 }
 
-int HSVDemo::calcul(Node &model, cv::Mat &I)
+int HSVDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  int T = model.get_attribute_as_int("T");
-  int S = model.get_attribute_as_int("S");
-  int V = model.get_attribute_as_int("V");
+  int T = input.model.get_attribute_as_int("T");
+  int S = input.model.get_attribute_as_int("S");
+  int V = input.model.get_attribute_as_int("V");
 
+  auto I = input.images[0];
   int sx = I.cols;
   int sy = I.rows;
 
@@ -105,7 +105,7 @@ int HSVDemo::calcul(Node &model, cv::Mat &I)
 
   Mat tsv = Mat::zeros(Size(sx,sy),CV_8UC3);
   tsv.setTo(Scalar(T,S,V));
-  cvtColor(tsv, I, CV_HSV2BGR);
+  cvtColor(tsv, out.images[0], CV_HSV2BGR);
   return 0;
 }
 

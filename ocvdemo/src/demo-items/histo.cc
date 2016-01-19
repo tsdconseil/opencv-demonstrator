@@ -106,12 +106,11 @@ int calc_bp(const cv::Mat &I, cv::Rect &roi, cv::MatND &backproj)
   return calc_bp(I, hist, backproj);
 }
 
-int HistoBP::calcul(Node &model, cv::Mat &I)
+int HistoBP::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   MatND backproj;
-  out.nout = 2;
-  calc_bp(I, params.roi, backproj);
-  cvtColor(backproj, out.O[1], CV_GRAY2BGR);
+  calc_bp(input.images[0], params.roi, backproj);
+  cvtColor(backproj, output.images[0], CV_GRAY2BGR);
   return 0;
 }
 
@@ -267,9 +266,9 @@ cv::Mat HistoCalc::get_1d_histogram_image(const cv::Mat &image,
 }
 #endif
 
-int HistoCalc::calcul(Node &model, cv::Mat &I)
+int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  int sel = model.get_attribute_as_int("sel");
+  int sel = input.model.get_attribute_as_int("sel");
   // 0 : histogrammes sÃ©parÃ©s RGB
   // 1 : histogramme niveaux de gris
   // 2 : histogrammes sÃ©parÃ©s HSV
@@ -277,41 +276,35 @@ int HistoCalc::calcul(Node &model, cv::Mat &I)
 
   if(sel == 0)
   {
+    output.nout = 1;
     MatND hist[3];
     double maxprobs[3];
     for(auto i = 0u; i < 3; i++)
-      calc_histo(I, hist[i], i, 255, maxprobs[i]);
+      calc_histo(input.images[0], hist[i], i, 255, maxprobs[i]);
 
-    out.O[1] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[0], out.O[1], Scalar(255,0,0), 512.0 / maxprobs[0]);
-    plot_curve(hist[1], out.O[1], Scalar(0,255,0), 512.0 / maxprobs[1]);
-    plot_curve(hist[2], out.O[1], Scalar(0,0,255), 512.0 / maxprobs[2]);
-    //this->outname[0] = langue.get_item("histo-bvr");//;
-    out.nout = 2;
-    out.outname[0] = "";
-    out.outname[1] = langue.get_item("histo-bvr");
+    output.images[0] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
+    plot_curve(hist[0], out.images[0], Scalar(255,0,0), 512.0 / maxprobs[0]);
+    plot_curve(hist[1], out.images[0], Scalar(0,255,0), 512.0 / maxprobs[1]);
+    plot_curve(hist[2], out.images[0], Scalar(0,0,255), 512.0 / maxprobs[2]);
+    output.outname[0] = langue.get_item("histo-bvr");
   }
   else if(sel == 1)
   {
     cv::Mat Ig;
-    cv::cvtColor(I, Ig, CV_BGR2GRAY);
+    cv::cvtColor(input.images[0], Ig, CV_BGR2GRAY);
 
     MatND hist;
     double maxprob;
     calc_histo(Ig, hist, 0, 255, maxprob);
-
     printf("SX = %d, SY = %d.\n", 100, (int) ceil(maxprob));
-    out.nout = 2;
-    out.O[1] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist, out.O[1], Scalar(0,0,0), 512.0 / maxprob);
-    out.nout = 2;
-    out.outname[0] = "";
-    out.outname[1] = "Histogramme luminance";
+    output.images[0] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
+    plot_curve(hist, output.images[0], Scalar(0,0,0), 512.0 / maxprob);
+    output.outname[0] = "Histogramme luminance";
   }
   else if(sel == 2)
   {
     Mat I2;
-    cvtColor(I, I2, CV_BGR2HSV);
+    cvtColor(input.images[0], I2, CV_BGR2HSV);
     MatND hist[3];
     double maxprobs[3];
     //for(auto i = 0u; i < 3; i++)
@@ -319,31 +312,20 @@ int HistoCalc::calcul(Node &model, cv::Mat &I)
     calc_histo(I2, hist[1], 1, 255, maxprobs[1]);
     calc_histo(I2, hist[2], 2, 255, maxprobs[2]);
 
-    out.O[1] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[0], out.O[1], Scalar(0,0,0), 512.0 / maxprobs[0]);
-    out.O[2] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[1], out.O[2], Scalar(0,0,0), 512.0 / maxprobs[1]);
-    out.O[3] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[2], out.O[3], Scalar(0,0,0), 512.0 / maxprobs[2]);
-    out.nout = 4;
-    out.outname[0] = "";
-    out.outname[1] = "Teinte / Hue";
-    out.outname[2] = "Saturation";
-    out.outname[3] = "Valeur";
-    /*Mat I2;
-    cvtColor(I, I2, CV_BGR2HSV);
-    cv::Mat h[3];
-    h[0] = get_1d_histogram_image(I2, 0, 179);
-    h[1] = get_1d_histogram_image(I2, 1, 255);
-    h[2] = get_1d_histogram_image(I2, 2, 255);
-    O = h[0];
-    O2 = h[1];
-    O3 = h[2];
-    nb_outputs = 3;*/
+    output.images[0] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
+    plot_curve(hist[0], out.images[0], Scalar(0,0,0), 512.0 / maxprobs[0]);
+    output.images[1] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
+    plot_curve(hist[1], out.images[1], Scalar(0,0,0), 512.0 / maxprobs[1]);
+    output.images[2] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
+    plot_curve(hist[2], out.images[2], Scalar(0,0,0), 512.0 / maxprobs[2]);
+    output.nout = 3;
+    output.outname[0] = "Teinte / Hue";
+    output.outname[1] = "Saturation";
+    output.outname[2] = "Valeur";
   }
   else if(sel == 3)
   {
-    out.nout = 0;
+    output.nout = 0;
     /*Mat I2;
     cvtColor(I, I2, CV_BGR2HSV);
     O = get_2d_histogram_image(I2);
@@ -359,32 +341,30 @@ HistoDemo::HistoDemo()
 }
 
 
-int HistoDemo::calcul(Node &model, cv::Mat &I)
+int HistoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  int sel = model.get_attribute_as_int("sel");
+  int sel = input.model.get_attribute_as_int("sel");
 
   // Egalisation luminance
   if(sel == 0)
   {
     Mat tmp;
-    cvtColor(I, tmp, CV_BGR2YUV);
+    cvtColor(input.images[0], tmp, CV_BGR2YUV);
     Mat chns[3];
     split(tmp, chns);
     equalizeHist(chns[0], chns[0]);
     merge(chns, 3, tmp);
-    out.nout = 2;
-    cvtColor(tmp, out.O[1], CV_YUV2BGR);
+    cvtColor(tmp, out.images[0], CV_YUV2BGR);
   }
   // Egalisation 3 canaux RGB (pour voir les artefacts couleurs)
   else if(sel == 1)
   {
     Mat chns[3];
-    split(I, chns);
+    split(input.images[0], chns);
 
     for(auto i = 0u; i < 3; i++)
       equalizeHist(chns[i], chns[i]);
-    out.nout = 2;
-    merge(chns, 3, out.O[1]);
+    merge(chns, 3, out.images[0]);
   }
 
   return 0;
