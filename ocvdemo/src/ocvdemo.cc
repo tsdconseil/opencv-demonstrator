@@ -305,9 +305,9 @@ void OCVDemo::update()
       auto n = modele_demo.get_child(std::string(buf));
       s = n.get_localized().get_localized();
     }
-    if((j < 4) && (demo_en_cours->output.outname[j].size() > 0))
+    if((j < 4) && (demo_en_cours->output.names[j].size() > 0))
     {
-      s = demo_en_cours->output.outname[j];
+      s = demo_en_cours->output.names[j];
       if(langue.has_item(s))
         s = langue.get_item(s);
     }

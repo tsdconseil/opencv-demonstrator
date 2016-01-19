@@ -57,7 +57,7 @@ void CamShiftDemo::set_roi(const cv::Mat &I, const cv::Rect &new_roi)
 int CamShiftDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   auto I = input.images[0];
-  output.outname[1] = "back-projection histo.";
+  output.names[1] = "back-projection histo.";
   if(!bp_init_ok)
   {
     auto sx = I.cols, sy = I.rows;
@@ -103,7 +103,7 @@ SousArrierePlanDemo::SousArrierePlanDemo()
   props.id  = "sous-arriere-plan";
   nframes = 0;
   output.nout = 2;
-  output.outname[0] = "masque";
+  output.names[0] = "masque";
   osel = -1;
   //this->mog2 = createBackgroundSubtractorMOG2();
 }
@@ -174,8 +174,8 @@ int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &out
     cv::rectangle(images[1], r, Scalar(0,255,0));
   resize(images[1], images[1], Size(0,0), 4, 4);
 
-  this->outname[1] = langue.get_item("mask-arr");
-  this->outname[2] = "Segmentation";
+  this->names[1] = langue.get_item("mask-arr");
+  this->names[2] = "Segmentation";
 # endif
 
   journal.trace("fin.");
@@ -187,7 +187,7 @@ OptFlowDemo::OptFlowDemo()
   props.id = "flux-optique";
   reset = true;
   algo = createOptFlow_DualTVL1();
-  output.outname[0] = "Flux optique";
+  output.names[0] = "Flux optique";
 }
 
 int OptFlowDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)

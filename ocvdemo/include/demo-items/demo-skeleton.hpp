@@ -29,7 +29,7 @@
 class MyDemo: public OCVDemoItem
 {
 public:
-  int proceed(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 

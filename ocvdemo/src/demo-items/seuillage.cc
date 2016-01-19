@@ -65,13 +65,13 @@ int WShedDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.nout = 4;
   output.images[0] = input.images[0];
   output.images[1] = distTransformed.clone();
-  output.outname[1] = "Distance Transformation";
+  output.names[1] = "Distance Transformation";
 
   //threshold the transformed image to obtain markers for watershed
   threshold(distTransformed,distTransformed,0.7 * 255,255,CV_THRESH_BINARY);
   distTransformed.convertTo(distTransformed,CV_8UC1);
   output.images[2] = distTransformed.clone();
-  output.outname[2] = "Thresholded dist. trans.";
+  output.names[2] = "Thresholded dist. trans.";
   //imshow("Thresholded Distance Transformation",distTransformed);
 
 

@@ -94,7 +94,7 @@ public:
 
     /** Nom des différentes images de sortie */
     /** @brief Names of the output images (UTF-8) */
-    std::string outname[5];
+    std::string names[5];
 
     /** Message d'erreur si échec */
     /** Error message in case of failure (UTF-8) */

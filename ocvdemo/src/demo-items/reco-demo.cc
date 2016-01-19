@@ -200,7 +200,7 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 #   endif
     }
 
-    output.outname[0] = "Correspondances";
+    output.names[0] = "Correspondances";
     lock = false;
   }
   return 0;
@@ -234,7 +234,7 @@ int PanoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     output.images[0] = pano;
     output.vrai_sortie = pano; // to deprecate
-    output.outname[0] = "Panorama";
+    output.names[0] = "Panorama";
 
     journal.verbose("%.2lf sec\n",  t0 / getTickFrequency());
 
@@ -332,7 +332,7 @@ VisageDemo::VisageDemo(): rng(12345)
     journal.anomaly("--(!)Error loading\n");
     return;
   }
-  output.outname[0] = " ";
+  output.names[0] = " ";
 }
 
 
@@ -387,7 +387,7 @@ int VisageDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
 CascGenDemo::CascGenDemo(std::string id): rng(12345)
 {
-  output.outname[0] = " ";
+  output.names[0] = " ";
   cascade_ok = false;
   props.id = id;
   if(id == "casc-yeux")

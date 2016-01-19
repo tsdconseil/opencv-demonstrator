@@ -88,7 +88,7 @@ int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
 
   output.images[0] = disp8;
-  output.outname[0] = langue.get_item("disp-map");
+  output.names[0] = langue.get_item("disp-map");
   return 0;
 }
 
@@ -102,8 +102,8 @@ CamCalDemo::CamCalDemo()
 {
   props.id = "cam-cal";
   output.nout = 2;
-  output.outname[0] = "Detection des coins";
-  output.outname[1] = "Distortion corrigee";
+  output.names[0] = "Detection des coins";
+  output.names[1] = "Distortion corrigee";
 }
 
 

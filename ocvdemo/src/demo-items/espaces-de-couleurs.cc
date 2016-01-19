@@ -27,7 +27,7 @@
 DFTDemo::DFTDemo()
 {
   props.id = "dft";
-  output.outname[0] = "DFT";
+  output.names[0] = "DFT";
 }
 
 int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
@@ -86,7 +86,7 @@ int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 HSVDemo::HSVDemo()
 {
   props.id = "hsv";
-  output.outname[0] = "Couleur";
+  output.names[0] = "Couleur";
 }
 
 int HSVDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)

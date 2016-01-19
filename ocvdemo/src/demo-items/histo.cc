@@ -111,8 +111,8 @@ int HistoBP::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.nout = 2;
   output.images[0] = input.images[0].clone();
   calc_bp(input.images[0], input.roi, output.images[1]);
-  output.outname[0] = langue.get_item("ROI selection");
-  output.outname[1] = langue.get_item("Backprojection");
+  output.names[0] = langue.get_item("ROI selection");
+  output.names[1] = langue.get_item("Backprojection");
   return 0;
 }
 
@@ -288,7 +288,7 @@ int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     plot_curve(hist[0], output.images[0], Scalar(255,0,0), 512.0 / maxprobs[0]);
     plot_curve(hist[1], output.images[0], Scalar(0,255,0), 512.0 / maxprobs[1]);
     plot_curve(hist[2], output.images[0], Scalar(0,0,255), 512.0 / maxprobs[2]);
-    output.outname[0] = langue.get_item("histo-bvr");
+    output.names[0] = langue.get_item("histo-bvr");
   }
   else if(sel == 1)
   {
@@ -301,7 +301,7 @@ int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     printf("SX = %d, SY = %d.\n", 100, (int) ceil(maxprob));
     output.images[0] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
     plot_curve(hist, output.images[0], Scalar(0,0,0), 512.0 / maxprob);
-    output.outname[0] = "Histogramme luminance";
+    output.names[0] = "Histogramme luminance";
   }
   else if(sel == 2)
   {
@@ -321,9 +321,9 @@ int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     output.images[2] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
     plot_curve(hist[2], output.images[2], Scalar(0,0,0), 512.0 / maxprobs[2]);
     output.nout = 3;
-    output.outname[0] = "Teinte / Hue";
-    output.outname[1] = "Saturation";
-    output.outname[2] = "Valeur";
+    output.names[0] = "Teinte / Hue";
+    output.names[1] = "Saturation";
+    output.names[2] = "Valeur";
   }
   else if(sel == 3)
   {

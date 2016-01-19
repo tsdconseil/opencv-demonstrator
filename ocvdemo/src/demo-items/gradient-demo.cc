@@ -50,8 +50,8 @@ int ContourDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   //out.images[1].create(I.size(), I.type());
   //out.images[1] = Scalar::all(0);
   //I.copyTo(O[0], detected_edges);
-  output.outname[0] = "Canny";
-  output.outname[1] = "Contours";
+  output.names[0] = "Canny";
+  output.names[1] = "Contours";
   output.nout = 2;
 
   int kernel_width = 5;
@@ -176,15 +176,15 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   {
     output.nout = 1;
     addWeighted(agx, .5, agy, .5, 0, output.images[0]);
-    output.outname[0] = langue.get_item("gabs");
+    output.names[0] = langue.get_item("gabs");
   }
   else
   {
     output.nout = 2;
     output.images[0] = agx;
     output.images[1] = agy;
-    output.outname[0] = "GX";
-    output.outname[1] = "GY";
+    output.names[0] = "GX";
+    output.names[1] = "GY";
   }
   return 0;
 }
@@ -206,7 +206,7 @@ int LaplaceDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   else
     return -1;
 
-  output.outname[0] = "Laplacien";
+  output.names[0] = "Laplacien";
 
   cvtColor(tmp,tmpg,CV_BGR2GRAY);
   Laplacian(tmpg, tmp2, CV_16S, 3, 1, 0);
@@ -238,7 +238,7 @@ int CannyDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.images[0].create(I.size(), I.type());
   output.images[0] = Scalar::all(0);
   I.copyTo(output.images[0], detected_edges);
-  output.outname[0] = "Contours";
+  output.names[0] = "Contours";
   return 0;
 }
 
@@ -428,8 +428,8 @@ int RectDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   cv::HoughLinesP(bw, lines, 1, CV_PI/180, 70, 30, 10);
 
   output.nout = 2;
-  output.outname[0] = "Localisation quadrilatere";
-  output.outname[1] = "Correction de perspective";
+  output.names[0] = "Localisation quadrilatere";
+  output.names[1] = "Correction de perspective";
 
   // Expand the lines
   for(auto i = 0u; i < lines.size(); i++)
