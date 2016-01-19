@@ -54,14 +54,14 @@ int MorphoDemo::calcul(Node &model, cv::Mat &I)
                                       Size(2*kernel_width + 1, 2*kernel_width+1 ),
                                       Point(kernel_width, kernel_width));
 
-  sortie.nout = 2;
+  out.nout = 2;
 
   if(sel == 0)
-    dilate(I,sortie.O[1],K);
+    dilate(I,out.O[1],K);
   else if(sel == 1)
-    erode(I,sortie.O[1],K);
+    erode(I,out.O[1],K);
   else
-    morphologyEx(I, sortie.O[1], sel, K);
+    morphologyEx(I, out.O[1], sel, K);
 
   return 0;
 }

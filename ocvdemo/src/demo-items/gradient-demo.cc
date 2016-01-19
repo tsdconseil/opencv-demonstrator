@@ -41,17 +41,17 @@ int ContourDemo::calcul(Node &model, cv::Mat &I)
   int taille_noyau = 3;
   Mat tmp;
   cvtColor(I,tmp,CV_BGR2GRAY);
-  sortie.O[0] = tmp;
+  out.O[0] = tmp;
   I = tmp;
   blur(tmp,tmp,Size(3,3));
   Canny(tmp, detected_edges, seuil_bas, seuil_haut, taille_noyau, norme == 1);
   /// Using Canny's output as a mask, we display our result
-  sortie.O[2].create(I.size(), I.type());
-  sortie.O[2] = Scalar::all(0);
+  out.O[2].create(I.size(), I.type());
+  out.O[2] = Scalar::all(0);
   //I.copyTo(O[0], detected_edges);
-  sortie.outname[1] = "Canny";
-  sortie.outname[2] = "Contours";
-  sortie.nout = 3;
+  out.outname[1] = "Canny";
+  out.outname[2] = "Contours";
+  out.nout = 3;
 
   int kernel_width = 5;
   int kernel_type = MORPH_RECT;
@@ -61,7 +61,7 @@ int ContourDemo::calcul(Node &model, cv::Mat &I)
 
 
   //morphologyEx(detected_edges, detected_edges, MORPH_CLOSE, K);
-  sortie.O[1] = detected_edges;
+  out.O[1] = detected_edges;
 
   int typCont = model.get_attribute_as_int("typcont");
 
@@ -105,26 +105,26 @@ int ContourDemo::calcul(Node &model, cv::Mat &I)
                 3, /*LINE_AA*/CV_AA, hierarchy, std::abs(nlev/*_levels*/) );
   journal.trace("ok.");
 # endif
-  sortie.O[2] = drawing;
+  out.O[2] = drawing;
   return 0;
 }
 
 NetDemo::NetDemo()
 {
   props.id = "net";
-  sortie.nout = 2;
+  out.nout = 2;
 }
 
 
 int NetDemo::calcul(Node &model, cv::Mat &I)
 {
   Mat I32, lap;
-  sortie.O[0] = I;
+  out.O[0] = I;
   float c = model.get_attribute_as_float("coef");
   I.convertTo(I32, CV_32F);
   Laplacian(I, lap, CV_32F, 3);
   Mat sharp_image_32bit = I32 - c * lap;
-  sharp_image_32bit.convertTo(sortie.O[1], CV_8U);
+  sharp_image_32bit.convertTo(out.O[1], CV_8U);
   return 0;
 }
 
@@ -144,7 +144,7 @@ int GradientDemo::calcul(Node &model, cv::Mat &I)
   int sel2 = model.get_attribute_as_int("sel2");
   int sel3 = model.get_attribute_as_int("sel3");
 
-  sortie.O[0] = I;
+  out.O[0] = I;
 
   //GaussianBlur(I,tmp, Size(3,3),0);
   if(sigma > 0)
@@ -173,17 +173,17 @@ int GradientDemo::calcul(Node &model, cv::Mat &I)
   convertScaleAbs(gy,agy);
   if(sel == 0)
   {
-    addWeighted(agx, .5, agy, .5, 0, sortie.O[1]);
-    sortie.nout = 2;
-    sortie.outname[1] = langue.get_item("gabs");//"Gradient (valeur absolue)";
+    addWeighted(agx, .5, agy, .5, 0, out.O[1]);
+    out.nout = 2;
+    out.outname[1] = langue.get_item("gabs");//"Gradient (valeur absolue)";
   }
   else
   {
-    sortie.O[1] = agx;
-    sortie.O[2] = agy;
-    sortie.nout = 3;
-    sortie.outname[1] = "GX";
-    sortie.outname[2] = "GY";
+    out.O[1] = agx;
+    out.O[2] = agy;
+    out.nout = 3;
+    out.outname[1] = "GX";
+    out.outname[2] = "GY";
   }
   return 0;
 }
@@ -200,20 +200,20 @@ int LaplaceDemo::calcul(Node &model, cv::Mat &I)
 
   Mat tmp,tmpg,tmp2;
 
-  sortie.O[0] = I;
+  out.O[0] = I;
 
   if(sigma > 0)
     GaussianBlur(I,tmp, Size(0,0),sigma);
   else
     tmp = I.clone();
 
-  sortie.nout = 2;
-  sortie.outname[1] = "Laplacien";
+  out.nout = 2;
+  out.outname[1] = "Laplacien";
 
   cvtColor(tmp,tmpg,CV_BGR2GRAY);
   Laplacian(tmpg, tmp2, CV_16S, 3, 1, 0);
   normalize(tmp2,tmp2,0,255,NORM_MINMAX);
-  convertScaleAbs(tmp2, sortie.O[1]); // Conversion vers CV_8U
+  convertScaleAbs(tmp2, out.O[1]); // Conversion vers CV_8U
   return 0;
 }
 
@@ -221,7 +221,7 @@ int LaplaceDemo::calcul(Node &model, cv::Mat &I)
 CannyDemo::CannyDemo()
 {
   props.id = "canny";
-  sortie.nout = 2;
+  out.nout = 2;
 }
 
 
@@ -238,11 +238,11 @@ int CannyDemo::calcul(Node &model, cv::Mat &I)
   blur(tmp,tmp,Size(3,3));
   Canny(tmp, detected_edges, seuil_bas, seuil_haut, taille_noyau, norme == 1);
   /// Using Canny's output as a mask, we display our result
-  sortie.O[0] = I;
-  sortie.O[1].create(I.size(), I.type());
-  sortie.O[1] = Scalar::all(0);
-  I.copyTo(sortie.O[1], detected_edges);
-  sortie.outname[1] = "Contours";
+  out.O[0] = I;
+  out.O[1].create(I.size(), I.type());
+  out.O[1] = Scalar::all(0);
+  I.copyTo(out.O[1], detected_edges);
+  out.outname[1] = "Contours";
   return 0;
 }
 
@@ -262,14 +262,14 @@ int HoughDemo::calcul(Node &model, cv::Mat &I)
   cv::cvtColor(I, bw, CV_BGR2GRAY);
   cv::blur(bw, bw, cv::Size(3, 3));
   Canny(bw, bw, seuil_canny, seuil_canny * ratio, 3);
-  cvtColor(bw, sortie.O[1], CV_GRAY2BGR);
+  cvtColor(bw, out.O[1], CV_GRAY2BGR);
 
   int sel = model.get_attribute_as_int("sel");
 
   if(sel == 0)
   {
-    sortie.O[2] = I.clone();
-    sortie.nout = 3;
+    out.O[2] = I.clone();
+    out.nout = 3;
     vector<Vec2f> lines;
     HoughLines(bw, lines, 1, CV_PI/180, seuil, 0, 0);
     printf("Détecté %d lignes.\n", lines.size());
@@ -283,13 +283,13 @@ int HoughDemo::calcul(Node &model, cv::Mat &I)
       pt1.y = cvRound(y0 + 1000 * (a));
       pt2.x = cvRound(x0 - 1000 * (-b));
       pt2.y = cvRound(y0 - 1000 * (a));
-      line(sortie.O[2], pt1, pt2, Scalar(0,0,255), 3, CV_AA);
+      line(out.O[2], pt1, pt2, Scalar(0,0,255), 3, CV_AA);
     }
   }
   else if(sel == 1)
   {
-    sortie.O[2] = I.clone();
-    sortie.nout = 3;
+    out.O[2] = I.clone();
+    out.nout = 3;
     std::vector<cv::Vec4i> lines;
     cv::HoughLinesP(bw, lines, 1, CV_PI/180, seuil,
           30, // min line length
@@ -302,13 +302,13 @@ int HoughDemo::calcul(Node &model, cv::Mat &I)
       pt1.y = lines[i].val[1];
       pt2.x = lines[i].val[2];
       pt2.y = lines[i].val[3];
-      line(sortie.O[2], pt1, pt2, Scalar(0,0,255), 3, CV_AA);
+      line(out.O[2], pt1, pt2, Scalar(0,0,255), 3, CV_AA);
     }
   }
   else if(sel == 2)
   {
-    sortie.nout = 2;
-    sortie.O[1] = I.clone();
+    out.nout = 2;
+    out.O[1] = I.clone();
     vector<Vec2f> lines;
     HoughLinesWithGradientDir(I, lines, 1, CV_PI/180);
     printf("Détecté %d lignes.\n", lines.size());
@@ -322,7 +322,7 @@ int HoughDemo::calcul(Node &model, cv::Mat &I)
       pt1.y = cvRound(y0 + 1000 * (a));
       pt2.x = cvRound(x0 - 1000 * (-b));
       pt2.y = cvRound(y0 - 1000 * (a));
-      line(sortie.O[1], pt1, pt2, Scalar(0,0,255), 3, CV_AA);
+      line(out.O[1], pt1, pt2, Scalar(0,0,255), 3, CV_AA);
     }
   }
 
@@ -332,7 +332,7 @@ int HoughDemo::calcul(Node &model, cv::Mat &I)
 HoughCDemo::HoughCDemo()
 {
   props.id = "houghc";
-  sortie.nout = 2;
+  out.nout = 2;
 }
 
 
@@ -343,7 +343,7 @@ int HoughCDemo::calcul(Node &model, cv::Mat &I)
   double seuil_canny = model.get_attribute_as_int("seuil-canny");
   //Canny(I, dst, seuil_canny, seuil_canny * ratio, 3);
   cvtColor(I, gris, CV_BGR2GRAY);
-  sortie.O[1] = I.clone();
+  out.O[1] = I.clone();
   vector<Vec3f> cercles;
   double seuil = model.get_attribute_as_int("seuil");
   int rmin = model.get_attribute_as_int("rmin");
@@ -358,7 +358,7 @@ int HoughCDemo::calcul(Node &model, cv::Mat &I)
   for(size_t i = 0; i < cercles.size(); i++ )
   {
     float xc = cercles[i][0], yc = cercles[i][1], r = cercles[i][2];
-    cv::circle(sortie.O[1], Point(xc,yc), r, Scalar(0,255,0), 2);
+    cv::circle(out.O[1], Point(xc,yc), r, Scalar(0,255,0), 2);
   }
 
   return 0;
@@ -430,9 +430,9 @@ int RectDemo::calcul(Node &model, cv::Mat &I)
   std::vector<cv::Vec4i> lines;
   cv::HoughLinesP(bw, lines, 1, CV_PI/180, 70, 30, 10);
 
-  sortie.nout = 2;
-  sortie.outname[0] = "Localisation quadrilatere";
-  sortie.outname[1] = "Correction de perspective";
+  out.nout = 2;
+  out.outname[0] = "Localisation quadrilatere";
+  out.outname[1] = "Correction de perspective";
 
   // Expand the lines
   for(auto i = 0u; i < lines.size(); i++)
@@ -464,7 +464,7 @@ int RectDemo::calcul(Node &model, cv::Mat &I)
   {
     //errmsg = "obj-pas-quadri";
     //return -1;
-    sortie.O[1] = Mat::zeros(I.size(), CV_8UC3);
+    out.O[1] = Mat::zeros(I.size(), CV_8UC3);
     return 0;
   }
 
@@ -480,7 +480,7 @@ int RectDemo::calcul(Node &model, cv::Mat &I)
   {
     //errmsg = "coins-non-tries-correctement";
     //return -1;
-    sortie.O[1] = Mat::zeros(I.size(), CV_8UC3);
+    out.O[1] = Mat::zeros(I.size(), CV_8UC3);
     return 0;
   }
 
@@ -488,18 +488,18 @@ int RectDemo::calcul(Node &model, cv::Mat &I)
   for(auto i = 0u; i < lines.size(); i++)
   {
     cv::Vec4i v = lines[i];
-    cv::line(sortie.O[0], cv::Point(v[0], v[1]), cv::Point(v[2], v[3]), CV_RGB(0,255,0));
+    cv::line(out.O[0], cv::Point(v[0], v[1]), cv::Point(v[2], v[3]), CV_RGB(0,255,0));
   }
 
 
   // Draw corner points
-  cv::circle(sortie.O[0], corners[0], 3, CV_RGB(255,0,0), 2);
-  cv::circle(sortie.O[0], corners[1], 3, CV_RGB(0,255,0), 2);
-  cv::circle(sortie.O[0], corners[2], 3, CV_RGB(0,0,255), 2);
-  cv::circle(sortie.O[0], corners[3], 3, CV_RGB(255,255,255), 2);
+  cv::circle(out.O[0], corners[0], 3, CV_RGB(255,0,0), 2);
+  cv::circle(out.O[0], corners[1], 3, CV_RGB(0,255,0), 2);
+  cv::circle(out.O[0], corners[2], 3, CV_RGB(0,0,255), 2);
+  cv::circle(out.O[0], corners[3], 3, CV_RGB(255,255,255), 2);
 
   // Draw mass center
-  cv::circle(sortie.O[0], center, 3, CV_RGB(255,255,0), 2);
+  cv::circle(out.O[0], center, 3, CV_RGB(255,255,0), 2);
 
 
   cv::Mat quad = cv::Mat::zeros(300, 220, CV_8UC3);
@@ -512,7 +512,7 @@ int RectDemo::calcul(Node &model, cv::Mat &I)
 
 
   cv::Mat transmtx = cv::getPerspectiveTransform(corners, quad_pts);
-  cv::warpPerspective(I0, sortie.O[1], transmtx, quad.size());
+  cv::warpPerspective(I0, out.O[1], transmtx, quad.size());
 
   return 0;
 }

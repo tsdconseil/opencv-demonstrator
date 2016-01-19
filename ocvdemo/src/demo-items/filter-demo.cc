@@ -27,7 +27,7 @@
 FilterDemo::FilterDemo()
 {
   props.id = "filtrage";
-  sortie.nout = 3;
+  out.nout = 3;
 }
 
 int FilterDemo::calcul(Node &model, cv::Mat &I)
@@ -57,7 +57,7 @@ int FilterDemo::calcul(Node &model, cv::Mat &I)
 
 int FilterDemo::proceed(const FilterDemoConfig &conf, cv::Mat &I)
 {
-  sortie.O[0] = I;
+  out.O[0] = I;
   cv::Mat Ib, If;
   I.convertTo(I, CV_32F, 1.0); // intervalle de sortie = 0..255
 
@@ -106,8 +106,8 @@ int FilterDemo::proceed(const FilterDemoConfig &conf, cv::Mat &I)
   else if(conf.filter_type == FilterDemoConfig::FILTER_BILATERAL)
     cv::bilateralFilter(Ib, If, conf.bilateral.ksize, conf.bilateral.sigma_color, conf.bilateral.sigma_space);
 
-  sortie.O[1] = Ib;
-  sortie.O[2] = If;
+  out.O[1] = Ib;
+  out.O[2] = If;
 
   return 0;
 }

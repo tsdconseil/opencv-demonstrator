@@ -27,8 +27,8 @@
 DFTDemo::DFTDemo()
 {
   props.id = "dft";
-  sortie.outname[1] = "DFT";
-  sortie.nout = 2;
+  out.outname[1] = "DFT";
+  out.nout = 2;
 }
 
 int DFTDemo::calcul(Node &model, cv::Mat &I)
@@ -79,7 +79,7 @@ int DFTDemo::calcul(Node &model, cv::Mat &I)
 
   normalize(magI, magI, 0, 255, NORM_MINMAX); // Transform the matrix with float values into a
                                           // viewable image form (float between values 0 and 1).
-  sortie.O[1] = magI;
+  out.O[1] = magI;
 
   return 0;
 }
@@ -87,8 +87,8 @@ int DFTDemo::calcul(Node &model, cv::Mat &I)
 HSVDemo::HSVDemo()
 {
   props.id = "hsv";
-  sortie.nout = 0;
-  sortie.outname[0] = "Couleur";
+  out.nout = 0;
+  out.outname[0] = "Couleur";
 }
 
 int HSVDemo::calcul(Node &model, cv::Mat &I)

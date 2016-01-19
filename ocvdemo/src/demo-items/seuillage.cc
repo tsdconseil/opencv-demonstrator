@@ -33,11 +33,11 @@ InpaintDemo::InpaintDemo()
 
 int InpaintDemo::calcul(Node &model, cv::Mat &I)
 {
-  sortie.nout = 2;
+  out.nout = 2;
   if(params.masque.data != nullptr)
-    cv::inpaint(I, params.masque, sortie.O[1], 3, CV_INPAINT_TELEA);
+    cv::inpaint(I, params.masque, out.O[1], 3, CV_INPAINT_TELEA);
   else
-    sortie.O[1] = I.clone();
+    out.O[1] = I.clone();
   return 0;
 }
 
@@ -45,7 +45,7 @@ int InpaintDemo::calcul(Node &model, cv::Mat &I)
 WShedDemo::WShedDemo()
 {
   props.id = "watershed";
-  sortie.nout = 3;
+  out.nout = 3;
 }
 
 int WShedDemo::calcul(Node &model, cv::Mat &I)
@@ -60,17 +60,17 @@ int WShedDemo::calcul(Node &model, cv::Mat &I)
   //normalize the transformed image in order to display
   normalize(distTransformed, distTransformed, 0.0, 255.0, NORM_MINMAX);
 
-  sortie.nout = 4;
-  sortie.O[1] = distTransformed.clone();
+  out.nout = 4;
+  out.O[1] = distTransformed.clone();
 
-  sortie.outname[1] = "Distance Transformation";
+  out.outname[1] = "Distance Transformation";
   //imshow("Distance Transformation",distTransformed);
   //threshold the transformed image to obtain markers for watershed
   threshold(distTransformed,distTransformed,0.7 * 255,255,CV_THRESH_BINARY);
 
   distTransformed.convertTo(distTransformed,CV_8UC1);
-  sortie.O[2] = distTransformed.clone();
-  sortie.outname[2] = "Thresholded dist. trans.";
+  out.O[2] = distTransformed.clone();
+  out.outname[2] = "Thresholded dist. trans.";
   //imshow("Thresholded Distance Transformation",distTransformed);
 
 
@@ -101,7 +101,7 @@ int WShedDemo::calcul(Node &model, cv::Mat &I)
 
   watershed(I, markers);
 
-  sortie.O[3] = Mat(markers.size(), CV_8UC3);
+  out.O[3] = Mat(markers.size(), CV_8UC3);
   journal.trace("paint the watershed image...");
   for(auto i = 0; i < markers.rows; i++)
   {
@@ -109,14 +109,14 @@ int WShedDemo::calcul(Node &model, cv::Mat &I)
     {
       int index = markers.at<int>(i,j);
       if(index == -1)
-        sortie.O[3].at<Vec3b>(i,j) = Vec3b(255,255,255);
+        out.O[3].at<Vec3b>(i,j) = Vec3b(255,255,255);
       else if((index <= 0) || (index > compCount))
-        sortie.O[3].at<Vec3b>(i,j) = Vec3b(0,0,0);
+        out.O[3].at<Vec3b>(i,j) = Vec3b(0,0,0);
       else
-        sortie.O[3].at<Vec3b>(i,j) = colorTab[index - 1];
+        out.O[3].at<Vec3b>(i,j) = colorTab[index - 1];
     }
   }
-  sortie.O[3] = sortie.O[3] * 0.5 + I * 0.5;
+  out.O[3] = out.O[3] * 0.5 + I * 0.5;
   return 0;
 }
 
@@ -146,8 +146,8 @@ int GrabCutDemo::calcul(Node &model, cv::Mat &I)
   //cv::pyrUp(mask, mask);
 
   journal.verbose("masque...");
-  sortie.O[1] = I.clone();
-  sortie.nout = 2;
+  out.O[1] = I.clone();
+  out.nout = 2;
 
   //Point3_<uchar> *p = O.ptr<Point3_<uchar>>(0,0);
   for(auto y = 0; y < I.rows; y++)
@@ -157,7 +157,7 @@ int GrabCutDemo::calcul(Node &model, cv::Mat &I)
       uint8_t msk = mask.at<uint8_t>(Point(x/2,y/2));
       if((msk == GC_BGD) || (msk == GC_PR_BGD))
       {
-        Vec3b &pix = sortie.O[1].at<Vec3b>(Point(x,y));
+        Vec3b &pix = out.O[1].at<Vec3b>(Point(x,y));
         pix[0] = 0;
         pix[1] = 0;
         pix[2] = 0;
@@ -178,7 +178,7 @@ int Seuillage::calcul(Node &model, cv::Mat &I)
 {
   int sel = model.get_attribute_as_int("sel");
 
-  sortie.nout = 2;
+  out.nout = 2;
 
   Mat Ig;
   cvtColor(I, Ig, CV_BGR2GRAY);
@@ -188,12 +188,12 @@ int Seuillage::calcul(Node &model, cv::Mat &I)
   if(sel == 0)
   {
     int seuil = model.get_attribute_as_int("seuillage-fixe/seuil");
-    threshold(Ig, sortie.O[1], seuil, 255, THRESH_BINARY_INV);
+    threshold(Ig, out.O[1], seuil, 255, THRESH_BINARY_INV);
   }
   // Otsu
   else if(sel == 1)
   {
-    threshold(Ig, sortie.O[1], 0 /* non utilisé */,
+    threshold(Ig, out.O[1], 0 /* non utilisé */,
               255, THRESH_BINARY_INV | THRESH_OTSU);
   }
   // Adaptatif
@@ -203,13 +203,13 @@ int Seuillage::calcul(Node &model, cv::Mat &I)
     int seuil = model.get_attribute_as_int("seuillage-adaptatif/seuil");
     if((taille_bloc & 1) == 0)
       taille_bloc++;
-    cv::adaptiveThreshold(Ig, sortie.O[1], 255,
+    cv::adaptiveThreshold(Ig, out.O[1], 255,
         ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV,
         taille_bloc, seuil);
     // ou ADAPTIVE_THRESH_MEAN_C
   }
   //cv::bitwise_and(Ig, O, O);
-  cvtColor(sortie.O[1], sortie.O[1], CV_GRAY2BGR);
+  cvtColor(out.O[1], out.O[1], CV_GRAY2BGR);
   return 0;
 }
 
@@ -222,13 +222,13 @@ int DTransDemo::calcul(Node &model, cv::Mat &I)
 {
   Mat Ig, tmp;
   cvtColor(I, Ig, CV_BGR2GRAY);
-  threshold(Ig, sortie.O[1], 0 /* non utilisé */,
+  threshold(Ig, out.O[1], 0 /* non utilisé */,
                 255, THRESH_BINARY_INV | THRESH_OTSU);
   journal.trace("dtrans...");
-  sortie.nout = 2;
-  cv::distanceTransform(sortie.O[1], tmp, CV_DIST_L2, 3);
+  out.nout = 2;
+  cv::distanceTransform(out.O[1], tmp, CV_DIST_L2, 3);
   journal.trace("ok.");
-  normalize(tmp, sortie.O[1], 0, 255, NORM_MINMAX, CV_8UC1);
+  normalize(tmp, out.O[1], 0, 255, NORM_MINMAX, CV_8UC1);
   return 0;
 }
 

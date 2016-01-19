@@ -34,7 +34,7 @@ int MyDemo::calcul(Node &model, cv::Mat &I)
 
   // For instance, a dummy copy of the input image
 
-  sortie.O[0] = I;
+  out.O[0] = I;
 
 
   // Return code: 0 if computing is successfull

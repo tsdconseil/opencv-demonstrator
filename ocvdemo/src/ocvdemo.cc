@@ -221,7 +221,7 @@ void OCVDemo::update()
     this->img_selecteur.get_list(demo_en_cours->params.mosaique);
 
 
-  demo_en_cours->sortie.O[0] = I1; // Par défaut
+  demo_en_cours->out.O[0] = I1; // Par défaut
   
   // Appel au thread de calcul
   ODEvent evt;
@@ -236,7 +236,7 @@ void OCVDemo::update()
   if(calcul_status)
   {
     journal.warning("ocvdemo: Echec calcul.");
-    auto s = demo_en_cours->sortie.errmsg;
+    auto s = demo_en_cours->out.errmsg;
     if(langue.has_item(s))
       s = langue.get_item(s);
     utils::mmi::dialogs::show_warning("Erreur de traitement",
@@ -248,10 +248,10 @@ void OCVDemo::update()
   {
     journal.trace("Calcul [%s] ok.", demo_en_cours->props.id.c_str());
     
-    if(demo_en_cours->sortie.vrai_sortie.data != nullptr)
-      sortie_en_cours = demo_en_cours->sortie.vrai_sortie;
-    else if(demo_en_cours->sortie.nout > 0)
-      sortie_en_cours = demo_en_cours->sortie.O[demo_en_cours->sortie.nout];
+    if(demo_en_cours->out.vrai_sortie.data != nullptr)
+      sortie_en_cours = demo_en_cours->out.vrai_sortie;
+    else if(demo_en_cours->out.nout > 0)
+      sortie_en_cours = demo_en_cours->out.O[demo_en_cours->out.nout];
     else
       sortie_en_cours = I0;
   }
@@ -263,9 +263,9 @@ void OCVDemo::update()
   unsigned int img_count = modele_demo.get_attribute_as_int("img-count");
 
 
-  img_count = demo_en_cours->sortie.nout;
+  img_count = demo_en_cours->out.nout;
 
-  if(demo_en_cours->sortie.O[img_count - 1 ].data == nullptr)
+  if(demo_en_cours->out.O[img_count - 1 ].data == nullptr)
   {
     img_count = 0;
     journal.warning("Img count = %d, et image de sortie non initialisée.", img_count);
@@ -278,8 +278,8 @@ void OCVDemo::update()
   {
     if(j > 0)
     {
-      prepare_image(demo_en_cours->sortie.O[j]);
-      lst.push_back(demo_en_cours->sortie.O[j]);
+      prepare_image(demo_en_cours->out.O[j]);
+      lst.push_back(demo_en_cours->out.O[j]);
     }
 
     char buf[50];
@@ -294,9 +294,9 @@ void OCVDemo::update()
       auto n = modele_demo.get_child(std::string(buf));
       s = n.get_localized().get_localized();
     }
-    if((j < 4) && (demo_en_cours->sortie.outname[j].size() > 0))
+    if((j < 4) && (demo_en_cours->out.outname[j].size() > 0))
     {
-      s = demo_en_cours->sortie.outname[j];
+      s = demo_en_cours->out.outname[j];
       if(langue.has_item(s))
 	s = langue.get_item(s);
     }
@@ -627,10 +627,10 @@ void OCVDemo::compute_Ia()
   else if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_masque))
   {
     if((Ia.data == nullptr) || (Ia.size() != I1.size()))
-      Ia = demo_en_cours->sortie.O[0];//Ia = I1.clone();
+      Ia = demo_en_cours->out.O[0];//Ia = I1.clone();
   }
   else if(demo_en_cours != nullptr)
-    Ia = demo_en_cours->sortie.O[0];
+    Ia = demo_en_cours->out.O[0];
   else
     Ia = I0;
 }

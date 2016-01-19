@@ -35,12 +35,14 @@ using namespace cv;
 using namespace utils::model;
 
 ////////////////////////////////////////////////////////////////////////////
-/** @brief Classe de base pour toutes les démonstrations OpenCV */
+/** @bref Classe de base pour toutes les démonstrations OpenCV */
+/** @brief Base class for all OpenCV demonstrations */
 class OCVDemoItem
 {
 public:
 
-  /** Propriétés d'une démonstration OpenCV */
+  /** @bref Propriétés d'une démonstration OpenCV */
+  /** @brief Properties of an OpenCV demonstration */
   struct OCVDemoItemProprietes
   {
     /** Chaine d'identification (pour retrouver le schéma XML) */
@@ -105,7 +107,7 @@ public:
   OCVDemoItemParams params;
 
   /** Résultat de l'exécution de la démo */
-  OCVDemoItemSortie sortie;
+  OCVDemoItemSortie out;
 
   /** Calcul effectif */
   virtual int calcul(Node &model, cv::Mat &I) = 0;
@@ -113,7 +115,7 @@ public:
   /** Constructeur */
   OCVDemoItem()
   {
-    sortie.nout = 1;
+    out.nout = 1;
     props.requiert_roi = false;
     props.requiert_masque = false;
     props.requiert_mosaique = false;
