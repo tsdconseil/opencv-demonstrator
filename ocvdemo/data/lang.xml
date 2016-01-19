@@ -105,5 +105,8 @@
   <item name = "save-log-title"
         fr   = "Enregistrement du fichier journal"
         en   = "Log file saving"/>
+        
+  <item name = "ROI selection" en="ROI selection" fr="Selection de la RDI"/>
+  <item name = "Backprojection" en="Backprojection" fr="Projection arriere"/>
 </section>
 
