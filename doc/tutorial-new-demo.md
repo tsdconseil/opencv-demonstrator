@@ -18,15 +18,16 @@ So if a revelant category already exists in the model, please add your demonstra
 </cat>
 ```
 
-A demonstration item is a XML node of type `demo`, and with the same attributes as a category (name identifier and localized labels), and another optionnal attributes, `default-img`, which specify the path of the default image to use for this demonstration (if not specified, a Lena image is used). 
+A demonstration item is a XML node of type `demo`, and with the same attributes as a category (name identifier and localized labels), and with optional additionnal attributes and sub-nodes. An example of supported sub-node is the `img` sub-node (with field `path`) to specify the default input image(s) to be used for this demonstration (if no `img` sub-node is specified, a Lena image is used by default). 
 
 For instance, to create a demonstration of id `dummy`, using the `data/img/box.png` file as default input image:
 
 ```
 <demo name = "dummy" 
       fr   = "Ma démonstration" 
-      en   = "My demonstration"
-      default-img="data/img/box.png"/>
+      en   = "My demonstration">
+  <img path = "data/img/box.png"/>
+</demo>
 ```
   
 ## Step 2: Defining the schema with the demonstration parameters and description 
