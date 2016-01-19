@@ -108,6 +108,8 @@ int FilterDemo::proceed(const FilterDemoConfig &conf, cv::Mat &I, OCVDemoItemOut
   output.nout = 2;
   output.images[0] = Ib;
   output.images[1] = If;
+  output.outname[0] = "Noisy image";
+  output.outname[1] = "Filtered image";
 
   return 0;
 }
