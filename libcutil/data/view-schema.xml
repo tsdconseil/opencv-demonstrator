@@ -1,21 +1,21 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 
 <!-- This file is part of LIBCUTIL.
-  --
-  -- LIBCUTIL is free software: you can redistribute it and/or modify
-  -- it under the terms of the GNU Lesser General Public License as published by
-  -- the Free Software Foundation, either version 3 of the License, or
-  -- (at your option) any later version.
   
-  -- LIBCUTIL is distributed in the hope that it will be useful,
-  -- but WITHOUT ANY WARRANTY; without even the implied warranty of
-  -- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  -- GNU Lesser General Public License for more details.
-  --
-  -- You should have received a copy of the GNU Lesser General Public License
-  -- along with LIBCUTIL.  If not, see <http://www.gnu.org/licenses/>.
-  --
-  -- Copyright 2007-2011 J. A. -->
+   LIBCUTIL is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+  
+   LIBCUTIL is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+  
+   You should have received a copy of the GNU Lesser General Public License
+   along with LIBCUTIL.  If not, see <http://www.gnu.org/licenses/>.
+  
+   Copyright 2007-2011 J. A. -->
 
 <schema root = "view"
         name = "view">
@@ -23,8 +23,8 @@
   <include-schema  path="data/std-schema.xml"/>
   
   <!-- TODO:
-    --  -> paramètres liés (e.g. options en fonction du type de...)
-    --> -> choice/choice-item -> à merger avec les sub dépendant d'un prm ????
+      -> paramÃ¨tres liÃ©s (e.g. options en fonction du type de...)
+    --> -> choice/choice-item -> Ã  merger avec les sub dÃ©pendant d'un prm ????
   
   <node name = "view"
         fr   = "Vue"
@@ -36,7 +36,7 @@
   
   <node name="widget">
     <attribute name="id" type="string" fr="Identifiant (optionnel)">
-      <description>Identifiant qui peut être utilisé dans le code spécifique pour retrouver dynamiquement le widget.</description>
+      <description>Identifiant qui peut Ãªtre utilisÃ© dans le code spÃ©cifique pour retrouver dynamiquement le widget.</description>
     </attribute>
     <attribute name="pack" type="string" constraints="shrink|expand" default="shrink"/>
     <attribute name="pos-end" type="boolean" default="false"/>
@@ -95,7 +95,7 @@
   
   </node>
   
-  <node name = "pane" fr="Séparation">
+  <node name = "pane" fr="SÃ©paration">
     <attribute name        = "dir"
                type        = "string"
                default     = "H"
@@ -107,7 +107,7 @@
              name  = "H"
              fr    = "Horizontal"/>
     </attribute>
-    <description >Séparateur vertical ou horizontal</description>
+    <description >SÃ©parateur vertical ou horizontal</description>
     <sub type="widget" min="2" max="2"/>
   </node>
   
@@ -159,7 +159,7 @@
     </sub-element>
   </node>
   
-  <node name="fixed-layout" fr="Mise en page fixée">
+  <node name="fixed-layout" fr="Mise en page fixÃ©e">
     <sub-element name="fixed-widget">
       <attribute name="x" type="float"/>
       <attribute name="y" type="float"/>
@@ -168,14 +168,14 @@
   </node>
 
   <node name="button" fr="Bouton">
-    <ref type="command" name="command" fr="Commande associée"/>
+    <ref type="command" name="command" fr="Commande associÃ©e"/>
   </node>
   
   <node name = "field-view" 
         fr   = "Champ"
         en   = "Field view">
-    <attribute name="model" type="string" fr="Chemin vers le modèle" en="Model"/>
-    <attribute name="ctrl-id" type="string" fr="Chemin vers le contrôleur" en="Control id"/>
+    <attribute name="model" type="string" fr="Chemin vers le modÃ¨le" en="Model"/>
+    <attribute name="ctrl-id" type="string" fr="Chemin vers le contrÃ´leur" en="Control id"/>
     <attribute name="editable" type="boolean" fr="Editable" default="true"/>
     <attribute name="type"  type="int" min="0" max="5" default="0">
       <match value="0" fr="Automatique"/>
@@ -191,7 +191,7 @@
   <!--<node name = "field-view" 
         fr   = "Champ"
         en   = "Field">
-    <attribute name="model" type="string" fr="Modèle associé" en="Model"/>
+    <attribute name="model" type="string" fr="ModÃ¨le associÃ©" en="Model"/>
 
   </node>-->
        
@@ -205,7 +205,7 @@
   
   <node name = "localized">
       <attribute type="string" name="name" fr="Nom"/>
-      <attribute type="string" name="fr" fr="En français"/>
+      <attribute type="string" name="fr" fr="En franÃ§ais"/>
       <attribute type="string" name="en" en="name" fr="En anglais" hidden="false"/>
   </node>
   
