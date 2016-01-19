@@ -156,6 +156,9 @@ void ImageSelecteur::on_size_change(Gtk::Allocation &alloc)
 
 ImageSelecteur::ImageSelecteur()
 {
+  nmin = 0;
+  nmax = 100;
+  has_a_video = false;
   this->add(vbox);
   vbox.pack_start(toolbar, Gtk::PACK_SHRINK);
   evt_box.add(gtk_image);
@@ -240,6 +243,17 @@ void ImageSelecteur::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& conte
  context->drag_finish(false, false, time);
 }
 
+bool ImageSelecteur::has_video()
+{
+  return has_a_video;
+}
+
+void ImageSelecteur::get_video_list(std::vector<std::string> &list)
+{
+  list.clear();
+  for(auto i: images)
+    list.push_back(i.fichier);
+}
 
 unsigned int ImageSelecteur::get_nb_images() const
 {
@@ -261,20 +275,50 @@ void ImageSelecteur::ajoute_fichier(std::string s)
   img.fichier = s;
   std::string dummy;
   utils::files::split_path_and_filename(s, dummy, img.nom);
+  std::string ext = utils::files::get_extension(img.nom);
   img.nom = utils::files::remove_extension(img.nom);
 
-  img.mat = cv::imread(s);
-  if(img.mat.data == nullptr)
+  if((ext == "mpg") || (ext == "avi") || (ext == "mp4") || (ext == "wmv"))
   {
-    utils::mmi::dialogs::show_error("Error",
-        "Error while loading image",
-        "Maybe the image format is not supported.");
-    return;
+    has_a_video = true;
+
+    cv::VideoCapture vc(s);
+
+    if(!vc.isOpened())
+    {
+      utils::mmi::dialogs::show_error("Error",
+                "Error while loading video",
+                "Maybe the video format is not supported.");
+            return;
+    }
+
+    // Lis seulement la première image
+    vc >> img.mat;
+
+    vc.release();
+  }
+  else
+  {
+    img.mat = cv::imread(s);
+    if(img.mat.data == nullptr)
+    {
+      utils::mmi::dialogs::show_error("Error",
+          "Error while loading image",
+          "Maybe the image format is not supported.");
+      return;
+    }
   }
 
+  if((nmax > 0) && (images.size() >= (unsigned int) nmax))
+    images.erase(images.begin());
+
   images.push_back(img);
+
   maj_mosaique();
   maj_actif();
+
+  if(nmax == 1)
+    on_b_maj();
 }
 
 void ImageSelecteur::on_b_add()
@@ -333,6 +377,7 @@ void ImageSelecteur::on_b_maj()
 
 void ImageSelecteur::raz()
 {
+  has_a_video = false;
   images.clear();
   csel = -1;
   maj_mosaique();

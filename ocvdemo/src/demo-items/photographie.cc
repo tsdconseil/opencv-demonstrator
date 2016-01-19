@@ -26,7 +26,6 @@
 HDRDemo::HDRDemo()
 {
   props.id = "hdr";
-  //props.requiert_mosaique = true;
   props.input_max = -1;
   out.nout = 1;
 }

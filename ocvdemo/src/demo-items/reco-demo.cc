@@ -218,8 +218,6 @@ PanoDemo::PanoDemo()
   props.id = "pano";
   lock = false;
   props.input_max = -1;
-  //props.requiert_mosaique = true;
-  out.nout = 1;
 }
 
 int PanoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
@@ -236,7 +234,7 @@ int PanoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     t0 = getTickCount() - t0;
 
     output.images[0] = pano;
-    output.vrai_sortie = pano;
+    output.vrai_sortie = pano; // to deprecate
     output.outname[0] = "Panorama";
 
     journal.verbose("%.2lf sec\n",  t0 / getTickFrequency());

@@ -113,7 +113,6 @@ int ContourDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 NetDemo::NetDemo()
 {
   props.id = "net";
-  out.nout = 2;
 }
 
 
@@ -229,7 +228,6 @@ int CannyDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   int seuil_bas  = input.model.get_attribute_as_int("seuil-bas");
   int seuil_haut = input.model.get_attribute_as_int("seuil-haut");
   int norme      = input.model.get_attribute_as_int("norme");
-  //int ratio = 3;
   int taille_noyau = 3;
   Mat tmp;
   auto I = input.images[0];
@@ -237,10 +235,10 @@ int CannyDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   blur(tmp,tmp,Size(3,3));
   Canny(tmp, detected_edges, seuil_bas, seuil_haut, taille_noyau, norme == 1);
   /// Using Canny's output as a mask, we display our result
-  out.images[0].create(I.size(), I.type());
-  out.images[0] = Scalar::all(0);
-  I.copyTo(out.images[0], detected_edges);
-  out.outname[0] = "Contours";
+  output.images[0].create(I.size(), I.type());
+  output.images[0] = Scalar::all(0);
+  I.copyTo(output.images[0], detected_edges);
+  output.outname[0] = "Contours";
   return 0;
 }
 
@@ -474,13 +472,14 @@ int RectDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     center += corners[i];
   center *= (1. / corners.size());
 
+  out.images[0] = input.images[0].clone();
+  out.images[1] = Mat::zeros(I.size(), CV_8UC3);
 
   sortCorners(corners, center);
   if (corners.size() == 0)
   {
     //errmsg = "coins-non-tries-correctement";
     //return -1;
-    out.images[0] = Mat::zeros(I.size(), CV_8UC3);
     return 0;
   }
 
@@ -490,7 +489,6 @@ int RectDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     cv::Vec4i v = lines[i];
     cv::line(out.images[0], cv::Point(v[0], v[1]), cv::Point(v[2], v[3]), CV_RGB(0,255,0));
   }
-
 
   // Draw corner points
   cv::circle(out.images[0], corners[0], 3, CV_RGB(255,0,0), 2);

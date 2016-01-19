@@ -108,9 +108,9 @@ int calc_bp(const cv::Mat &I, cv::Rect &roi, cv::MatND &backproj)
 
 int HistoBP::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  MatND backproj;
-  calc_bp(input.images[0], params.roi, backproj);
-  cvtColor(backproj, output.images[0], CV_GRAY2BGR);
+  output.nout = 2;
+  output.images[0] = input.images[0].clone();
+  calc_bp(input.images[0], input.roi, output.images[1]);
   return 0;
 }
 

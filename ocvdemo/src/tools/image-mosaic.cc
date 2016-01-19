@@ -66,7 +66,7 @@ void ImageMosaique::update_image(int index, const cv::Mat &img)
 {
   mutex.lock();
   cv::Rect rect(img_pos[index].x, img_pos[index].y,
-                img_pos[index].width, img_pos[index].height);
+      img_pos[index].width, img_pos[index].height);
   cv::Mat roi(disp_img, rect);
 
 
@@ -83,202 +83,218 @@ void ImageMosaique::update_image(int index, const cv::Mat &img)
 }
 
 int ImageMosaique::show_multiple_images(std::string title,
-                                      std::vector<cv::Mat> lst,
-                                      std::vector<std::string> titles)
+    std::vector<cv::Mat> lst,
+    std::vector<std::string> titles)
 {
   mutex.lock();
   this->title = title;
   cv::Mat img;
   unsigned int nArgs = lst.size();
 
- int sizex, sizey;
- int i;
- int m, n;
- int x, y;
+  int sizex, sizey;
+  int i;
+  int m, n;
+  int x, y;
 
- // w - Maximum number of images in a row
- // h - Maximum number of images in a column
- int w, h;
- // scale - How much we have to resize the image
- float scale;
- //int max;
+  // w - Maximum number of images in a row
+  // h - Maximum number of images in a column
+  int w, h;
+  // scale - How much we have to resize the image
+  float scale;
+  //int max;
 
- bool show_deco = true;
+  bool show_deco = true;
 
- img_pos.clear();
- img_sizes.clear();
+  img_pos.clear();
+  img_sizes.clear();
 
- // If the number of arguments is lesser than 0 or greater than 12
- // return without displaying
- if(nArgs <= 0) {
-   printf("Number of arguments too small....\n");
-   mutex.unlock();
-   return -1;
- }
- else if(nArgs > 12) {
-   printf("Number of arguments too large....\n");
-   mutex.unlock();
-   return -1;
- }
- // Determine the size of the image,
- // and the number of rows/cols
- // from number of arguments
- else if (nArgs == 1)
- {
-   w = h = 1;
-   sizex = lst[0].cols;
-   sizey = lst[0].rows;
-   show_deco = false;
- }
- else if (nArgs == 2) {
-   w = 2; h = 1;
-   sizex = 500;
-   sizey = 500;
- }
- else if (nArgs == 3)
- {
-   w = 3; h = 1;
-   sizex = 350;
-   sizey = 350;
- }
- else if (nArgs == 4) {
-   w = 2; h = 2;
-   sizex = sizey = 350;
- }
- else if (nArgs == 5 || nArgs == 6) {
-   w = 3; h = 2;
-   sizex = sizey = 250;
- }
- else if (nArgs == 7 || nArgs == 8) {
-   w = 4; h = 2;
-   sizex = sizey = 250;
- }
- else
- {
-   w = 4; h = 3;
-   sizex = sizey = 200;
- }
-
- if(nArgs > 1)
-   sizey = (sizex * lst[0].rows) / lst[0].cols;
-
- 
-
- uint16_t W = 100 + sizex*w;
- uint16_t H = 20 + (sizey+30)*h;
-
- if(nArgs == 1)
- {
-   W = sizex;
-   H = sizey;
- }
-
- journal.trace("show_multiple_images (sizex = %d, sizey = %d, w = %d, h = %d, W = %d, H = %d)",
-               sizex, sizey, w, h, W, H);
-
- // Create a new 3 channel image
- disp_img.create(cv::Size(W, H), CV_8UC3);
- disp_img.setTo(Scalar(0));
-
-
- // Loop for nArgs number of arguments
- for (i = 0, m = 20, n = 20; i < (int) nArgs; i++, m += (20 + sizex))
- {
-   // Get the Pointer to the IplImage
-   img = lst[i];
-   auto sz = img.size();
-   x = sz.width;
-   y = sz.height;
-
-   float scalex = ((float) x) / sizex;
-   float scaley = ((float) y) / sizey;
-   scale = std::max(scalex,scaley);
-
-   // Used to Align the images
-   if( i % w == 0 && m!= 20)
-   {
-     m  = 20;
-     n += 30 + sizey;
-   }
-
-   if(nArgs == 1)
-   {
-     m = 0; n = 0;
-     scale = 1;
-     disp_img = img;
-   }
-
-
-
-     // Set the image ROI to display the current image
-     cv::Rect rect(m, n, (int)(x/scale), (int)(y/scale));
-     cv::Mat roi(disp_img, rect);
-
-     if(nArgs > 1)
-  // Resize the input image and copy the it to the Single Big Image
+  // If the number of arguments is lesser than 0 or greater than 12
+  // return without displaying
+  if(nArgs <= 0)
   {
-    Mat im = img.clone();
-
-    while((im.cols >= 2 * roi.size().width) || (im.rows >= 2 * roi.size().height))
-      pyrDown(im, im);
-    while((im.cols <= roi.size().width / 2) && (im.rows <= roi.size().height / 2))
-      pyrUp(im, im);
-
-    cv::resize(im, roi, roi.size());
+    journal.anomaly("%s: Number of arguments too small.", __func__);
+    mutex.unlock();
+    return -1;
+  }
+  else if(nArgs > 12)
+  {
+    journal.anomaly("%s: Number of arguments too large.", __func__);
+    mutex.unlock();
+    return -1;
   }
 
-     
-
-  img_pos.push_back(rect);
-  img_sizes.push_back(Size(img.cols, img.rows));
-
-  if(show_deco && (titles[i].size() > 0))
+  if(lst[0].cols <= 0)
   {
-    std::string texte = titles[i];
-    int baseLine;
-    double tscale = 1.0;
-    auto font = FONT_HERSHEY_COMPLEX_SMALL;
-    Size si =  getTextSize(texte, font, tscale, 1.2, &baseLine);
-    ///int dx = (x/scale);
-    int xc = m + (x/(2*scale));
-    putText(disp_img, texte,
-            Point(xc - si.width / 2, n + y / scale + 1.5 * si.height),
-            font,
-            tscale,
-            Scalar(255,255,255),
-            1.2,
-            CV_AA);
+    journal.anomaly("%s: First image empty.", __func__);
+    mutex.unlock();
+    return -1;
   }
- }
+
+  // Determine the size of the image,
+  // and the number of rows/cols
+  // from number of arguments
+  if (nArgs == 1)
+  {
+    w = h = 1;
+    sizex = lst[0].cols;
+    sizey = lst[0].rows;
+    show_deco = false;
+  }
+  else if (nArgs == 2)
+  {
+    w = 2; h = 1;
+    sizex = 500;
+    sizey = 500;
+  }
+  else if (nArgs == 3)
+  {
+    w = 3; h = 1;
+    sizex = 350;
+    sizey = 350;
+  }
+  else if (nArgs == 4)
+  {
+    w = 2; h = 2;
+    sizex = sizey = 350;
+  }
+  else if (nArgs == 5 || nArgs == 6)
+  {
+    w = 3; h = 2;
+    sizex = sizey = 250;
+  }
+  else if (nArgs == 7 || nArgs == 8)
+  {
+    w = 4; h = 2;
+    sizex = sizey = 250;
+  }
+  else
+  {
+    w = 4; h = 3;
+    sizex = sizey = 200;
+  }
+
+
+
+  if(nArgs > 1)
+    sizey = (sizex * lst[0].rows) / lst[0].cols;
+
+
+
+  uint16_t W = 100 + sizex*w;
+  uint16_t H = 20 + (sizey+30)*h;
+
+  if(nArgs == 1)
+  {
+    W = sizex;
+    H = sizey;
+  }
+
+  journal.trace("show_multiple_images (sizex = %d, sizey = %d, w = %d, h = %d, W = %d, H = %d)",
+      sizex, sizey, w, h, W, H);
+
+  // Create a new 3 channel image
+  disp_img.create(cv::Size(W, H), CV_8UC3);
+  disp_img.setTo(Scalar(0));
+
+
+  // Loop for nArgs number of arguments
+  for (i = 0, m = 20, n = 20; i < (int) nArgs; i++, m += (20 + sizex))
+  {
+    // Get the Pointer to the IplImage
+    img = lst[i];
+    auto sz = img.size();
+    x = sz.width;
+    y = sz.height;
+
+    float scalex = ((float) x) / sizex;
+    float scaley = ((float) y) / sizey;
+    scale = std::max(scalex,scaley);
+
+    // Used to Align the images
+    if( i % w == 0 && m!= 20)
+    {
+      m  = 20;
+      n += 30 + sizey;
+    }
+
+    if(nArgs == 1)
+    {
+      m = 0; n = 0;
+      scale = 1;
+      disp_img = img;
+    }
+
+
+
+    // Set the image ROI to display the current image
+    cv::Rect rect(m, n, (int)(x/scale), (int)(y/scale));
+    cv::Mat roi(disp_img, rect);
+
+    if(nArgs > 1)
+      // Resize the input image and copy the it to the Single Big Image
+    {
+      Mat im = img.clone();
+
+      while((im.cols >= 2 * roi.size().width) || (im.rows >= 2 * roi.size().height))
+        pyrDown(im, im);
+      while((im.cols <= roi.size().width / 2) && (im.rows <= roi.size().height / 2))
+        pyrUp(im, im);
+
+      cv::resize(im, roi, roi.size());
+    }
+
+
+
+    img_pos.push_back(rect);
+    img_sizes.push_back(Size(img.cols, img.rows));
+
+    if(show_deco && (titles[i].size() > 0))
+    {
+      std::string texte = titles[i];
+      int baseLine;
+      double tscale = 1.0;
+      auto font = FONT_HERSHEY_COMPLEX_SMALL;
+      Size si =  getTextSize(texte, font, tscale, 1.2, &baseLine);
+      ///int dx = (x/scale);
+      int xc = m + (x/(2*scale));
+      putText(disp_img, texte,
+          Point(xc - si.width / 2, n + y / scale + 1.5 * si.height),
+          font,
+          tscale,
+          Scalar(255,255,255),
+          1.2,
+          CV_AA);
+    }
+  }
 
   // Create a new window, and show the Single Big Image
 
- journal.verbose("namedWindow...");
- if(nArgs == 1)
- {
-   cv::namedWindow(title.c_str(), CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL);
-   cv::resizeWindow(title.c_str(), lst[0].cols, lst[0].rows);
- }
- else
-   cv::namedWindow(title.c_str(), 1);
- 
- journal.verbose("imwrite");
- //cv::imwrite("./essai.jpg", disp_img); // OK
- journal.verbose("imshow: [%s], %d * %d", title.c_str(), disp_img.cols, disp_img.rows); 
- cv::imshow(title.c_str(), disp_img);
+  journal.verbose("namedWindow...");
+  if(nArgs == 1)
+  {
+    cv::namedWindow(title.c_str(), CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL);
+    cv::resizeWindow(title.c_str(), lst[0].cols, lst[0].rows);
+  }
+  else
+    cv::namedWindow(title.c_str(), 1);
 
- //cv::moveWindow(title.c_str(), 0, 0);
+  journal.verbose("imwrite");
+  //cv::imwrite("./essai.jpg", disp_img); // OK
+  journal.verbose("imshow: [%s], %d * %d", title.c_str(), disp_img.cols, disp_img.rows);
+  cv::imshow(title.c_str(), disp_img);
+
+  //cv::moveWindow(title.c_str(), 0, 0);
 
 
- if(!callback_init_ok)
- {
-   journal.verbose("cbinit");
-   setMouseCallback(title, ::mouse_callback, this);
-   callback_init_ok = true;
- }
-  
+  if(!callback_init_ok)
+  {
+    journal.verbose("cbinit");
+    setMouseCallback(title, ::mouse_callback, this);
+    callback_init_ok = true;
+  }
 
- journal.trace("done.");
- mutex.unlock();
- return 0;
+
+  journal.trace("done.");
+  mutex.unlock();
+  return 0;
 }

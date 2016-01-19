@@ -102,8 +102,8 @@ SousArrierePlanDemo::SousArrierePlanDemo()
 {
   props.id  = "sous-arriere-plan";
   nframes = 0;
-  out.outname[1] = "masque";
   out.nout = 2;
+  out.outname[0] = "masque";
   osel = -1;
   //this->mog2 = createBackgroundSubtractorMOG2();
 }
@@ -129,6 +129,8 @@ int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &out
   Mat tmp, mask;
 
   auto I = input.images[0];
+
+  out.images[0] = I;
 
   resize(I,tmp,Size(0,0),0.25,0.25);
 
@@ -198,11 +200,15 @@ int OptFlowDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   Mat xy[2], mag, nmag, angle;
   auto I = input.images[0];
 
+  out.nout = 2;
+  out.images[0] = I;
+
   if(reset)
   {
     reset = false;
     cv::cvtColor(I, Iprec, CV_BGR2GRAY);
-    out.images[0] = Mat::zeros(I.size(), CV_8UC3);
+    out.images[1] = I;
+    //out.images[0] = Mat::zeros(I.size(), CV_8UC3);
     return 0;
   }
 
@@ -218,9 +224,9 @@ int OptFlowDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   _hsv[1] = 1.0 * Mat::ones(angle.size(), CV_32F); // Chromaticité = 1
   _hsv[2] = nmag; // Luminance
   merge(_hsv, 3, hsv);
-  out.images[0] = Mat(hsv.size(), CV_8UC3);
-  cvtColor(hsv, out.images[0], cv::COLOR_HSV2BGR);
-  out.images[0].convertTo(out.images[0], CV_8UC3, 255);
+  out.images[1] = Mat(hsv.size(), CV_8UC3);
+  cvtColor(hsv, out.images[1], cv::COLOR_HSV2BGR);
+  out.images[1].convertTo(out.images[1], CV_8UC3, 255);
   journal.verbose("fait: %d * %d, depth = %d.", out.images[0].cols, out.images[0].rows, out.images[0].depth());
   return 0;
 }

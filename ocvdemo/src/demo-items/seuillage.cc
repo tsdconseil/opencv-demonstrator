@@ -33,10 +33,13 @@ InpaintDemo::InpaintDemo()
 
 int InpaintDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
+  output.nout = 2;
+  auto I = input.images[0];
+  output.images[0] = I.clone();
   if(params.mask.data != nullptr)
-    cv::inpaint(input.images[0], params.mask, output.images[0], 3, CV_INPAINT_TELEA);
+    cv::inpaint(I, params.mask, output.images[1], 3, CV_INPAINT_TELEA);
   else
-    output.images[0] = input.images[0].clone();
+    output.images[1] = I.clone();
   return 0;
 }
 

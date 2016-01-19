@@ -80,7 +80,7 @@
   <item name="title-save" fr="Enregistrer le résultat sous..." en="Save result as..."/>
   <item name="title-open" fr="Ajouter une image..." en="Add an image..."/>
   <item name="b_del" fr="Supprimer" en="Remove"/>
-  <item name="b_add" fr="Ajouter" en="Add"/>
+  <item name="b_add" fr="Ouvrir..." en="Open..."/>
   <item name="b_del_tout" fr="Supprimer tout" en="Remove all"/>
   <item name="b_maj" fr="Recalculer" en="Recompute"/>
   <item name="titre-sel" fr="Sélection des images" en="Images selection"/>

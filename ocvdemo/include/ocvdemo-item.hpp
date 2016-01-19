@@ -61,18 +61,6 @@ public:
     /** Maximum number of input images for this demo.
      *  -1 means "not specified" (e.g. accept arbitrary number of images). */
     int input_max;
-
-#   if 0
-    /** Nécessite la sélection d'une suite d'image ? */
-    int requiert_mosaique;
-
-    struct MosaiqueProps
-    {
-      // Nombre min / max d'images nécessaires
-      int min, max;
-      MosaiqueProps(){min = -1; max = -1;}
-    } mosaique;
-#   endif
   };
 
   /** Réglages d'une démonstration OpenCV */

@@ -87,13 +87,8 @@ int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   sbm->compute(imgs[0], imgs[1], disp);
   normalize(disp, disp8, 0, 255, CV_MINMAX, CV_8U);
 
-  output.nout = 3;
-  output.images[0] = imgs[0];
-  output.images[1] = imgs[1];
-  output.images[2] = disp8;
-  output.outname[0] = "Image 1";
-  output.outname[1] = "Image 2";
-  output.outname[2] = langue.get_item("disp-map");
+  output.images[0] = disp8;
+  output.outname[0] = langue.get_item("disp-map");
   return 0;
 }
 

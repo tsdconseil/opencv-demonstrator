@@ -221,6 +221,7 @@ private:
       // Calcul sur une image
       CALCUL
     } type;
+    // TO DEPRECATE
     cv::Mat img;
     OCVDemoItem *demo;
     utils::model::Node modele;
@@ -240,6 +241,8 @@ private:
   utils::hal::Signal signal_video_demarre,
     signal_image_video_traitee,
     signal_video_suspendue;
+
+  bool ignore_refresh;
 };
 
 #endif
