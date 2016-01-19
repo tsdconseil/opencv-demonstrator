@@ -70,7 +70,7 @@ int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   if(input.images.size() != 2)
   {
-    out.errmsg = "Disparity map demo: needs 2 input images.";
+    output.errmsg = "Disparity map demo: needs 2 input images.";
     return -1;
   }
 
@@ -101,9 +101,9 @@ int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 CamCalDemo::CamCalDemo()
 {
   props.id = "cam-cal";
-  out.nout = 2;
-  out.outname[0] = "Detection des coins";
-  out.outname[1] = "Distortion corrigee";
+  output.nout = 2;
+  output.outname[0] = "Detection des coins";
+  output.outname[1] = "Distortion corrigee";
 }
 
 
@@ -263,20 +263,20 @@ int CamCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     journal.trace("RMS error reported by calibrateCamera: %g\n", rms);
 
 
-    cv::undistort(Ior, out.images[1], cameraMatrix, distCoeffs);
+    cv::undistort(Ior, output.images[1], cameraMatrix, distCoeffs);
 
     Size sz = Ior.size();
     sz.height = sz.width = max(sz.width, sz.height);
     sz.height = sz.width = max(sz.width, 500);
 
-    out.images[2] = cv::Mat::zeros(sz, CV_8UC3);
+    output.images[2] = cv::Mat::zeros(sz, CV_8UC3);
 
     double fovx, fovy, focal, ar;
     Point2d ppoint;
     cv::calibrationMatrixValues(cameraMatrix, Ior.size(), 1, 1, fovx, fovy, focal, ppoint, ar);
 
 
-    MatText mt(out.images[2]);
+    MatText mt(output.images[2]);
 
     std::stringstream str;
 

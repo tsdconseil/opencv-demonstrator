@@ -36,10 +36,10 @@ void CamShiftDemo::set_roi(const cv::Mat &I, const cv::Rect &new_roi)
 {
   bp_init_ok = false;
 
-  params.roi = new_roi;
-  this->trackwindow = params.roi;
+  input.roi = new_roi;
+  this->trackwindow = input.roi;
 
-  if(params.roi.width * params.roi.height < 4)
+  if(input.roi.width * input.roi.height < 4)
   {
     journal.warning("set_roi: aire trop petite.");
     return;
@@ -47,9 +47,9 @@ void CamShiftDemo::set_roi(const cv::Mat &I, const cv::Rect &new_roi)
 
   /* Calcul de l'histogramme et backprojection */
   journal.trace_major("set roi(%d,%d,%d,%d): calc bp...",
-      params.roi.x, params.roi.y, params.roi.width, params.roi.height);
+      input.roi.x, input.roi.y, input.roi.width, input.roi.height);
   journal.verbose("img dim = %d * %d.", I.cols, I.rows);
-  calc_hist(I, params.roi, hist);
+  calc_hist(I, input.roi, hist);
   journal.verbose("fait.");
   bp_init_ok = true;
 }
@@ -57,7 +57,7 @@ void CamShiftDemo::set_roi(const cv::Mat &I, const cv::Rect &new_roi)
 int CamShiftDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   auto I = input.images[0];
-  out.outname[1] = "back-projection histo.";
+  output.outname[1] = "back-projection histo.";
   if(!bp_init_ok)
   {
     auto sx = I.cols, sy = I.rows;
@@ -69,8 +69,8 @@ int CamShiftDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     cv::MatND backproj;
     calc_bp(I, hist, backproj);
 
-    out.images[0] = I;
-    cvtColor(backproj, out.images[1], CV_GRAY2BGR);
+    output.images[0] = I;
+    cvtColor(backproj, output.images[1], CV_GRAY2BGR);
 
     journal.verbose("camshift, %d...", trackwindow.width);
     cv::Rect tw3;
@@ -102,8 +102,8 @@ SousArrierePlanDemo::SousArrierePlanDemo()
 {
   props.id  = "sous-arriere-plan";
   nframes = 0;
-  out.nout = 2;
-  out.outname[0] = "masque";
+  output.nout = 2;
+  output.outname[0] = "masque";
   osel = -1;
   //this->mog2 = createBackgroundSubtractorMOG2();
 }
@@ -130,7 +130,7 @@ int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &out
 
   auto I = input.images[0];
 
-  out.images[0] = I;
+  output.images[0] = I;
 
   resize(I,tmp,Size(0,0),0.25,0.25);
 
@@ -141,13 +141,13 @@ int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &out
   journal.trace("MOG...");
   algo->apply(tmp, mask);
   journal.trace("ok.");
-  resize(mask,out.images[1],Size(0,0),4,4);
+  resize(mask,output.images[1],Size(0,0),4,4);
 
   nframes++;
 
   if(nframes < 5)
   {
-    out.images[1] = I.clone();
+    output.images[1] = I.clone();
     return 0;
   }
 
@@ -187,7 +187,7 @@ OptFlowDemo::OptFlowDemo()
   props.id = "flux-optique";
   reset = true;
   algo = createOptFlow_DualTVL1();
-  out.outname[0] = "Flux optique";
+  output.outname[0] = "Flux optique";
 }
 
 int OptFlowDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
@@ -200,14 +200,14 @@ int OptFlowDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   Mat xy[2], mag, nmag, angle;
   auto I = input.images[0];
 
-  out.nout = 2;
-  out.images[0] = I;
+  output.nout = 2;
+  output.images[0] = I;
 
   if(reset)
   {
     reset = false;
     cv::cvtColor(I, Iprec, CV_BGR2GRAY);
-    out.images[1] = I;
+    output.images[1] = I;
     //out.images[0] = Mat::zeros(I.size(), CV_8UC3);
     return 0;
   }
@@ -224,10 +224,10 @@ int OptFlowDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   _hsv[1] = 1.0 * Mat::ones(angle.size(), CV_32F); // Chromaticité = 1
   _hsv[2] = nmag; // Luminance
   merge(_hsv, 3, hsv);
-  out.images[1] = Mat(hsv.size(), CV_8UC3);
-  cvtColor(hsv, out.images[1], cv::COLOR_HSV2BGR);
-  out.images[1].convertTo(out.images[1], CV_8UC3, 255);
-  journal.verbose("fait: %d * %d, depth = %d.", out.images[0].cols, out.images[0].rows, out.images[0].depth());
+  output.images[1] = Mat(hsv.size(), CV_8UC3);
+  cvtColor(hsv, output.images[1], cv::COLOR_HSV2BGR);
+  output.images[1].convertTo(output.images[1], CV_8UC3, 255);
+  journal.verbose("fait: %d * %d, depth = %d.", output.images[0].cols, output.images[0].rows, output.images[0].depth());
   return 0;
 }
 

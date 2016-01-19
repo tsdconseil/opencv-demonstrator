@@ -147,9 +147,9 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 #   endif
 
 
-    out.images[0] = Mat::zeros(Size(640*2,480*2), CV_8UC3);
+    output.images[0] = Mat::zeros(Size(640*2,480*2), CV_8UC3);
 
-    cv::drawMatches(imgs[0], kpts[0], imgs[1], kpts[1], good_matches, out.images[0]);
+    cv::drawMatches(imgs[0], kpts[0], imgs[1], kpts[1], good_matches, output.images[0]);
 
     journal.trace("draw match ok: %d assoc, %d ok.",
         matches.size(), good_matches.size());
@@ -200,8 +200,7 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 #   endif
     }
 
-    out.nout = 1;
-    out.outname[0] = "Correspondances";
+    output.outname[0] = "Correspondances";
     lock = false;
   }
   return 0;
@@ -333,8 +332,7 @@ VisageDemo::VisageDemo(): rng(12345)
     journal.anomaly("--(!)Error loading\n");
     return;
   }
-  out.nout = 1;
-  out.outname[0] = " ";
+  output.outname[0] = " ";
 }
 
 
@@ -389,7 +387,7 @@ int VisageDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
 CascGenDemo::CascGenDemo(std::string id): rng(12345)
 {
-  out.outname[0] = " ";
+  output.outname[0] = " ";
   cascade_ok = false;
   props.id = id;
   if(id == "casc-yeux")
@@ -417,7 +415,7 @@ CascGenDemo::CascGenDemo(std::string id): rng(12345)
     return;
   }
 
-  out.nout = 0;
+  output.nout = 0;
 
   unsigned int i = 0;
   for(auto cname: cnames)

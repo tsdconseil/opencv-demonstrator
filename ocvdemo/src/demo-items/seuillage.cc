@@ -36,8 +36,8 @@ int InpaintDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.nout = 2;
   auto I = input.images[0];
   output.images[0] = I.clone();
-  if(params.mask.data != nullptr)
-    cv::inpaint(I, params.mask, output.images[1], 3, CV_INPAINT_TELEA);
+  if(input.mask.data != nullptr)
+    cv::inpaint(I, input.mask, output.images[1], 3, CV_INPAINT_TELEA);
   else
     output.images[1] = I.clone();
   return 0;
@@ -47,7 +47,7 @@ int InpaintDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 WShedDemo::WShedDemo()
 {
   props.id = "watershed";
-  out.nout = 3;
+  output.nout = 3;
 }
 
 int WShedDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
@@ -124,10 +124,10 @@ GrabCutDemo::GrabCutDemo()
 {
   props.id = "grabcut";
   props.requiert_roi = true;
-  params.roi.x = 137;
-  params.roi.y = 5;
-  params.roi.width = 251 - 137;
-  params.roi.height = 130 - 5;
+  input.roi.x = 137;
+  input.roi.y = 5;
+  input.roi.width = 251 - 137;
+  input.roi.height = 130 - 5;
 }
 
 int GrabCutDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
@@ -139,10 +139,10 @@ int GrabCutDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   Mat Id;
   cv::pyrDown(I, Id);
   cv::Rect roi2;
-  roi2.x = params.roi.x / 2;
-  roi2.y = params.roi.y / 2;
-  roi2.width = params.roi.width / 2;
-  roi2.height = params.roi.height / 2;
+  roi2.x = input.roi.x / 2;
+  roi2.y = input.roi.y / 2;
+  roi2.width = input.roi.width / 2;
+  roi2.height = input.roi.height / 2;
   cv::grabCut(Id, mask, roi2, bgmodel, fgmodel, 1, GC_INIT_WITH_RECT);
   //cv::pyrUp(mask, mask);
 

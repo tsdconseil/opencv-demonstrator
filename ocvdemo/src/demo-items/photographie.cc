@@ -27,7 +27,7 @@ HDRDemo::HDRDemo()
 {
   props.id = "hdr";
   props.input_max = -1;
-  out.nout = 1;
+  output.nout = 1;
 }
 
 
@@ -37,6 +37,6 @@ int HDRDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   Mat tmp, tmp2;
   merge_mertens->process(input.images, tmp);
   tmp.convertTo(tmp2, CV_8UC3, 255, 0);
-  out.images[0] = tmp2;
+  output.images[0] = tmp2;
   return 0;
 }

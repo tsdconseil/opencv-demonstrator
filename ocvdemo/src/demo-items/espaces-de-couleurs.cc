@@ -27,8 +27,7 @@
 DFTDemo::DFTDemo()
 {
   props.id = "dft";
-  out.outname[1] = "DFT";
-  out.nout = 2;
+  output.outname[0] = "DFT";
 }
 
 int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
@@ -79,7 +78,7 @@ int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   normalize(magI, magI, 0, 255, NORM_MINMAX); // Transform the matrix with float values into a
                                           // viewable image form (float between values 0 and 1).
-  out.images[0] = magI;
+  output.images[0] = magI;
 
   return 0;
 }
@@ -87,7 +86,7 @@ int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 HSVDemo::HSVDemo()
 {
   props.id = "hsv";
-  out.outname[0] = "Couleur";
+  output.outname[0] = "Couleur";
 }
 
 int HSVDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
@@ -105,7 +104,7 @@ int HSVDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   Mat tsv = Mat::zeros(Size(sx,sy),CV_8UC3);
   tsv.setTo(Scalar(T,S,V));
-  cvtColor(tsv, out.images[0], CV_HSV2BGR);
+  cvtColor(tsv, output.images[0], CV_HSV2BGR);
   return 0;
 }
 

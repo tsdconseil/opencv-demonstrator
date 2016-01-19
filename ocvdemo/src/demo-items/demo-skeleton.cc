@@ -34,7 +34,7 @@ int MyDemo::proceed(Node &model, cv::Mat &I)
 
   // For instance, a dummy copy of the input image
 
-  out.images[0] = I;
+  output.images[0] = I;
 
 
   // Return code: 0 if computing is successfull

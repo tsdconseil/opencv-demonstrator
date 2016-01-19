@@ -34,7 +34,7 @@ static OCVDemo *instance = nullptr;
 
 OCVDemoItem::OCVDemoItem()
 {
-  out.nout = 1;
+  output.nout = 1;
   props.requiert_roi = false;
   props.requiert_masque = false;
   //props.requiert_mosaique = false;
@@ -73,7 +73,7 @@ void OCVDemo::thread_calcul()
     case ODEvent::CALCUL:
       try
       {
-        calcul_status = evt.demo->proceed(evt.demo->params, evt.demo->out);
+        calcul_status = evt.demo->proceed(evt.demo->input, evt.demo->output);
       }
       catch(...)
       {
@@ -150,7 +150,7 @@ int OCVDemo::on_video_image(const cv::Mat &tmp)
   if(demo_en_cours != nullptr)
   {
     I0 = tmp;
-    auto &v = demo_en_cours->params.images;
+    auto &v = demo_en_cours->input.images;
     if(v.size() < 1)
       v.push_back(I0);
     else
@@ -184,7 +184,7 @@ void OCVDemo::masque_clic(int x0, int y0)
         Ia.at<Vec3b>(y,x).val[0] = 255;
         Ia.at<Vec3b>(y,x).val[1] = 255;
         Ia.at<Vec3b>(y,x).val[2] = 255;
-        demo_en_cours->params.mask.at<unsigned char>(y,x) = 255;
+        demo_en_cours->input.mask.at<unsigned char>(y,x) = 255;
       }
     }
   }
@@ -194,7 +194,7 @@ void OCVDemo::masque_clic(int x0, int y0)
     cv::Mat mymask = Mat::zeros(Ia.rows+2,Ia.cols+2,CV_8U);
     cv::floodFill(Ia, mymask, Point(x0,y0), Scalar(255,255,255));
     Mat roi(mymask, Rect(1,1,Ia.cols,Ia.rows));
-    this->demo_en_cours->params.mask |= roi;
+    this->demo_en_cours->input.mask |= roi;
     update();
   }
 }
@@ -211,7 +211,7 @@ void OCVDemo::update()
   {
     first_processing = false;
     if(demo_en_cours->props.requiert_masque)
-      demo_en_cours->params.mask = cv::Mat::zeros(I0.size(), CV_8U);
+      demo_en_cours->input.mask = cv::Mat::zeros(I0.size(), CV_8U);
   }
 
   journal.verbose("Acquisition mutex_update...");
@@ -234,14 +234,14 @@ void OCVDemo::update()
       I0.cols, I0.rows, I0.channels(),
       s.c_str());
 
-  //this->img_selecteur.get_list(demo_en_cours->params.images);
-  //demo_en_cours->out.images[0] = I1; // Par défaut
+  //this->img_selecteur.get_list(demo_en_cours->input.images);
+  //demo_en_cours->output.images[0] = I1; // Par défaut
 
   // Appel au thread de calcul
   ODEvent evt;
   evt.type = ODEvent::CALCUL;
   // evt.img  = I1;
-  // demo_en_cours->params.images[0] = I1;
+  // demo_en_cours->input.images[0] = I1;
   evt.demo = demo_en_cours;
   evt.modele = modele;
   event_fifo.push(evt);
@@ -251,7 +251,7 @@ void OCVDemo::update()
   if(calcul_status)
   {
     journal.warning("ocvdemo: Echec calcul.");
-    auto s = demo_en_cours->out.errmsg;
+    auto s = demo_en_cours->output.errmsg;
     if(langue.has_item(s))
       s = langue.get_item(s);
     utils::mmi::dialogs::show_warning("Erreur de traitement",
@@ -263,10 +263,10 @@ void OCVDemo::update()
   {
     journal.trace("Calcul [%s] ok.", demo_en_cours->props.id.c_str());
 
-    if(demo_en_cours->out.vrai_sortie.data != nullptr)
-      sortie_en_cours = demo_en_cours->out.vrai_sortie;
-    else if(demo_en_cours->out.nout > 0)
-      sortie_en_cours = demo_en_cours->out.images[demo_en_cours->out.nout];
+    if(demo_en_cours->output.vrai_sortie.data != nullptr)
+      sortie_en_cours = demo_en_cours->output.vrai_sortie;
+    else if(demo_en_cours->output.nout > 0)
+      sortie_en_cours = demo_en_cours->output.images[demo_en_cours->output.nout];
     else
       sortie_en_cours = I0;
   }
@@ -275,9 +275,9 @@ void OCVDemo::update()
   compute_Ia();
   prepare_image(Ia);
   lst.push_back(Ia);
-  unsigned int img_count = demo_en_cours->out.nout;
+  unsigned int img_count = demo_en_cours->output.nout;
 
-  if(demo_en_cours->out.images[img_count - 1 ].data == nullptr)
+  if(demo_en_cours->output.images[img_count - 1 ].data == nullptr)
   {
     img_count = 0;
     journal.warning("Img count = %d, et image de sortie non initialisée.", img_count);
@@ -289,8 +289,8 @@ void OCVDemo::update()
   {
     if(j > 0)
     {
-      prepare_image(demo_en_cours->out.images[j]);
-      lst.push_back(demo_en_cours->out.images[j]);
+      prepare_image(demo_en_cours->output.images[j]);
+      lst.push_back(demo_en_cours->output.images[j]);
     }
 
     char buf[50];
@@ -305,9 +305,9 @@ void OCVDemo::update()
       auto n = modele_demo.get_child(std::string(buf));
       s = n.get_localized().get_localized();
     }
-    if((j < 4) && (demo_en_cours->out.outname[j].size() > 0))
+    if((j < 4) && (demo_en_cours->output.outname[j].size() > 0))
     {
-      s = demo_en_cours->out.outname[j];
+      s = demo_en_cours->output.outname[j];
       if(langue.has_item(s))
         s = langue.get_item(s);
     }
@@ -482,7 +482,7 @@ void OCVDemo::maj_entree()
     video_fp = vlist[0];
     entree_video = true;
     video_capture >> I0; // TODO: à supprimer
-    //demo_en_cours->params.images[0] = I0;
+    //demo_en_cours->input.images[0] = I0;
     mutex_video.unlock();
     signal_video_demarre.raise();
   }
@@ -490,8 +490,8 @@ void OCVDemo::maj_entree()
   {
     mutex_video.unlock();
     //journal.trace("Ouverture fichier image [%s]...", fp.c_str());
-    this->img_selecteur.get_list(demo_en_cours->params.images);
-    I0 = demo_en_cours->params.images[0].clone();
+    this->img_selecteur.get_list(demo_en_cours->input.images);
+    I0 = demo_en_cours->input.images[0].clone();
     //I0 = cv::imread(fp.c_str());
     if(I0.data == nullptr)
     {
@@ -579,12 +579,12 @@ void OCVDemo::setup_demo(const Node &sel)
       demo_en_cours = demo;
 
 
-      rdi0.x = demo->params.roi.x;
-      rdi0.y = demo->params.roi.y;
-      rdi1.x = demo->params.roi.x + demo->params.roi.width;
-      rdi1.y = demo->params.roi.y + demo->params.roi.height;
+      rdi0.x = demo->input.roi.x;
+      rdi0.y = demo->input.roi.y;
+      rdi1.x = demo->input.roi.x + demo->input.roi.width;
+      rdi1.y = demo->input.roi.y + demo->input.roi.height;
 
-      demo->params.model = modele;
+      demo->input.model = modele;
       demo->setup_model(modele);
 
       if(demo->configure_ui())
@@ -675,10 +675,10 @@ void OCVDemo::compute_Ia()
   else if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_masque))
   {
     if((Ia.data == nullptr) || (Ia.size() != I1.size()))
-      Ia = demo_en_cours->out.images[0];//Ia = I1.clone();
+      Ia = demo_en_cours->output.images[0];//Ia = I1.clone();
   }
   else if(demo_en_cours != nullptr)
-    Ia = demo_en_cours->out.images[0];
+    Ia = demo_en_cours->output.images[0];
   else
     Ia = I0;
 }
@@ -686,7 +686,7 @@ void OCVDemo::compute_Ia()
 void OCVDemo::masque_raz()
 {
   Ia = I0.clone();
-  demo_en_cours->params.mask = cv::Mat::zeros(I0.size(), CV_8U);
+  demo_en_cours->input.mask = cv::Mat::zeros(I0.size(), CV_8U);
 }
 
 void OCVDemo::update_Ia()

@@ -108,15 +108,13 @@ public:
   OCVDemoItemProperties props;
 
   /** Réglages de la démo */
-  OCVDemoItemInput params;
+  OCVDemoItemInput input;
 
   /** Résultat de l'exécution de la démo */
-  OCVDemoItemOutput out;
+  OCVDemoItemOutput output;
 
   /** Calcul effectif */
   /** @brief Overload this method to define the specific processing to be done for this demo */
-  //virtual int proceed(Node &model, cv::Mat &I) = 0;
-
   virtual int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output) = 0;
 
   /** Constructeur par défaut */
@@ -126,7 +124,7 @@ public:
   virtual ~OCVDemoItem(){}
 
   /** To deprecate? Appelé dès lors que la ROI a changé */
-  virtual void set_roi(const cv::Mat &I, const cv::Rect &new_roi){params.roi = new_roi;}
+  virtual void set_roi(const cv::Mat &I, const cv::Rect &new_roi){input.roi = new_roi;}
 
   /** To deprecate? */
   virtual int configure_ui(){return 0;}

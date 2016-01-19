@@ -50,7 +50,7 @@ HistoBP::HistoBP()
 {
   props.id = "hist-bp";
   props.requiert_roi = true;
-  params.roi = Rect(116,77,134-116,96-77);//Rect(225,289,50,50);
+  input.roi = Rect(116,77,134-116,96-77);//Rect(225,289,50,50);
 }
 
 int calc_hist(const cv::Mat &I, cv::Rect &roi, cv::MatND &hist)
@@ -283,9 +283,9 @@ int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
       calc_histo(input.images[0], hist[i], i, 255, maxprobs[i]);
 
     output.images[0] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[0], out.images[0], Scalar(255,0,0), 512.0 / maxprobs[0]);
-    plot_curve(hist[1], out.images[0], Scalar(0,255,0), 512.0 / maxprobs[1]);
-    plot_curve(hist[2], out.images[0], Scalar(0,0,255), 512.0 / maxprobs[2]);
+    plot_curve(hist[0], output.images[0], Scalar(255,0,0), 512.0 / maxprobs[0]);
+    plot_curve(hist[1], output.images[0], Scalar(0,255,0), 512.0 / maxprobs[1]);
+    plot_curve(hist[2], output.images[0], Scalar(0,0,255), 512.0 / maxprobs[2]);
     output.outname[0] = langue.get_item("histo-bvr");
   }
   else if(sel == 1)
@@ -313,11 +313,11 @@ int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     calc_histo(I2, hist[2], 2, 255, maxprobs[2]);
 
     output.images[0] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[0], out.images[0], Scalar(0,0,0), 512.0 / maxprobs[0]);
+    plot_curve(hist[0], output.images[0], Scalar(0,0,0), 512.0 / maxprobs[0]);
     output.images[1] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[1], out.images[1], Scalar(0,0,0), 512.0 / maxprobs[1]);
+    plot_curve(hist[1], output.images[1], Scalar(0,0,0), 512.0 / maxprobs[1]);
     output.images[2] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[2], out.images[2], Scalar(0,0,0), 512.0 / maxprobs[2]);
+    plot_curve(hist[2], output.images[2], Scalar(0,0,0), 512.0 / maxprobs[2]);
     output.nout = 3;
     output.outname[0] = "Teinte / Hue";
     output.outname[1] = "Saturation";
@@ -354,7 +354,7 @@ int HistoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     split(tmp, chns);
     equalizeHist(chns[0], chns[0]);
     merge(chns, 3, tmp);
-    cvtColor(tmp, out.images[0], CV_YUV2BGR);
+    cvtColor(tmp, output.images[0], CV_YUV2BGR);
   }
   // Egalisation 3 canaux RGB (pour voir les artefacts couleurs)
   else if(sel == 1)
@@ -364,7 +364,7 @@ int HistoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     for(auto i = 0u; i < 3; i++)
       equalizeHist(chns[i], chns[i]);
-    merge(chns, 3, out.images[0]);
+    merge(chns, 3, output.images[0]);
   }
 
   return 0;
