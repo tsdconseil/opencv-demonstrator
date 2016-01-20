@@ -1125,7 +1125,7 @@ void FileView::on_file_changed()
     Glib::ustring s = button->get_filename();
 
     std::string s2 = s;
-    printf("**** on_file_changed: %s.\n", s2.c_str());
+    //printf("**** on_file_changed: %s.\n", s2.c_str());
 
     // Here: convert absolute path to relative path
     // --> How to find the root directory ?
