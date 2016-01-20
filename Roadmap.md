@@ -2,7 +2,7 @@
 
 ---
 
-## 1.1.1
+## v1.1.1
 future release
 
 - ???
@@ -11,7 +11,7 @@ future release
 
 ---
 
-## 1.1.0
+## v1.1.0
 future release
 
 - switch to SemVer versioning
@@ -28,7 +28,7 @@ released on 21.11.2015
 
 ---
 
-## 1.01
+## v1.01
 released on 18.11.2015
 
 Ajouté :
@@ -39,7 +39,7 @@ Ajouté :
 
 ---
 
-## 1.00
+## v1.00
 released on 03.10.2015
 
 - Version initiale (fondée sur OpenCV 3.0 et GTKMM 3.0)
