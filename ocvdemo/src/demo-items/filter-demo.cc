@@ -27,12 +27,12 @@
 FilterDemo::FilterDemo()
 {
   props.id = "filtrage";
-  sortie.nout = 3;
 }
 
-int FilterDemo::calcul(Node &model, cv::Mat &I)
+int FilterDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   FilterDemoConfig config;
+  auto model = input.model;
   config.filter_type = (FilterDemoConfig::filter_t) model.get_attribute_as_int("sel");
   config.has_wn = model.get_attribute_as_boolean("gaussian");
   config.has_sp = model.get_attribute_as_boolean("sp");
@@ -52,12 +52,11 @@ int FilterDemo::calcul(Node &model, cv::Mat &I)
   config.bilateral.ksize = model.get_attribute_as_int("bilateral/ksize");
   config.bilateral.sigma_color = model.get_attribute_as_int("bilateral/sigma-color");
   config.bilateral.sigma_space = model.get_attribute_as_int("bilateral/sigma-space");
-  return proceed(config, I);
+  return proceed(config, input.images[0], output);
 }
 
-int FilterDemo::proceed(const FilterDemoConfig &conf, cv::Mat &I)
+int FilterDemo::proceed(const FilterDemoConfig &conf, cv::Mat &I, OCVDemoItemOutput &output)
 {
-  sortie.O[0] = I;
   cv::Mat Ib, If;
   I.convertTo(I, CV_32F, 1.0); // intervalle de sortie = 0..255
 
@@ -106,8 +105,11 @@ int FilterDemo::proceed(const FilterDemoConfig &conf, cv::Mat &I)
   else if(conf.filter_type == FilterDemoConfig::FILTER_BILATERAL)
     cv::bilateralFilter(Ib, If, conf.bilateral.ksize, conf.bilateral.sigma_color, conf.bilateral.sigma_space);
 
-  sortie.O[1] = Ib;
-  sortie.O[2] = If;
+  output.nout = 2;
+  output.images[0] = Ib;
+  output.images[1] = If;
+  output.names[0] = "Noisy image";
+  output.names[1] = "Filtered image";
 
   return 0;
 }

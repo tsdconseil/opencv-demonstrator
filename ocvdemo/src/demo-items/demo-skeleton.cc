@@ -26,18 +26,19 @@
 
 
 // Replace "MyDemo" by the name of your class
-int MyDemo::calcul(Node &model, cv::Mat &I)
+int MyDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  // Place your code here:
-  // The input image is I
-  // The output image(s) should be stored in sortie.O[0], sortie.O[1], ...
+  // - The input image(s) are in the vector input.images (of type: vector<cv::Mat>).
+  //   You can assume that input images are in BGR format, 8 bits.
+  // - The output image(s) should be stored in output.images[0], output.images[1], ... (of type: array of cv::Mat)
+  //   Output images can be in BGR or grayscale format, 8 bits or floating point (in this case from 0 to 1.0).
 
-  // For instance, a dummy copy of the input image
+  // For instance, we do here a very simple image processing operation:
+  // conversion from color to grayscale
+  //
+  cv::cvtColor(input.images[0], output.images[0], CV_BGR2GRAY);
 
-  sortie.O[0] = I;
-
-
-  // Return code: 0 if computing is successfull
+  // Return code: 0 if computing is successful (return any other value to indicate a failure)
   return 0;
 }
 

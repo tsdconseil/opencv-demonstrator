@@ -47,6 +47,12 @@ public:
   void raz();
 
   void get_list(std::vector<cv::Mat> &list);
+  unsigned int get_nb_images() const;
+
+  bool has_video();
+  void get_video_list(std::vector<std::string> &list);
+
+  int nmin, nmax;
 
 private:
   void on_size_change(Gtk::Allocation &alloc);
@@ -81,8 +87,9 @@ private:
   unsigned int ncols, nrows, col_width, row_height;
   unsigned int img_width, img_height;
 
-  std::vector<Image> images;
+  std::deque<Image> images;
   int csel;
+  bool has_a_video;
 };
 
 

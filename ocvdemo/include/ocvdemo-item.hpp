@@ -35,13 +35,15 @@ using namespace cv;
 using namespace utils::model;
 
 ////////////////////////////////////////////////////////////////////////////
-/** @brief Classe de base pour toutes les démonstrations OpenCV */
+/** @bref Classe de base pour toutes les démonstrations OpenCV */
+/** @brief Base class for all OpenCV demonstrations */
 class OCVDemoItem
 {
 public:
 
-  /** Propriétés d'une démonstration OpenCV */
-  struct OCVDemoItemProprietes
+  /** @bref Propriétés d'une démonstration OpenCV */
+  /** @brief Properties of an OpenCV demonstration */
+  struct OCVDemoItemProperties
   {
     /** Chaine d'identification (pour retrouver le schéma XML) */
     std::string id;
@@ -52,46 +54,50 @@ public:
     /** Nécessite la sélection d'une région d'intérêt ? */
     bool requiert_roi;
 
-    /** Nécessite la sélection d'une suite d'image ? */
-    int requiert_mosaique;
+    /** Minimum number of input images for this demo.
+     *  Default is 1 (needs at least one image). */
+    int input_min;
 
-    struct MosaiqueProps
-    {
-      // Nombre min / max d'images nécessaires
-      int min, max;
-      MosaiqueProps(){min = -1; max = -1;}
-    } mosaique;
+    /** Maximum number of input images for this demo.
+     *  -1 means "not specified" (e.g. accept arbitrary number of images). */
+    int input_max;
   };
 
   /** Réglages d'une démonstration OpenCV */
-  struct OCVDemoItemParams
+  struct OCVDemoItemInput
   {
     /** Modèle (configuration du traitement) */
-    Node modele;
+    Node model;
 
     /** Si oui, rectangle définissant la ROI */
     cv::Rect roi;
 
     /** Si oui, valeur du masque */
-    cv::Mat masque;
+    cv::Mat mask;
 
-    /** Si oui, liste des images d'entrée */
-    std::vector<Mat> mosaique;
+    /** Liste des images d'entrée */
+    /** List of input images */
+    std::vector<Mat> images;
   };
 
   /** Sortie */
-  struct OCVDemoItemSortie
+  /** @brief Output */
+  struct OCVDemoItemOutput
   {
     /** Nombre d'images produites */
+    /** @brief Number of output images */
     int nout;
 
     /** Images de sortie */
-    cv::Mat O[5];
+    /** @brief Output images */
+    cv::Mat images[5];
 
     /** Nom des différentes images de sortie */
-    std::string outname[5];
+    /** @brief Names of the output images (UTF-8) */
+    std::string names[5];
 
     /** Message d'erreur si échec */
+    /** Error message in case of failure (UTF-8) */
     std::string errmsg;
 
     /** TO DEPRECATE? Pointeur vers la "vraie" image de sortie ???? to remove !!!! */
@@ -99,32 +105,26 @@ public:
   };
 
   /** Propriétés de la démo */
-  OCVDemoItemProprietes props;
+  OCVDemoItemProperties props;
 
   /** Réglages de la démo */
-  OCVDemoItemParams params;
+  OCVDemoItemInput input;
 
   /** Résultat de l'exécution de la démo */
-  OCVDemoItemSortie sortie;
+  OCVDemoItemOutput output;
 
   /** Calcul effectif */
-  virtual int calcul(Node &model, cv::Mat &I) = 0;
+  /** @brief Overload this method to define the specific processing to be done for this demo */
+  virtual int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output) = 0;
 
-  /** Constructeur */
-  OCVDemoItem()
-  {
-    sortie.nout = 1;
-    props.requiert_roi = false;
-    props.requiert_masque = false;
-    props.requiert_mosaique = false;
-    journal.setup("ocvdemo-item","");
-  }
+  /** Constructeur par défaut */
+  OCVDemoItem();
 
   /** Destructeur */
   virtual ~OCVDemoItem(){}
 
   /** To deprecate? Appelé dès lors que la ROI a changé */
-  virtual void set_roi(const cv::Mat &I, const cv::Rect &new_roi){params.roi = new_roi;}
+  virtual void set_roi(const cv::Mat &I, const cv::Rect &new_roi){input.roi = new_roi;}
 
   /** To deprecate? */
   virtual int configure_ui(){return 0;}

@@ -29,21 +29,21 @@ class NetDemo: public OCVDemoItem
 {
 public:
   NetDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 class GradientDemo: public OCVDemoItem
 {
 public:
   GradientDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 class LaplaceDemo: public OCVDemoItem
 {
 public:
   LaplaceDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 
@@ -51,35 +51,35 @@ class CannyDemo: public OCVDemoItem
 {
 public:
   CannyDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 class ContourDemo: public OCVDemoItem
 {
 public:
   ContourDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 class HoughDemo: public OCVDemoItem
 {
 public:
   HoughDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 class HoughCDemo: public OCVDemoItem
 {
 public:
   HoughCDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 class RectDemo: public OCVDemoItem
 {
 public:
   RectDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 #endif /* MORPHO_DEMO_HPP_ */

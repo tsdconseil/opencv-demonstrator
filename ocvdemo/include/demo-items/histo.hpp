@@ -37,14 +37,14 @@ class HistoDemo: public OCVDemoItem
 {
 public:
   HistoDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 class HistoCalc: public OCVDemoItem
 {
 public:
   HistoCalc();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 // Backprojection
@@ -52,7 +52,7 @@ class HistoBP: public OCVDemoItem
 {
 public:
   HistoBP();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 #endif /* MORPHO_DEMO_HPP_ */

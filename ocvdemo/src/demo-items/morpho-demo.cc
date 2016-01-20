@@ -30,10 +30,10 @@ MorphoDemo::MorphoDemo()
 }
 
 
-int MorphoDemo::calcul(Node &model, cv::Mat &I)
+int MorphoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  int sel = model.get_attribute_as_int("type");
-  int kersel = model.get_attribute_as_int("kernel");
+  int sel = input.model.get_attribute_as_int("type");
+  int kersel = input.model.get_attribute_as_int("kernel");
 
   int kernel_type;
   if(kersel == 0)
@@ -45,7 +45,7 @@ int MorphoDemo::calcul(Node &model, cv::Mat &I)
   else
     assert(0);
 
-  int kernel_width = model.get_attribute_as_int("kernel-width");
+  int kernel_width = input.model.get_attribute_as_int("kernel-width");
 
   printf("Proceed k = %d, kw = %d, sel = %d.\n", kersel, kernel_width, sel);
   fflush(0);
@@ -54,14 +54,14 @@ int MorphoDemo::calcul(Node &model, cv::Mat &I)
                                       Size(2*kernel_width + 1, 2*kernel_width+1 ),
                                       Point(kernel_width, kernel_width));
 
-  sortie.nout = 2;
+  auto I = input.images[0];
 
   if(sel == 0)
-    dilate(I,sortie.O[1],K);
+    dilate(I,output.images[0],K);
   else if(sel == 1)
-    erode(I,sortie.O[1],K);
+    erode(I,output.images[0],K);
   else
-    morphologyEx(I, sortie.O[1], sel, K);
+    morphologyEx(I, output.images[0], sel, K);
 
   return 0;
 }

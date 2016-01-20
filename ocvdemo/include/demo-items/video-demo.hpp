@@ -31,7 +31,7 @@ class OptFlowDemo: public OCVDemoItem
 {
 public:
   OptFlowDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 private:
   cv::Mat Iprec;
   bool reset;
@@ -43,7 +43,7 @@ class SousArrierePlanDemo: public OCVDemoItem
 {
 public:
   SousArrierePlanDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 private:
   //cv::BackgroundSubtractorMOG mog;
   Ptr<cv::BackgroundSubtractor> algo;
@@ -58,7 +58,7 @@ class CamShiftDemo: public OCVDemoItem
 {
 public:
   CamShiftDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
   void set_roi(const cv::Mat &I, const cv::Rect &new_roi);
 private:
   cv::MatND hist;

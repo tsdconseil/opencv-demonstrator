@@ -29,7 +29,7 @@ class MorphoDemo: public OCVDemoItem
 {
 public:
   MorphoDemo();
-  int calcul(Node &model, cv::Mat &I);
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
 

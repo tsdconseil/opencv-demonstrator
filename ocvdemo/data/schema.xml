@@ -643,7 +643,6 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 <node name="corner-match">
 <description lang="fr">Cette démonstration permet de tester la mise en correspondance de points d'intérêts sur 2 images. Cette démonstration est inspirée du tutorial OpenCV "Features2D + Homography to find a known object" (<a href="http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography">http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography</a>).</description>
 <description lang="en">This demonstration allows to test interest point matching from 2 images. This demonstration is freely inspired from the OpenCV tutorial "Features2D + Homography to find a known object" (<a href="http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography">http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography</a>).</description>
-  <sub type="pano-img" min="2"/>
   <attribute name="seuil" fr="Distance maximale" en="Maximum distance" default="46"/>
 </node>
 
