@@ -44,6 +44,7 @@ public:
   void maj_actif();
 
   void ajoute_fichier(std::string s);
+  void set_fichier(int idx, std::string s);
   void raz();
 
   void get_list(std::vector<cv::Mat> &list);
@@ -60,6 +61,7 @@ private:
   bool on_b_released(GdkEventButton *event);
   bool on_k_released(GdkEventKey *event);
   void maj_taille(); // Obsolete
+  void on_b_open();
   void on_b_add();
   void on_b_del();
   void on_b_del_tout();
@@ -72,7 +74,7 @@ private:
   Gtk::EventBox evt_box;
   Glib::RefPtr<Gdk::Pixbuf> pixbuf;
   Gtk::VBox vbox;
-  Gtk::ToolButton b_suppr, b_ajout, b_suppr_tout, b_maj;
+  Gtk::ToolButton b_suppr, b_open, b_suppr_tout, b_maj, b_ajout;
   Gtk::Toolbar toolbar;
   cv::Mat bigmat;
   utils::Logable journal;

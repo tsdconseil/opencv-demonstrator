@@ -30,15 +30,25 @@ void ImageSelecteur::maj_langue()
   b_maj.set_label(utils::langue.get_item("b_maj"));
   b_suppr_tout.set_label(utils::langue.get_item("b_del_tout"));
   b_suppr.set_label(utils::langue.get_item("b_del"));
-  b_ajout.set_label(utils::langue.get_item("b_add"));
+  b_open.set_label(utils::langue.get_item("b_open"));
+  b_ajout.set_label(utils::langue.get_item("b_ajout"));
   set_title(utils::langue.get_item("titre-sel"));
 }
 
 void ImageSelecteur::maj_actif()
 {
-  b_ajout.set_sensitive(true);
-  b_suppr.set_sensitive(csel != -1);
-  b_suppr_tout.set_sensitive(images.size() > 0);
+  bool ajout = true, retire = (csel != -1);
+
+  if((nmax >= 0) && (images.size() >= (unsigned int) nmax))
+    ajout = false;
+
+  if((nmin >= 0) && (images.size() <= (unsigned int) nmin))
+    retire = false;
+
+  b_ajout.set_sensitive(ajout);//images.size() < );
+  b_open.set_sensitive(csel != -1);
+  b_suppr.set_sensitive(retire);
+  b_suppr_tout.set_sensitive(nmin <= 0);//images.size() > 0);
   b_maj.set_sensitive(images.size() > 0);
 }
 
@@ -164,12 +174,13 @@ ImageSelecteur::ImageSelecteur()
   evt_box.add(gtk_image);
   vbox.pack_start(evt_box, Gtk::PACK_EXPAND_WIDGET);
   //set_size_request(300,200);
-  set_default_size(400, 300);
+  set_default_size(450, 300);
 
   csel = -1;
 
   maj_taille();
 
+  toolbar.add(b_open);
   toolbar.add(b_ajout);
   toolbar.add(b_suppr);
   toolbar.add(b_suppr_tout);
@@ -179,7 +190,8 @@ ImageSelecteur::ImageSelecteur()
   b_maj.set_stock_id(Gtk::Stock::REFRESH);
   b_suppr_tout.set_stock_id(Gtk::Stock::REMOVE);
   b_suppr.set_stock_id(Gtk::Stock::REMOVE);
-  b_ajout.set_stock_id(Gtk::Stock::OPEN);
+  b_open.set_stock_id(Gtk::Stock::OPEN);
+  b_ajout.set_stock_id(Gtk::Stock::ADD);
 
   maj_langue();
   maj_actif();
@@ -206,11 +218,12 @@ ImageSelecteur::ImageSelecteur()
       sigc::mem_fun(*this,
       &ImageSelecteur::on_size_change));
 
+  b_open.signal_clicked().connect(sigc::mem_fun(*this,
+      &ImageSelecteur::on_b_open));
   b_ajout.signal_clicked().connect(sigc::mem_fun(*this,
       &ImageSelecteur::on_b_add));
   b_suppr.signal_clicked().connect(sigc::mem_fun(*this,
       &ImageSelecteur::on_b_del));
-
   b_suppr_tout.signal_clicked().connect(sigc::mem_fun(*this,
       &ImageSelecteur::on_b_del_tout));
   b_maj.signal_clicked().connect(sigc::mem_fun(*this,
@@ -268,9 +281,72 @@ void ImageSelecteur::get_list(std::vector<cv::Mat> &list)
 }
 
 
+void ImageSelecteur::set_fichier(int idx, std::string s)
+{
+  journal.verbose("set [#%d <- %s]...", idx, s.c_str());
+  Image img;
+  img.fichier = s;
+  std::string dummy;
+  utils::files::split_path_and_filename(s, dummy, img.nom);
+  std::string ext = utils::files::get_extension(img.nom);
+  img.nom = utils::files::remove_extension(img.nom);
+
+  if((ext == "mpg") || (ext == "avi") || (ext == "mp4") || (ext == "wmv"))
+  {
+    has_a_video = true;
+
+    cv::VideoCapture vc(s);
+
+    if(!vc.isOpened())
+    {
+      utils::mmi::dialogs::show_error("Error",
+                "Error while loading video",
+                "Maybe the video format is not supported.");
+            return;
+    }
+
+    // Lis seulement la première image
+    vc >> img.mat;
+
+    vc.release();
+  }
+  else
+  {
+    img.mat = cv::imread(s);
+    if(img.mat.data == nullptr)
+    {
+      utils::mmi::dialogs::show_error("Error",
+          "Error while loading image",
+          "Maybe the image format is not supported.");
+      return;
+    }
+  }
+
+  images[idx] = img;
+
+  /*if((nmax > 0) && (images.size() >= (unsigned int) nmax))
+    images.erase(images.begin());
+
+  images.push_back(img);*/
+
+  csel = idx;
+
+  maj_mosaique();
+  maj_actif();
+
+  if(nmax == 1)
+    on_b_maj();
+}
+
+
 void ImageSelecteur::ajoute_fichier(std::string s)
 {
   journal.verbose("Ajout [%s]...", s.c_str());
+
+  images.resize(images.size() + 1);
+  set_fichier(images.size() - 1, s);
+
+# if 0
   Image img;
   img.fichier = s;
   std::string dummy;
@@ -319,11 +395,12 @@ void ImageSelecteur::ajoute_fichier(std::string s)
 
   if(nmax == 1)
     on_b_maj();
+# endif
 }
 
 void ImageSelecteur::on_b_add()
 {
-  journal.verbose("on b add...");
+  journal.verbose("on b open...");
 
   std::string s, title = utils::langue.get_item("title-open");
 
@@ -343,6 +420,31 @@ void ImageSelecteur::on_b_add()
     return;
 
   ajoute_fichier(dialog.get_filename());
+  maj_actif();
+}
+
+void ImageSelecteur::on_b_open()
+{
+  journal.verbose("on b open...");
+
+  std::string s, title = utils::langue.get_item("title-open");
+
+  Gtk::FileChooserDialog dialog(title, Gtk::FILE_CHOOSER_ACTION_OPEN);
+  dialog.set_position(Gtk::WIN_POS_CENTER_ALWAYS);
+  dialog.set_transient_for(*this);
+  dialog.set_modal(true);
+  //Add response buttons the the dialog:
+  dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+  dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
+
+  //Show the dialog and wait for a user response:
+  int result = dialog.run();
+
+  //Handle the response:
+  if(result != Gtk::RESPONSE_OK)
+    return;
+
+  set_fichier(this->csel, dialog.get_filename());
   maj_actif();
 }
 
