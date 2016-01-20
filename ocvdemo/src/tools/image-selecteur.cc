@@ -249,7 +249,15 @@ void ImageSelecteur::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& conte
      Glib::ustring path = Glib::filename_from_uri(file_list[i]);
      std::string s = path;
      journal.trace("DnD: %s.", s.c_str());
-     ajoute_fichier(s);
+
+     if(this->images.size() == 0)
+     {
+       ajoute_fichier(s);
+     }
+     else
+     {
+       set_fichier(0, s);
+     }
    }
    context->drag_finish(true, false, time);
    return;
@@ -288,7 +296,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
     return;
 
   journal.verbose("set [#%d <- %s]...", idx, s.c_str());
-  Image img;
+  Image &img = images[idx];
   img.fichier = s;
   std::string dummy;
   utils::files::split_path_and_filename(s, dummy, img.nom);
@@ -314,6 +322,26 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 
     vc.release();
   }
+  else if((s.size() == 1) && (s[0] >= '0') && (s[0] <= '9'))
+  {
+    int camnum = s[0] - '0';
+    has_a_video = true;
+
+    cv::VideoCapture vc(camnum);
+
+    if(!vc.isOpened())
+    {
+      utils::mmi::dialogs::show_error("Error",
+                "Error while connecting to webcam",
+                "Maybe the webcam is not supported or is already used in another application.");
+            return;
+    }
+
+    // Lis seulement la première image
+    vc >> img.mat;
+
+    vc.release();
+  }
   else
   {
     img.mat = cv::imread(s);
@@ -326,13 +354,6 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
     }
   }
 
-  images[idx] = img;
-
-  /*if((nmax > 0) && (images.size() >= (unsigned int) nmax))
-    images.erase(images.begin());
-
-  images.push_back(img);*/
-
   csel = idx;
 
   maj_mosaique();
@@ -343,6 +364,16 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 }
 
 
+static utils::model::Node create_default_model()
+{
+  auto fs = OCVDemo::get_instance()->get_fileschema();
+  auto schema = fs->get_schema("media-schema");
+  return utils::model::Node::create_ram_node(schema);
+}
+
+
+// Ajoute_fichier: accès externe = déf img par défaut
+//                 accès interne = déf nv img
 void ImageSelecteur::ajoute_fichier(std::string s)
 {
   if(s.size() == 0)
@@ -351,16 +382,18 @@ void ImageSelecteur::ajoute_fichier(std::string s)
   journal.verbose("Ajout [%s]...", s.c_str());
 
   images.resize(images.size() + 1);
+
+  auto mod = create_default_model();
+  mod.set_attribute("default-path", s);
+  images[images.size() - 1].modele = mod;
   set_fichier(images.size() - 1, s);
 }
 
 
 
-std::string ImageSelecteur::media_open_dialog()
+std::string ImageSelecteur::media_open_dialog(utils::model::Node mod)
 {
-  auto fs = OCVDemo::get_instance()->get_fileschema();
-  auto schema = fs->get_schema("media-schema");
-  auto mod = utils::model::Node::create_ram_node(schema);
+  //auto mod = create_default_model();
 
   if(utils::mmi::NodeDialog::display_modal(mod))
     return "";
@@ -369,7 +402,7 @@ std::string ImageSelecteur::media_open_dialog()
   if(sel == 0)
   {
     // image par défaut
-    // TODO!
+    return mod.get_attribute_as_string("default-path");
   }
   else if(sel == 1)
   {
@@ -417,14 +450,15 @@ std::string ImageSelecteur::media_open_dialog()
 void ImageSelecteur::on_b_add()
 {
   journal.verbose("on b open...");
-  ajoute_fichier(media_open_dialog());
+  auto mod = create_default_model();
+  ajoute_fichier(media_open_dialog(mod));
   maj_actif();
 }
 
 void ImageSelecteur::on_b_open()
 {
   journal.verbose("on b open...");
-  set_fichier(this->csel, media_open_dialog());
+  set_fichier(this->csel, media_open_dialog(images[csel].modele));
   maj_actif();
 }
 

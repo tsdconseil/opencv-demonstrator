@@ -45,7 +45,7 @@ public:
   void maj_actif();
 
   void ajoute_fichier(std::string s);
-  void set_fichier(int idx, std::string s);
+
   void raz();
 
   void get_list(std::vector<cv::Mat> &list);
@@ -57,12 +57,8 @@ public:
   int nmin, nmax;
 
 private:
-
-  // MMI pour la sélection de la source
-  utils::mmi::NodeView *view;
-
-
-  std::string media_open_dialog();
+  void set_fichier(int idx, std::string s);
+  std::string media_open_dialog(utils::model::Node mod);
 
   void on_size_change(Gtk::Allocation &alloc);
   bool on_b_pressed(GdkEventButton *event);
