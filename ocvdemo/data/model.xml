@@ -291,9 +291,15 @@
             fr   = "Traitements stéréo"
             en   = "Stereo processing">
             
-	 <demo name = "stereo-cal"
-	       fr   = "Calibration stéréo"
-	       en   = "Stereo calibration"/>
+        <demo name = "stereo-cal"
+	          fr   = "Calibration stéréo"
+	          en   = "Stereo calibration">
+	       
+	       <!-- TODO: images par défaut : à prendre avec webcams -->
+	       <img path = "data/img/platre1.jpg"/>
+	       <img path = "data/img/platre2.jpg"/>
+	    </demo>
+	       
        </cat>
 
 
