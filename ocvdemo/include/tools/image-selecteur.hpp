@@ -56,6 +56,9 @@ public:
   int nmin, nmax;
 
 private:
+
+  std::string media_open_dialog();
+
   void on_size_change(Gtk::Allocation &alloc);
   bool on_b_pressed(GdkEventButton *event);
   bool on_b_released(GdkEventButton *event);

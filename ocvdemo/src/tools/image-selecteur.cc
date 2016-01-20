@@ -283,6 +283,9 @@ void ImageSelecteur::get_list(std::vector<cv::Mat> &list)
 
 void ImageSelecteur::set_fichier(int idx, std::string s)
 {
+  if(s.size() == 0)
+    return;
+
   journal.verbose("set [#%d <- %s]...", idx, s.c_str());
   Image img;
   img.fichier = s;
@@ -341,6 +344,9 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 
 void ImageSelecteur::ajoute_fichier(std::string s)
 {
+  if(s.size() == 0)
+    return;
+
   journal.verbose("Ajout [%s]...", s.c_str());
 
   images.resize(images.size() + 1);
@@ -398,10 +404,8 @@ void ImageSelecteur::ajoute_fichier(std::string s)
 # endif
 }
 
-void ImageSelecteur::on_b_add()
+std::string ImageSelecteur::media_open_dialog()
 {
-  journal.verbose("on b open...");
-
   std::string s, title = utils::langue.get_item("title-open");
 
   Gtk::FileChooserDialog dialog(title, Gtk::FILE_CHOOSER_ACTION_OPEN);
@@ -417,34 +421,22 @@ void ImageSelecteur::on_b_add()
 
   //Handle the response:
   if(result != Gtk::RESPONSE_OK)
-    return;
+    return "";
 
-  ajoute_fichier(dialog.get_filename());
+  return dialog.get_filename();
+}
+
+void ImageSelecteur::on_b_add()
+{
+  journal.verbose("on b open...");
+  ajoute_fichier(media_open_dialog());
   maj_actif();
 }
 
 void ImageSelecteur::on_b_open()
 {
   journal.verbose("on b open...");
-
-  std::string s, title = utils::langue.get_item("title-open");
-
-  Gtk::FileChooserDialog dialog(title, Gtk::FILE_CHOOSER_ACTION_OPEN);
-  dialog.set_position(Gtk::WIN_POS_CENTER_ALWAYS);
-  dialog.set_transient_for(*this);
-  dialog.set_modal(true);
-  //Add response buttons the the dialog:
-  dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-  dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
-
-  //Show the dialog and wait for a user response:
-  int result = dialog.run();
-
-  //Handle the response:
-  if(result != Gtk::RESPONSE_OK)
-    return;
-
-  set_fichier(this->csel, dialog.get_filename());
+  set_fichier(this->csel, media_open_dialog());
   maj_actif();
 }
 
