@@ -73,6 +73,7 @@ private:
   void on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, const Gtk::SelectionData& selection_data, guint info, guint time);
   void maj_mosaique();
   void maj_selection();
+  void maj_has_video();
 
   Gtk::Image gtk_image;
   Gtk::EventBox evt_box;
@@ -85,6 +86,7 @@ private:
 
   struct Image
   {
+    bool is_video;
     std::string fichier, nom;
     cv::Mat mat;
     unsigned int ix, iy, px, py;

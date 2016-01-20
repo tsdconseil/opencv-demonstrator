@@ -290,6 +290,14 @@ void ImageSelecteur::get_list(std::vector<cv::Mat> &list)
 }
 
 
+void ImageSelecteur::maj_has_video()
+{
+  has_a_video = false;
+  for(auto i: images)
+    if(i.is_video)
+      has_a_video = true;
+}
+
 void ImageSelecteur::set_fichier(int idx, std::string s)
 {
   if(s.size() == 0)
@@ -305,7 +313,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 
   if((ext == "mpg") || (ext == "avi") || (ext == "mp4") || (ext == "wmv"))
   {
-    has_a_video = true;
+    img.is_video = true;
 
     cv::VideoCapture vc(s);
 
@@ -324,6 +332,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
   }
   else if((s.size() == 1) && (s[0] >= '0') && (s[0] <= '9'))
   {
+    img.is_video = true;
     int camnum = s[0] - '0';
     has_a_video = true;
 
@@ -344,6 +353,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
   }
   else
   {
+    img.is_video = false;
     img.mat = cv::imread(s);
     if(img.mat.data == nullptr)
     {
@@ -356,6 +366,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 
   csel = idx;
 
+  maj_has_video();
   maj_mosaique();
   maj_actif();
 
