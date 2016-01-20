@@ -109,5 +109,11 @@
         
   <item name = "ROI selection" en="ROI selection" fr="Selection de la RDI"/>
   <item name = "Backprojection" en="Backprojection" fr="Projection arriere"/>
+  
+  <item name = "wiz0-name" fr="Type de média" en="Media input type"/>
+  <item name = "wiz0-title" fr="title" en="title"/>
+  <item name = "wiz0-desc" 
+        fr   = "Veuillez choisir à partir de quelle type de source vous souhaitez récupérer les images / vidéos." 
+  		en   = "Please choose from which source type you wish to get the input image / video."/>
 </section>
 

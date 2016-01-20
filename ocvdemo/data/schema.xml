@@ -21,17 +21,19 @@
       <match value="2" name="Deutsch" fr="Allemand" en="German" de="Deutsch"/>
       <match value="3" name="Russian" fr="Russe" en="Russian"/>
     </attribute>
+    
+  </node>
   
-    <attribute name="sel" type="int" fr="Type d'entrée" en="Input type" min="0" max="2" default="0">
+  <node name="media-schema" fr="Sélection d'un média" en="Media selection">
+  	<attribute name="sel" type="int" fr="Type d'entrée" en="Input type" min="0" max="3" default="0">
       <match value="0" name="def" fr="Image par défaut" en="Default image"/>
       <match value="1" name="file" fr="Fichier image / vidéo" en="Image or video file" schema="file-schema"/>
-      <match value="2" name="cam" fr="Caméra USB" en="Webcam"/><!-- schema="cam-schema" -->
+      <match value="2" name="cam" fr="Caméra USB" en="Webcam" schema="cam-schema"/>
+      <match value="3" name="url" fr="Caméra IP (URL)" en="IP camera (URL)" schema="url-schema"/>
     </attribute>
     <sub type="file-schema" min="1" max="1"/>
-    <!--<sub type="cam-schema" min="1" max="1"/>-->
-    
-    <command name="essai" fr="essai"/>
-    
+    <sub type="cam-schema" min="1" max="1"/>
+    <sub type="url-schema" min="1" max="1"/>
   </node>
   
   <node name="file-schema">
@@ -40,6 +42,10 @@
   
   <node name="cam-schema">
     <attribute name="idx" fr="Numéro de caméra" en="Camera number" min="0" max="2"/>
+  </node>
+  
+  <node name="url-schema">
+    <attribute name="url" fr="URL" type="string"/>
   </node>
   
   <node name = "ocv-demo">

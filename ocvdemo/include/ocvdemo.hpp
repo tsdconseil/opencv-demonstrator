@@ -84,6 +84,8 @@ public:
   /** Export des images pour la doc HTML */
   void export_captures();
 
+  FileSchema *get_fileschema(){return this->fs_racine;}
+
 private:
   void thread_calcul();
   void thread_video();

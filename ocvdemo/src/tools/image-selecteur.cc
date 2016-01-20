@@ -21,6 +21,7 @@
  **/
 
 #include "tools/image-selecteur.hpp"
+#include "ocvdemo.hpp"
 #include <glibmm.h>
 
 
@@ -351,61 +352,47 @@ void ImageSelecteur::ajoute_fichier(std::string s)
 
   images.resize(images.size() + 1);
   set_fichier(images.size() - 1, s);
-
-# if 0
-  Image img;
-  img.fichier = s;
-  std::string dummy;
-  utils::files::split_path_and_filename(s, dummy, img.nom);
-  std::string ext = utils::files::get_extension(img.nom);
-  img.nom = utils::files::remove_extension(img.nom);
-
-  if((ext == "mpg") || (ext == "avi") || (ext == "mp4") || (ext == "wmv"))
-  {
-    has_a_video = true;
-
-    cv::VideoCapture vc(s);
-
-    if(!vc.isOpened())
-    {
-      utils::mmi::dialogs::show_error("Error",
-                "Error while loading video",
-                "Maybe the video format is not supported.");
-            return;
-    }
-
-    // Lis seulement la première image
-    vc >> img.mat;
-
-    vc.release();
-  }
-  else
-  {
-    img.mat = cv::imread(s);
-    if(img.mat.data == nullptr)
-    {
-      utils::mmi::dialogs::show_error("Error",
-          "Error while loading image",
-          "Maybe the image format is not supported.");
-      return;
-    }
-  }
-
-  if((nmax > 0) && (images.size() >= (unsigned int) nmax))
-    images.erase(images.begin());
-
-  images.push_back(img);
-
-  maj_mosaique();
-  maj_actif();
-
-  if(nmax == 1)
-    on_b_maj();
-# endif
 }
+
+
 
 std::string ImageSelecteur::media_open_dialog()
 {
+  auto fs = OCVDemo::get_instance()->get_fileschema();
+  auto schema = fs->get_schema("media-schema");
+  auto mod = utils::model::Node::create_ram_node(schema);
+
+  if(utils::mmi::NodeDialog::display_modal(mod))
+    return "";
+
+  int sel = mod.get_attribute_as_int("sel");
+  if(sel == 0)
+  {
+    // image par défaut
+    // TODO!
+  }
+  else if(sel == 1)
+  {
+    // Fichier
+    return mod.get_attribute_as_string("file-schema/path");
+  }
+  else if(sel == 2)
+  {
+    // Caméra
+    char bf[2];
+    bf[0] = '0' + mod.get_attribute_as_int("cam-schema/idx");
+    bf[1] = 0;
+    return std::string(bf);
+  }
+
+  // URL
+  return mod.get_attribute_as_string("url-schema/url");
+
+  /*name = utils::langue.get_item("wiz0-name");
+  title = utils::langue.get_item("wiz0-title");
+  description = utils::langue.get_item("wiz0-desc");*/
+
+# if 0
   std::string s, title = utils::langue.get_item("title-open");
 
   Gtk::FileChooserDialog dialog(title, Gtk::FILE_CHOOSER_ACTION_OPEN);
@@ -424,6 +411,7 @@ std::string ImageSelecteur::media_open_dialog()
     return "";
 
   return dialog.get_filename();
+# endif
 }
 
 void ImageSelecteur::on_b_add()

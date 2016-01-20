@@ -29,6 +29,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "cutil.hpp"
+#include "mmi/stdview.hpp"
 
 
 struct ImageSelecteurRefresh{};
@@ -56,6 +57,10 @@ public:
   int nmin, nmax;
 
 private:
+
+  // MMI pour la sélection de la source
+  utils::mmi::NodeView *view;
+
 
   std::string media_open_dialog();
 
@@ -87,6 +92,7 @@ private:
     std::string fichier, nom;
     cv::Mat mat;
     unsigned int ix, iy, px, py;
+    utils::model::Node modele; // Modèle de source
   };
 
   unsigned int ncols, nrows, col_width, row_height;
