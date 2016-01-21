@@ -337,13 +337,13 @@ int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 }
 
 
-HistoDemo::HistoDemo()
+HistoEgalisationDemo::HistoEgalisationDemo()
 {
   props.id = "histeq";
 }
 
 
-int HistoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+int HistoEgalisationDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   int sel = input.model.get_attribute_as_int("sel");
 
@@ -356,6 +356,7 @@ int HistoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     split(tmp, chns);
     equalizeHist(chns[0], chns[0]);
     merge(chns, 3, tmp);
+    output.images[0] = cv::Mat(cv::Size(tmp.cols, tmp.rows),CV_8UC3);
     cvtColor(tmp, output.images[0], CV_YUV2BGR);
   }
   // Egalisation 3 canaux RGB (pour voir les artefacts couleurs)
