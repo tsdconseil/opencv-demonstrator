@@ -29,6 +29,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "cutil.hpp"
+#include "mmi/stdview.hpp"
 
 
 struct ImageSelecteurRefresh{};
@@ -44,6 +45,7 @@ public:
   void maj_actif();
 
   void ajoute_fichier(std::string s);
+
   void raz();
 
   void get_list(std::vector<cv::Mat> &list);
@@ -55,11 +57,15 @@ public:
   int nmin, nmax;
 
 private:
+  void set_fichier(int idx, std::string s);
+  std::string media_open_dialog(utils::model::Node mod);
+
   void on_size_change(Gtk::Allocation &alloc);
   bool on_b_pressed(GdkEventButton *event);
   bool on_b_released(GdkEventButton *event);
   bool on_k_released(GdkEventKey *event);
   void maj_taille(); // Obsolete
+  void on_b_open();
   void on_b_add();
   void on_b_del();
   void on_b_del_tout();
@@ -67,21 +73,24 @@ private:
   void on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context, int x, int y, const Gtk::SelectionData& selection_data, guint info, guint time);
   void maj_mosaique();
   void maj_selection();
+  void maj_has_video();
 
   Gtk::Image gtk_image;
   Gtk::EventBox evt_box;
   Glib::RefPtr<Gdk::Pixbuf> pixbuf;
   Gtk::VBox vbox;
-  Gtk::ToolButton b_suppr, b_ajout, b_suppr_tout, b_maj;
+  Gtk::ToolButton b_suppr, b_open, b_suppr_tout, b_maj, b_ajout;
   Gtk::Toolbar toolbar;
   cv::Mat bigmat;
   utils::Logable journal;
 
   struct Image
   {
+    bool is_video;
     std::string fichier, nom;
     cv::Mat mat;
     unsigned int ix, iy, px, py;
+    utils::model::Node modele; // Modèle de source
   };
 
   unsigned int ncols, nrows, col_width, row_height;

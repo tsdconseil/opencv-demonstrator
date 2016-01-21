@@ -32,10 +32,41 @@
 StereoCalDemo::StereoCalDemo()
 {
   props.id = "stereo-cal";
+  props.input_min = 2;
+  props.input_max = 2;
 }
 
 int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
+  output.images[0] = input.images[0];
+
+  cv::Mat camera_matrix[2], dcoefs[2], R, T, E, F;
+  cv::Size img_size(0,0);// TODO
+
+  std::vector<std::vector<cv::Point3f>> obj_points;
+  std::vector<std::vector<cv::Point2f>> img_points[2];
+
+  // Pour l'instant, on ne gère qu'une seule paire d'image
+  unsigned int npaires = 1;
+
+  obj_points.resize(npaires);
+  img_points[0].resize(npaires);
+  img_points[1].resize(npaires);
+
+  cv::Size board_size(10,10); // TODO: from model
+
+  for(auto k = 0; k < 2; k++)
+  {
+    std::vector<cv::Point2f> &corners = img_points[k][0];
+    bool found = findChessboardCorners(input.images[k], board_size, corners,
+        CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
+  }
+
+
+  /*cv::stereoCalibrate(obj_points, img_points[0], img_points[1],
+                      camera_matrix[0], dcoefs[0], camera_matrix[1], dcoefs[1],
+                      img_size, R, T, E, F);*/
+
   return 0;
 }
 

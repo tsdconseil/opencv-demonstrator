@@ -475,7 +475,7 @@ void OCVDemo::maj_entree()
       utils::mmi::dialogs::show_error(langue.get_item("ech-vid-tit"),
           langue.get_item("ech-vid-sd"),
           langue.get_item("ech-vid-d") + "\n" + vlist[0]);
-      modele_global.set_attribute("sel", (int) 0);
+      //modele_global.set_attribute("sel", (int) 0);
       mutex_video.unlock();
       return;
     }
