@@ -234,14 +234,13 @@ void OCVDemo::update()
       I0.cols, I0.rows, I0.channels(),
       s.c_str());
 
-  //this->img_selecteur.get_list(demo_en_cours->input.images);
-  //demo_en_cours->output.images[0] = I1; // Par défaut
+  // RAZ des images de sorties
+  for(auto i = 0u; i < DEMO_MAX_IMG_OUT; i++)
+    demo_en_cours->output.images[i] = cv::Mat();
 
   // Appel au thread de calcul
   ODEvent evt;
   evt.type = ODEvent::CALCUL;
-  // evt.img  = I1;
-  // demo_en_cours->input.images[0] = I1;
   evt.demo = demo_en_cours;
   evt.modele = modele;
   event_fifo.push(evt);
@@ -586,6 +585,12 @@ void OCVDemo::setup_demo(const Node &sel)
 
       demo->input.model = modele;
       demo->setup_model(modele);
+
+
+      // Réinitialisation des images de sorties (au cas où elles pointaient vers les images d'entrées)
+      //for(auto i = 0u; i < DEMO_MAX_IMG_OUT; i++)
+      //  demo->
+
 
       if(demo->configure_ui())
         break;

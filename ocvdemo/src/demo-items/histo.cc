@@ -356,7 +356,6 @@ int HistoEgalisationDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &ou
     split(tmp, chns);
     equalizeHist(chns[0], chns[0]);
     merge(chns, 3, tmp);
-    output.images[0] = cv::Mat(cv::Size(tmp.cols, tmp.rows),CV_8UC3);
     cvtColor(tmp, output.images[0], CV_YUV2BGR);
   }
   // Egalisation 3 canaux RGB (pour voir les artefacts couleurs)

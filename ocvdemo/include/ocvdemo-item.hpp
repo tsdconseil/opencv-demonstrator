@@ -88,13 +88,15 @@ public:
     /** @brief Number of output images */
     int nout;
 
+#   define DEMO_MAX_IMG_OUT 5
+
     /** Images de sortie */
     /** @brief Output images */
-    cv::Mat images[5];
+    cv::Mat images[DEMO_MAX_IMG_OUT];
 
     /** Nom des différentes images de sortie */
     /** @brief Names of the output images (UTF-8) */
-    std::string names[5];
+    std::string names[DEMO_MAX_IMG_OUT];
 
     /** Message d'erreur si échec */
     /** Error message in case of failure (UTF-8) */

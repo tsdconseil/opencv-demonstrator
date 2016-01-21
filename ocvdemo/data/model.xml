@@ -106,7 +106,8 @@
 
       <demo name = "histeq"
             fr   = "Egalisation d'histogramme"
-            en   = "Histogram equalization"/>
+            en   = "Histogram equalization">
+      </demo>
 
       <demo name = "hist-bp"
             fr   = "Projection arrière"
