@@ -65,7 +65,7 @@ void ImageSelecteur::maj_selection()
   {
     Image &im = images[i];
     cv::Scalar color(80,80,80);
-    if(csel == (int) i)
+    if((csel == (int) i) && (n > 1)) // Seulement si plus d'une image
       color = cv::Scalar(0,255,0);
     cv::rectangle(bigmat,
         cv::Rect(im.px - 3, im.py - 3, img_width + 3, img_height + 3),
