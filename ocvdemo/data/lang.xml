@@ -64,7 +64,9 @@
   <item name="credit-image-opencv" fr="Images d'exemples incluses dans OpenCV  (http://www.opencv.org)" en="Images included in OpenCV example files (http://www.opencv.org)"/>
   <item name="credit-image-carte" fr="Carte à jouer (détection quadrilatère) : site web Automatic perspective correction for quadrilateral objects (http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects)"/>
   <item name="credit-image-autre" fr="Autres photos : J.A." en="Other photos: J.A."/>
-  <item name="rev" fr="Révision %d.%02d, OpenCV 3.0, GTKMM 3.0" en="Version %d.%02d, OpenCV 3.0, GTKMM 3.0"/>
+  <item name = "rev" 
+  	    fr   = "Révision %d.%d.%d, OpenCV %d.%d.%d, GTKMM 3.0" 
+        en   = "Version %d.%d.%d, OpenCV %d.%d.%d, GTKMM 3.0"/>
   
   <item name="gabs" fr="Gradient (valeur absolue)" en="Gradient (absolute value)"/>
   <item name="histo-bvr" fr="Histogramme BVR" en="BGR histogram"/>  

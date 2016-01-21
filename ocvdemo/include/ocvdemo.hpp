@@ -45,8 +45,18 @@ using namespace utils::model;
 using namespace utils::mmi;
 using namespace cv;
 
-#define VMAJ 1
-#define VMIN 3
+/** Current software revision */
+#ifndef VMAJ
+# define VMAJ    1
+# define VMIN    1
+# define VPATCH  0
+#endif
+
+#ifndef OCV_VPATCH
+# define OCV_VMAJ     3
+# define OCV_VMIN     0
+# define OCV_VPATCH   0
+#endif
 
 // TODO: remove this ugly hack
 namespace utils

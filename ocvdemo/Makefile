@@ -38,10 +38,21 @@ EXECS:= ocvdemo test-webcam
 # (not counting ./src and ./include)
 ADDITIONNAL_SRC_DIRS = src/tools src/demo-items
 
-OCV_VER = 300
-# 240
+# Version of the OpenCV demonstrator
+# Révision du démonstrateur OpenCV 
+VMAJ   = 1
+VMIN   = 1
+VPATCH = 0
 
-ADDITIONNAL_INC_DIRS= -DOCV300 -I ../ocvext/include -I$(RPATH)/libcutil/include -I$(RPATH)/libdsp/include
+# Version of the OpenCV library
+# Révision de la librairie OpenCV
+OCV_VMAJ   = 3
+OCV_VMIN   = 0
+OCV_VPATCH = 0
+
+CDEFS =  -DOCV_VMAJ=$(OCV_VMAJ) -DOCV_VMIN=$(OCV_VMIN) -DOCV_VPATCH=$(OCV_VPATCH)
+CDEFS += -DVMAJ=$(VMAJ) -DVMIN=$(VMIN) -DVPATCH=$(VPATCH)
+ADDITIONNAL_INC_DIRS= $(CDEFS) -I ../ocvext/include -I$(RPATH)/libcutil/include -I$(RPATH)/libdsp/include
 
 ifeq ($(OCVIPATH),)
  # OCVIPATH not defined, assume that OpenCV is installed in default directories (e.g. /usr/include/, etc.)
