@@ -136,18 +136,34 @@ void ImageSelecteur::maj_mosaique()
     im.px = im.ix * col_width + 3;
     im.py = im.iy * row_height + 3;
 
-
-
-    journal.verbose("resize(%d,%d,%d,%d,%d,%d)", im.px, im.py, col_width, row_height, col_width, row_height);
+    journal.verbose("resize(%d,%d,%d,%d,%d,%d)",
+        im.px, im.py, col_width, row_height, col_width, row_height);
 
     cv::Mat tmp;
 
     cv::cvtColor(im.mat, tmp, CV_BGR2RGB);
-    cv::resize(tmp,
-        bigmat(cv::Rect(im.px, im.py, img_width, img_height)),
-        cv::Size(img_width, img_height));
 
+    float ratio_aspect_orig   = ((float) tmp.cols) / tmp.rows;
+    float ratio_aspect_sortie = ((float) img_width) / img_height;
 
+    // Doit ajouter du padding vertical
+    if(ratio_aspect_orig > ratio_aspect_sortie)
+    {
+      int hauteur =  img_height * ratio_aspect_sortie / ratio_aspect_orig;
+      int py = im.py + (img_height - hauteur) / 2;
+      cv::resize(tmp,
+          bigmat(cv::Rect(im.px, py, img_width, hauteur)),
+          cv::Size(img_width, hauteur));
+    }
+    // Doit ajouter du padding horizontal
+    else
+    {
+      int largeur =  img_width * ratio_aspect_orig / ratio_aspect_sortie;
+      int px = im.px + (img_width - largeur) / 2;
+      cv::resize(tmp,
+          bigmat(cv::Rect(px, im.py, largeur, img_height)),
+          cv::Size(largeur, img_height));
+    }
 
     col++;
     if(col >= ncols)
