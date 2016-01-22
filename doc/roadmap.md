@@ -3,10 +3,9 @@
 ## v1.1.0
 future release
 
-- switch to SemVer versioning
-- add Russian translations
-- simplify way of changing video/image source
-- ???
+- Adding russian translations
+- Simplify way of changing video / image source, support for multiple video inputs
+- Stereo vision demonstration
 
 ---
 
