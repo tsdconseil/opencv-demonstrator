@@ -45,8 +45,18 @@ using namespace utils::model;
 using namespace utils::mmi;
 using namespace cv;
 
-#define VMAJ 1
-#define VMIN 3
+/** Current software revision */
+#ifndef VMAJ
+# define VMAJ    1
+# define VMIN    1
+# define VPATCH  0
+#endif
+
+#ifndef OCV_VPATCH
+# define OCV_VMAJ     3
+# define OCV_VMIN     0
+# define OCV_VPATCH   0
+#endif
 
 // TODO: remove this ugly hack
 namespace utils
@@ -94,8 +104,12 @@ private:
   void update();
 
   /** Réceptacle GTK pour une trame à partir du flux vidéo */
-  int  on_video_image(const cv::Mat &tmp);
+  int  on_video_image(const std::vector<cv::Mat> &tmp);
   
+
+  void release_all_videos();
+  bool are_all_video_ok();
+
   void export_captures(utils::model::Node &cat);
   Mat  get_current_output();
   bool has_output();
@@ -140,7 +154,7 @@ private:
   void on_b_masque_remplissage();
 
   // To communicate from the video thread to the main GTK thread 
-  utils::mmi::GtkDispatcher<cv::Mat> gtk_dispatcher;
+  utils::mmi::GtkDispatcher<std::vector<cv::Mat>> gtk_dispatcher;
 
   // Lock for video stream access.
   utils::hal::Mutex mutex_video;
@@ -195,7 +209,7 @@ private:
   // Vidéo en cours ?
   bool entree_video;
   // Capture vidéo
-  cv::VideoCapture video_capture;
+  std::vector<cv::VideoCapture> video_captures;
   // Fichier vidéo en cours
   std::string video_fp;
   // Caméra vidéo en cours

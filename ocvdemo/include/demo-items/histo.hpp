@@ -33,10 +33,10 @@ extern int calc_bp(const cv::Mat &I, const cv::MatND &hist, cv::MatND &backproj)
 
 
 // Egalisation d'histogramme
-class HistoDemo: public OCVDemoItem
+class HistoEgalisationDemo: public OCVDemoItem
 {
 public:
-  HistoDemo();
+  HistoEgalisationDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 

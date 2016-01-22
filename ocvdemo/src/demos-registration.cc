@@ -57,7 +57,7 @@ void OCVDemo::add_demos()
   items.push_back(new LaplaceDemo());
   items.push_back(new NetDemo());
   items.push_back(new CornerDemo());
-  items.push_back(new HistoDemo());
+  items.push_back(new HistoEgalisationDemo());
   items.push_back(new HistoCalc());
   items.push_back(new HistoBP());
   items.push_back(new Seuillage());

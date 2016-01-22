@@ -110,7 +110,8 @@ int HistoBP::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   output.nout = 2;
   output.images[0] = input.images[0].clone();
-  calc_bp(input.images[0], input.roi, output.images[1]);
+  if(input.roi.width * input.roi.height > 0)
+    calc_bp(input.images[0], input.roi, output.images[1]);
   output.names[0] = langue.get_item("ROI selection");
   output.names[1] = langue.get_item("Backprojection");
   return 0;
@@ -337,13 +338,13 @@ int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 }
 
 
-HistoDemo::HistoDemo()
+HistoEgalisationDemo::HistoEgalisationDemo()
 {
   props.id = "histeq";
 }
 
 
-int HistoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+int HistoEgalisationDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   int sel = input.model.get_attribute_as_int("sel");
 

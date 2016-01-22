@@ -87,14 +87,14 @@ void OCVDemo::on_b_infos()
 
   char buf[500];
   std::string s = langue.get_item("rev");
-  sprintf(buf, s.c_str(), VMAJ, VMIN);
+  sprintf(buf, s.c_str(), VMAJ, VMIN, VPATCH, OCV_VMAJ, OCV_VMIN, OCV_VPATCH);
 
   ad.set_version(buf);
   ad.set_copyright("(C) 2015 - 2016 TSD Conseil / J.A. and contributors");
   ad.set_license("LGPL");
   ad.set_license_type(Gtk::LICENSE_LGPL_3_0);
-  ad.set_website("http://www.tsdconseil.fr");
-  ad.set_website_label("http://www.tsdconseil.fr");
+  ad.set_website("http://www.tsdconseil.fr/log/opencv/demo/index-en.html");
+  ad.set_website_label("http://www.tsdconseil.fr/index-en.html");
   std::vector<Glib::ustring> v;
   v.push_back("J.A. / TSD Conseil");
   ad.set_authors(v);

@@ -51,6 +51,23 @@ void ImageSelecteur::maj_actif()
   b_suppr.set_sensitive(retire);
   b_suppr_tout.set_sensitive(nmin <= 0);//images.size() > 0);
   b_maj.set_sensitive(images.size() > 0);
+
+  if((nmin == nmax) && toolbar_est_pleine)
+  {
+    toolbar.remove(b_suppr);
+    toolbar.remove(b_suppr_tout);
+    toolbar.remove(b_ajout);
+    toolbar_est_pleine = false;
+  }
+
+  if(!(nmin == nmax) && !toolbar_est_pleine)
+  {
+    toolbar.add(b_suppr);
+    toolbar.add(b_suppr_tout);
+    toolbar.add(b_ajout);
+    toolbar_est_pleine = true;
+  }
+
 }
 
 void ImageSelecteur::maj_taille()
@@ -65,7 +82,7 @@ void ImageSelecteur::maj_selection()
   {
     Image &im = images[i];
     cv::Scalar color(80,80,80);
-    if(csel == (int) i)
+    if((csel == (int) i) && (n > 1)) // Seulement si plus d'une image
       color = cv::Scalar(0,255,0);
     cv::rectangle(bigmat,
         cv::Rect(im.px - 3, im.py - 3, img_width + 3, img_height + 3),
@@ -136,18 +153,34 @@ void ImageSelecteur::maj_mosaique()
     im.px = im.ix * col_width + 3;
     im.py = im.iy * row_height + 3;
 
-
-
-    journal.verbose("resize(%d,%d,%d,%d,%d,%d)", im.px, im.py, col_width, row_height, col_width, row_height);
+    journal.verbose("resize(%d,%d,%d,%d,%d,%d)",
+        im.px, im.py, col_width, row_height, col_width, row_height);
 
     cv::Mat tmp;
 
-    cv::cvtColor(im.mat, tmp, CV_BGR2RGB);
-    cv::resize(tmp,
-        bigmat(cv::Rect(im.px, im.py, img_width, img_height)),
-        cv::Size(img_width, img_height));
+    cv::cvtColor(im.spec.img, tmp, CV_BGR2RGB);
 
+    float ratio_aspect_orig   = ((float) tmp.cols) / tmp.rows;
+    float ratio_aspect_sortie = ((float) img_width) / img_height;
 
+    // Doit ajouter du padding vertical
+    if(ratio_aspect_orig > ratio_aspect_sortie)
+    {
+      int hauteur =  img_height * ratio_aspect_sortie / ratio_aspect_orig;
+      int py = im.py + (img_height - hauteur) / 2;
+      cv::resize(tmp,
+          bigmat(cv::Rect(im.px, py, img_width, hauteur)),
+          cv::Size(img_width, hauteur));
+    }
+    // Doit ajouter du padding horizontal
+    else
+    {
+      int largeur =  img_width * ratio_aspect_orig / ratio_aspect_sortie;
+      int px = im.px + (img_width - largeur) / 2;
+      cv::resize(tmp,
+          bigmat(cv::Rect(px, im.py, largeur, img_height)),
+          cv::Size(largeur, img_height));
+    }
 
     col++;
     if(col >= ncols)
@@ -167,6 +200,7 @@ void ImageSelecteur::on_size_change(Gtk::Allocation &alloc)
 
 ImageSelecteur::ImageSelecteur()
 {
+  toolbar_est_pleine = true;
   nmin = 0;
   nmax = 100;
   has_a_video = false;
@@ -270,11 +304,18 @@ bool ImageSelecteur::has_video()
   return has_a_video;
 }
 
+void ImageSelecteur::get_entrees(std::vector<SpecEntree> &liste)
+{
+  liste.clear();
+  for(auto i: images)
+    liste.push_back(i.spec);
+}
+
 void ImageSelecteur::get_video_list(std::vector<std::string> &list)
 {
   list.clear();
   for(auto i: images)
-    list.push_back(i.fichier);
+    list.push_back(i.spec.chemin);
 }
 
 unsigned int ImageSelecteur::get_nb_images() const
@@ -286,7 +327,7 @@ void ImageSelecteur::get_list(std::vector<cv::Mat> &list)
 {
   list.clear();
   for(auto i: images)
-    list.push_back(i.mat);
+    list.push_back(i.spec.img);
 }
 
 
@@ -294,7 +335,7 @@ void ImageSelecteur::maj_has_video()
 {
   has_a_video = false;
   for(auto i: images)
-    if(i.is_video)
+    if(i.spec.is_video())
       has_a_video = true;
 }
 
@@ -305,7 +346,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 
   journal.verbose("set [#%d <- %s]...", idx, s.c_str());
   Image &img = images[idx];
-  img.fichier = s;
+  img.spec.chemin = s;
   std::string dummy;
   utils::files::split_path_and_filename(s, dummy, img.nom);
   std::string ext = utils::files::get_extension(img.nom);
@@ -313,7 +354,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 
   if((ext == "mpg") || (ext == "avi") || (ext == "mp4") || (ext == "wmv"))
   {
-    img.is_video = true;
+    img.spec.type = SpecEntree::TYPE_VIDEO;
 
     cv::VideoCapture vc(s);
 
@@ -326,15 +367,16 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
     }
 
     // Lis seulement la première image
-    vc >> img.mat;
+    vc >> img.spec.img;
 
     vc.release();
   }
   else if((s.size() == 1) && (s[0] >= '0') && (s[0] <= '9'))
   {
-    img.is_video = true;
+    img.spec.type = SpecEntree::TYPE_WEBCAM;
     int camnum = s[0] - '0';
-    has_a_video = true;
+    img.spec.id_webcam = camnum;
+    img.spec.chemin = "Webcam " + utils::str::int2str(camnum);
 
     cv::VideoCapture vc(camnum);
 
@@ -347,15 +389,15 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
     }
 
     // Lis seulement la première image
-    vc >> img.mat;
+    vc >> img.spec.img;
 
     vc.release();
   }
   else
   {
-    img.is_video = false;
-    img.mat = cv::imread(s);
-    if(img.mat.data == nullptr)
+    img.spec.type = SpecEntree::TYPE_IMG;
+    img.spec.img = cv::imread(s);
+    if(img.spec.img.data == nullptr)
     {
       utils::mmi::dialogs::show_error("Error",
           "Error while loading image",

@@ -1,21 +1,11 @@
 # OpenCV demonstrator (GUI) Roadmap
 
-## v1.1.1
-future release
-
-- ???
-- ???
-- ???
-
----
-
 ## v1.1.0
 future release
 
-- switch to SemVer versioning
-- add Russian translations
-- simplify way of changing video/image source
-- ???
+- Adding russian translations
+- Simplify way of changing video / image source, support for multiple video inputs
+- Stereo vision demonstration
 
 ---
 
