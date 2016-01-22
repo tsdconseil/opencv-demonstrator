@@ -158,7 +158,7 @@ void ImageSelecteur::maj_mosaique()
 
     cv::Mat tmp;
 
-    cv::cvtColor(im.mat, tmp, CV_BGR2RGB);
+    cv::cvtColor(im.spec.img, tmp, CV_BGR2RGB);
 
     float ratio_aspect_orig   = ((float) tmp.cols) / tmp.rows;
     float ratio_aspect_sortie = ((float) img_width) / img_height;
@@ -304,11 +304,18 @@ bool ImageSelecteur::has_video()
   return has_a_video;
 }
 
+void ImageSelecteur::get_entrees(std::vector<SpecEntree> &liste)
+{
+  liste.clear();
+  for(auto i: images)
+    liste.push_back(i.spec);
+}
+
 void ImageSelecteur::get_video_list(std::vector<std::string> &list)
 {
   list.clear();
   for(auto i: images)
-    list.push_back(i.fichier);
+    list.push_back(i.spec.chemin);
 }
 
 unsigned int ImageSelecteur::get_nb_images() const
@@ -320,7 +327,7 @@ void ImageSelecteur::get_list(std::vector<cv::Mat> &list)
 {
   list.clear();
   for(auto i: images)
-    list.push_back(i.mat);
+    list.push_back(i.spec.img);
 }
 
 
@@ -328,7 +335,7 @@ void ImageSelecteur::maj_has_video()
 {
   has_a_video = false;
   for(auto i: images)
-    if(i.is_video)
+    if(i.spec.is_video())
       has_a_video = true;
 }
 
@@ -339,7 +346,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 
   journal.verbose("set [#%d <- %s]...", idx, s.c_str());
   Image &img = images[idx];
-  img.fichier = s;
+  img.spec.chemin = s;
   std::string dummy;
   utils::files::split_path_and_filename(s, dummy, img.nom);
   std::string ext = utils::files::get_extension(img.nom);
@@ -347,7 +354,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 
   if((ext == "mpg") || (ext == "avi") || (ext == "mp4") || (ext == "wmv"))
   {
-    img.is_video = true;
+    img.spec.type = SpecEntree::TYPE_VIDEO;
 
     cv::VideoCapture vc(s);
 
@@ -360,15 +367,16 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
     }
 
     // Lis seulement la première image
-    vc >> img.mat;
+    vc >> img.spec.img;
 
     vc.release();
   }
   else if((s.size() == 1) && (s[0] >= '0') && (s[0] <= '9'))
   {
-    img.is_video = true;
+    img.spec.type = SpecEntree::TYPE_WEBCAM;
     int camnum = s[0] - '0';
-    has_a_video = true;
+    img.spec.id_webcam = camnum;
+    img.spec.chemin = "Webcam " + utils::str::int2str(camnum);
 
     cv::VideoCapture vc(camnum);
 
@@ -381,15 +389,15 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
     }
 
     // Lis seulement la première image
-    vc >> img.mat;
+    vc >> img.spec.img;
 
     vc.release();
   }
   else
   {
-    img.is_video = false;
-    img.mat = cv::imread(s);
-    if(img.mat.data == nullptr)
+    img.spec.type = SpecEntree::TYPE_IMG;
+    img.spec.img = cv::imread(s);
+    if(img.spec.img.data == nullptr)
     {
       utils::mmi::dialogs::show_error("Error",
           "Error while loading image",

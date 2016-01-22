@@ -54,6 +54,18 @@ public:
   bool has_video();
   void get_video_list(std::vector<std::string> &list);
 
+
+  struct SpecEntree
+  {
+    enum{TYPE_IMG, TYPE_VIDEO, TYPE_WEBCAM} type;
+    bool is_video(){return (type == TYPE_WEBCAM) || (type == TYPE_VIDEO);}
+    std::string chemin;
+    unsigned int id_webcam;
+    cv::Mat img;
+  };
+
+  void get_entrees(std::vector<SpecEntree> &liste);
+
   int nmin, nmax;
 
 private:
@@ -87,9 +99,9 @@ private:
 
   struct Image
   {
-    bool is_video;
-    std::string fichier, nom;
-    cv::Mat mat;
+    SpecEntree spec;
+    std::string /*fichier,*/ nom;
+    //cv::Mat mat;
     unsigned int ix, iy, px, py;
     utils::model::Node modele; // Modèle de source
   };

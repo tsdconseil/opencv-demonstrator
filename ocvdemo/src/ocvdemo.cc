@@ -91,11 +91,21 @@ void OCVDemo::thread_calcul()
   }
 }
 
+bool OCVDemo::are_all_video_ok()
+{
+  bool res = true;
+  for(auto &vc: video_captures)
+    if(!vc.isOpened())
+      res = false;
+  return res;
+}
+
 void OCVDemo::thread_video()
 {
-  Mat tmp;
+  std::vector<cv::Mat> tmp;
   for(;;)
   {
+    debut:
     if(video_stop)
     {
       video_stop = false;
@@ -104,7 +114,7 @@ void OCVDemo::thread_video()
       signal_video_demarre.wait();
     }
 
-    while(!entree_video || (!video_capture.isOpened()))
+    while(!entree_video || !are_all_video_ok() || (video_captures.size() == 0))
     {
       video_en_cours = false;
       signal_video_suspendue.raise();
@@ -112,20 +122,26 @@ void OCVDemo::thread_video()
     }
     video_en_cours = true;
 
+    tmp.resize(video_captures.size());
+
     mutex_video.lock();
     journal.verbose("[tvideo] lecture trame...");
-    video_capture >> tmp;
-    journal.verbose("[tvideo] ok.");
-    if(tmp.empty())
+    for(auto i = 0u; i < video_captures.size(); i++)
     {
-      journal.trace("[tvideo] Fin de vidéo : redémarrage.");
-      if(video_fp.size() > 0)
+      video_captures[i] >> tmp[i];
+
+      if(tmp[i].empty())
       {
-        video_capture.release();
-        video_capture.open(video_fp);
+        journal.trace_major("[tvideo] Fin de vidéo : redémarrage.");
+        if(video_fp.size() > 0)
+        {
+          // TODO: redémarrage de toutes les vidéos en même temps
+          video_captures[i].release();
+          video_captures[i].open(video_fp);
+        }
+        mutex_video.unlock();
+        goto debut; // Hack to fix
       }
-      mutex_video.unlock();
-      continue;
     }
     mutex_video.unlock();
 
@@ -144,18 +160,20 @@ void OCVDemo::thread_video()
   }
 }
 
-int OCVDemo::on_video_image(const cv::Mat &tmp)
+int OCVDemo::on_video_image(const std::vector<cv::Mat> &tmp)
 {
   // Récupération d'une trame vidéo (mais ici on est dans le thread GTK)
   if(demo_en_cours != nullptr)
   {
-    I0 = tmp;
+    I0 = tmp[0];
     auto &v = demo_en_cours->input.images;
-    if(v.size() < 1)
-      v.push_back(I0);
-    else
-      v[0] = I0;
-    journal.trace("recalcul, I0: %d * %d...", tmp.cols, tmp.rows);
+    for(auto i = 0u; i < tmp.size(); i++)
+    {
+      if(v.size() <= i)
+        v.push_back(tmp[i]);
+      else
+        v[i] = tmp[i];
+    }
     update();
   }
   signal_image_video_traitee.raise();
@@ -374,8 +392,13 @@ void OCVDemo::on_event(const ImageSelecteurRefresh &e)
     maj_entree();
 }
 
-
-
+void OCVDemo::release_all_videos()
+{
+  for(auto &vc: video_captures)
+    if(vc.isOpened())
+      vc.release();
+  video_captures.clear();
+}
 
 ///////////////////////////////////
 // Mise à jour du flux / image d'entrée
@@ -389,38 +412,11 @@ void OCVDemo::maj_entree()
   first_processing = true;
   entree_video = false;
 
-# if 0
-  std::string fp = "";
-  //int idx = 0;
-  int sel = modele_global.get_attribute_as_int("sel");
-  // Image / vidéo par défaut
-  if(sel == 0)
-  {
-    fp = modele_demo.get_attribute_as_string("default-img");
-  }
-  // Fichier
-  else if(sel == 1)
-  {
-    fp = modele_global.get_attribute_as_string("file-schema/path");
-  }
-  // Caméra USB
-  else
-  {
-    //idx = 0;//global_model.get_attribute_as_int("cam-schema/idx");
-  }
-
-
-  std::string ext;
-  if(sel != 2)
-    ext = utils::files::get_extension(fp);
-# endif
-
   journal.verbose("lock...");
   mutex_video.lock();
   journal.verbose("lock ok.");
 
-  if(video_capture.isOpened())
-    video_capture.release();
+  release_all_videos();
 
   // Idée :
   //  - transformer video_capture en un tableau
@@ -428,70 +424,101 @@ void OCVDemo::maj_entree()
   //
   // si mode vidéo.
 
-# if 0
-  if(sel == 2)
-  {
-    journal.trace_major("Ouverture camera usb #%d...", idx);
+  std::vector<ImageSelecteur::SpecEntree> entrees;
+  img_selecteur.get_entrees(entrees);
 
-    if(!video_capture.open(idx))
+  unsigned int vid = 0; // Index in video list
+
+  demo_en_cours->input.images.resize(entrees.size());
+
+  for(auto i = 0u; i < entrees.size(); i++)
+  {
+    auto &se = entrees[i];
+
+    if(se.is_video())
     {
-      journal.warning("Camera non détectée: reset sel = 0...");
-      modele_global.set_attribute("sel", (int) 0);
-      journal.trace_major("Reset effectué.");
-      utils::mmi::dialogs::show_error(langue.get_item("ech-cam-tit"),
-          langue.get_item("ech-cam-sd"),
-          langue.get_item("ech-cam-d"));
-      mutex_video.unlock();
-      return;
+      journal.trace("Ouverture fichier video [%s]...", se.chemin.c_str());
+      int res;
+      video_captures.push_back(cv::VideoCapture());
+      if(se.type == ImageSelecteur::SpecEntree::TYPE_WEBCAM)
+        res = video_captures[vid].open(se.id_webcam);
+      else
+        res = video_captures[vid].open(se.chemin);
+
+      if(!res)
+      {
+        utils::mmi::dialogs::show_error(langue.get_item("ech-vid-tit"),
+            langue.get_item("ech-vid-sd"),
+            langue.get_item("ech-vid-d") + "\n" + se.chemin);
+        mutex_video.unlock();
+        return;
+      }
+      video_fp = se.chemin; // TODO : vecteur
+      entree_video = true;
+      video_captures[0] >> I0; // TODO: à supprimer
     }
-    video_fp    = "";
-    video_idx   = idx;
-    entree_video = true;
-    video_capture >> I0; // TODO: à supprimer
-    mutex_video.unlock();
-    signal_video_demarre.raise();
+    else
+    {
+      demo_en_cours->input.images[i] = se.img;
+      I0 = se.img.clone();
+      if(I0.data == nullptr)
+      {
+        utils::mmi::dialogs::show_error("Erreur",
+            "Impossible de charger l'image", "");
+        destroyWindow(titre_principal);
+        mosaique.callback_init_ok = false;
+      }
+    }
+
+
   }
+
+  mutex_video.unlock();
+  if(video_captures.size() > 0)
+    signal_video_demarre.raise();
   else
-# endif
-  //if((ext == "mpg") || (ext == "avi") || (ext == "mp4") || (ext == "wmv"))
+    update();
+
+# if 0
   if(img_selecteur.has_video())
   {
     std::vector<std::string> vlist;
     img_selecteur.get_video_list(vlist);
 
+    video_captures.push_back(cv::VideoCapture());
+
     // TODO: manage more than one video file
     journal.trace("Ouverture fichier video [%s]...", vlist[0].c_str());
 
     int res;
+
+    //for(auto i = 0u; i < vlist.size(); i++)
+
     // TODO: hack to clean up
     if(vlist[0].size() == 1)
-      res = video_capture.open(((int) vlist[0][0]) - '0');
+      res = video_captures[0].open(((int) vlist[0][0]) - '0');
     else
-      res = video_capture.open(vlist[0]);
+      res = video_captures[0].open(vlist[0]);
 
-    if(!res)//video_capture.open(fp))
+    if(!res)
     {
       utils::mmi::dialogs::show_error(langue.get_item("ech-vid-tit"),
           langue.get_item("ech-vid-sd"),
           langue.get_item("ech-vid-d") + "\n" + vlist[0]);
-      //modele_global.set_attribute("sel", (int) 0);
       mutex_video.unlock();
       return;
     }
     video_fp = vlist[0];
     entree_video = true;
-    video_capture >> I0; // TODO: à supprimer
-    //demo_en_cours->input.images[0] = I0;
+    video_captures[0] >> I0; // TODO: à supprimer
     mutex_video.unlock();
     signal_video_demarre.raise();
   }
   else
   {
     mutex_video.unlock();
-    //journal.trace("Ouverture fichier image [%s]...", fp.c_str());
     this->img_selecteur.get_list(demo_en_cours->input.images);
     I0 = demo_en_cours->input.images[0].clone();
-    //I0 = cv::imread(fp.c_str());
     if(I0.data == nullptr)
     {
       utils::mmi::dialogs::show_error("Erreur",
@@ -501,6 +528,7 @@ void OCVDemo::maj_entree()
     }
     update();
   }
+# endif
   maj_bts();
 }
 
