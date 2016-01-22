@@ -2,6 +2,22 @@
 
 This document describe the coding rules to be applied in the project, so as to preserve coherency.
 
+## GIT repository usage rules
+
+The following rules come in addition to common practice:
+ - Comment each commit with a meaningful, synthetic description. A description should not be "updated this.file", but should describe what has been done.
+ - A commit should not be split into artificial multiple commits with the same description. E.g. please be synthetic: adding one feature should result in one commit.
+ - A commit comment should begin with [...], where ... is the module / feature / file impacted by the modification
+ - A commit comment should not necessarily specify the list of impacted files (it is already listed by Git)
+ 
+Counter example (not to be done):
+ - commit 1: updated afile.cc
+ - commit 2: updated afile.cc
+ 
+Good example:
+ - commit 1: [video] Added management of [a feature] in the video processing toolchain
+ - commit 2: [mmi] Automatic resize of the display window
+
 ## C++ coding rules
 
  - Documentation: [Doxygen format] (http://www.doxygen.org)
