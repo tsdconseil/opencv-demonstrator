@@ -1,14 +1,5 @@
 # OpenCV demonstrator (GUI) Roadmap
 
-## v1.1.1
-future release
-
-- ???
-- ???
-- ???
-
----
-
 ## v1.1.0
 future release
 
