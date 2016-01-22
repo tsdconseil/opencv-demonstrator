@@ -81,6 +81,7 @@ private:
   Gtk::VBox vbox;
   Gtk::ToolButton b_suppr, b_open, b_suppr_tout, b_maj, b_ajout;
   Gtk::Toolbar toolbar;
+  bool toolbar_est_pleine; // En ce moment, a les boutons b_suppr, b_suppr_tout et b_add ?
   cv::Mat bigmat;
   utils::Logable journal;
 

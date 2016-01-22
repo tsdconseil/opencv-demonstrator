@@ -51,6 +51,23 @@ void ImageSelecteur::maj_actif()
   b_suppr.set_sensitive(retire);
   b_suppr_tout.set_sensitive(nmin <= 0);//images.size() > 0);
   b_maj.set_sensitive(images.size() > 0);
+
+  if((nmin == nmax) && toolbar_est_pleine)
+  {
+    toolbar.remove(b_suppr);
+    toolbar.remove(b_suppr_tout);
+    toolbar.remove(b_ajout);
+    toolbar_est_pleine = false;
+  }
+
+  if(!(nmin == nmax) && !toolbar_est_pleine)
+  {
+    toolbar.add(b_suppr);
+    toolbar.add(b_suppr_tout);
+    toolbar.add(b_ajout);
+    toolbar_est_pleine = true;
+  }
+
 }
 
 void ImageSelecteur::maj_taille()
@@ -183,6 +200,7 @@ void ImageSelecteur::on_size_change(Gtk::Allocation &alloc)
 
 ImageSelecteur::ImageSelecteur()
 {
+  toolbar_est_pleine = true;
   nmin = 0;
   nmax = 100;
   has_a_video = false;
