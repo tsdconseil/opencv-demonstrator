@@ -658,7 +658,30 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 <description lang="en">This demonstration enables you to fusion low resolution (8 bits) image, using the HDR module of OpenCV.</description>
 </node>
 
-<node name="stereo-cal"/>
+<node name="stereo-cal">
+
+    <attribute name="sel"
+    fr="Type de coins"
+    en="Coin type" min="0" max="2">
+      <match value="0" name="0" fr="Damier" en="Chessboard corners"/>
+      <match value="1" name="1" fr="Grille circulaire" en="Circle grid"/>
+      <match value="2" name="2" fr="Grille circulaire asymétrique" en="Asymmetric circle grid"/>
+    </attribute>
+    
+    <attribute name="bw" 
+      fr="Coins intérieurs (largeur)"
+      en="Inner corners (first dimension)" 
+      default="7"/>
+      
+    <attribute name="bh" 
+      fr="Coins intérieurs (longueur)"
+      en="Inner corners (other dimension)" 
+      default="7"/>
+
+
+</node>
+
+<node name="rectif"/>
 
   
 </schema>

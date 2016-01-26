@@ -35,6 +35,7 @@
 
 void OCVDemo::add_demos()
 {
+  items.push_back(new RectificationDemo());
   items.push_back(new StereoCalDemo());
   items.push_back(new HDRDemo());
   items.push_back(new EpiDemo());
