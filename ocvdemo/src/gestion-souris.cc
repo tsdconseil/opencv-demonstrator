@@ -28,8 +28,8 @@
 void OCVDemo::on_event(const OCVMouseEvent &me)
 {
   mutex.lock();
-  journal.trace("ocvdemo mouse callback img = %d, x = %d, y = %d.",
-		me.image, me.x, me.y);
+  //journal.trace("ocvdemo mouse callback img = %d, x = %d, y = %d.",
+	//	me.image, me.x, me.y);
   switch (me.event)
   {
     case CV_EVENT_LBUTTONDOWN:
