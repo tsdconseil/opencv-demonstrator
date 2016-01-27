@@ -22,20 +22,14 @@ static void update_text_color(Gtk::Widget &w, bool valid)
 {
   if (valid)
   {
-    //GdkColor *tmp = nullptr;
-    //w.override_color(Gdk::RGBA("#000000"), Gtk::STATE_FLAG_NORMAL);
-#   ifdef WIN
+//#   ifdef WIN
     w.override_color(Gdk::RGBA("#000000"), Gtk::STATE_FLAG_NORMAL);
-#   else
-    w.override_color(Gdk::RGBA("#ffffff"), Gtk::STATE_FLAG_NORMAL);
-#   endif
-    //entry.modify_text(Gtk::STATE_NORMAL, Gdk::Color(tmp, false));
+//#   else
+//    w.override_color(Gdk::RGBA("#ffffff"), Gtk::STATE_FLAG_NORMAL);
+//#   endif
   }
   else
-  {
     w.override_color(Gdk::RGBA("#ff0000"), Gtk::STATE_FLAG_NORMAL);
-    //entry.modify_text(Gtk::STATE_NORMAL, Gdk::Color("#ff0000"));
-  }
 }
 
 /*******************************************************************
