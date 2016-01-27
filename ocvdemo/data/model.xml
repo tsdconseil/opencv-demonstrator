@@ -297,8 +297,16 @@
 	          en   = "Stereo calibration">
 	       
 	       <!-- TODO: images par défaut : à prendre avec webcams -->
-	       <img path = "data/img/platre1.jpg"/>
-	       <img path = "data/img/platre2.jpg"/>
+	       <img path = "data/img/1.jpg"/>
+	       <img path = "data/img/2.jpg"/>
+	    </demo>
+	    
+	    <demo name = "rectif" 
+	    	  fr   = "Rectification">
+	    	  
+	       <img path = "data/img/1.jpg"/>
+	       <img path = "data/img/2.jpg"/>
+	    	  
 	    </demo>
 	       
        </cat>

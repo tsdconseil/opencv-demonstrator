@@ -469,8 +469,6 @@ void OCVDemo::maj_entree()
         mosaique.callback_init_ok = false;
       }
     }
-
-
   }
 
   mutex_video.unlock();
