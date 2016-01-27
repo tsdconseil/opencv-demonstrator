@@ -275,5 +275,6 @@ void OCVDemo::maj_langue()
     this->on_event(sce);
   }
   barre_outil_dessin.maj_lang();
+  img_selecteur.maj_langue();
 }
 
