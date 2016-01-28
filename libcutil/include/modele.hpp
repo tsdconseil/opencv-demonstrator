@@ -741,7 +741,7 @@ public:
   string         to_xml(unsigned int indent = 0,
                         bool display_default_values = false,
                         bool display_spaces = true,
-                        bool charset_latin = true,
+                        bool charset_latin = false,
                         const string root_path = "") const;
 
   string         to_html(unsigned int level = 0) const;
@@ -874,7 +874,7 @@ private:
   void fromXml(const MXml &e, string root_path = "");
   string to_xml_atts(unsigned int indent = 0,
                      bool display_default_values = false,
-                     bool charset_latin = true,
+                     bool charset_latin = false,
                      string root_path = "") const;
   void   check_min();
   void  setup_schema();

@@ -3385,7 +3385,7 @@ int Node::save(const string &filename,
 
   return files::save_txt_file(filename,
                                  std::string("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-                                 + to_xml(0, store_default_values, true, true, path));
+                                 + to_xml(0, store_default_values, true, false, path));
 }
 
 Node::Node(const Node &e)
