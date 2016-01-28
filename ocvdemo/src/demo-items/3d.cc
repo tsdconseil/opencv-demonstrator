@@ -52,7 +52,15 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   res.valide = false;
 
   output.images[0] = input.images[0];
-  cv::Size dim_img(500,500);// TODO
+  cv::Size dim_img = input.images[0].size();
+
+
+  if(dim_img != input.images[1].size())
+  {
+    journal.warning("%s: images de dim différentes.");
+    output.errmsg = "Les 2 images / vidéo doivent être de même résolution.";
+    return -1;
+  }
 
   // Nombre de coins (x,y)
   unsigned int bw = input.model.get_attribute_as_int("bw"),
@@ -151,17 +159,26 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   for(auto i = 0u; i < 2; i++)
     res.matrices_cameras[i] = Mat::eye(3, 3, CV_64F);
 
-  cv::stereoCalibrate(points_obj, points_img[0], points_img[1],
+  float rms = cv::stereoCalibrate(points_obj, points_img[0], points_img[1],
                       res.matrices_cameras[0], res.dcoefs[0],
                       res.matrices_cameras[1], res.dcoefs[1],
-                      dim_img, res.R, res.T, res.E, res.F);
+                      dim_img, res.R, res.T, res.E, res.F,
+                      CV_CALIB_FIX_ASPECT_RATIO |
+                      CV_CALIB_ZERO_TANGENT_DIST |
+                      CV_CALIB_SAME_FOCAL_LENGTH |
+                      CV_CALIB_RATIONAL_MODEL |
+                      CV_CALIB_FIX_K3 | CV_CALIB_FIX_K4 | CV_CALIB_FIX_K5);
 
+  journal.verbose("Erreur RMS calibration: %.3f.", (float) rms);
 
   cv::stereoRectify(res.matrices_cameras[0], res.dcoefs[0],
                     res.matrices_cameras[1], res.dcoefs[1],
                     dim_img, res.R, res.T,
                     res.rectif_R[0], res.rectif_R[1],
                     res.rectif_P[0], res.rectif_P[1], res.Q);
+
+  dim_img.height *= 2;
+  dim_img.width *= 2;
 
   // Calcul des LUT pour la rectification de caméra
   for(auto k = 0u; k < 2; k++)

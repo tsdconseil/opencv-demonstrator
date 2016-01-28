@@ -86,7 +86,7 @@
   <item name="b_ajout" fr="Ajouter..." en="Add..."/>
   <item name="b_del_tout" fr="Supprimer tout" en="Remove all"/>
   <item name="b_maj" fr="Recalculer" en="Recompute"/>
-  <item name="titre-sel" fr="Sélection des images" en="Images selection"/>
+  <item name="titre-sel" fr="Sélection des sources" en="Source(s) selection"/>
   <item name = "cam-err-1"
           fr = "Caméra non détectée"
           en = "Camera not detected"/>
