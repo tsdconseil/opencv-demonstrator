@@ -24,12 +24,15 @@
 
 
 
+
 // Conversion latin -> utf8:
 // iconv -f latin1 -t utf-8 data/lang8859.xml > data/lang.xml
 
 using utils::model::Localized;
 
 static OCVDemo *instance = nullptr;
+
+
 
 
 OCVDemoItem::OCVDemoItem()
@@ -39,7 +42,7 @@ OCVDemoItem::OCVDemoItem()
   props.requiert_masque = false;
   //props.requiert_mosaique = false;
   props.input_min = 1;
-  props.input_max = 1;
+  props.input_max = 2;
   journal.setup("ocvdemo-item","");
 }
 
@@ -163,6 +166,10 @@ void OCVDemo::thread_video()
 int OCVDemo::on_video_image(const std::vector<cv::Mat> &tmp)
 {
   // Récupération d'une trame vidéo (mais ici on est dans le thread GTK)
+  //
+  //en:
+  //Recovery of a video frame (but here we are in the GTK thread)
+  //
   if(demo_en_cours != nullptr)
   {
     I0 = tmp[0];
@@ -219,12 +226,19 @@ void OCVDemo::masque_clic(int x0, int y0)
 
 // Calcul d'une sortie à partir de l'image I0
 // avec mise à jour de la mosaique de sortie.
+//
+// Calculating an output from the image I0 
+// with updating the output mosaic
+
 void OCVDemo::update()
 {
+  
   if(demo_en_cours == nullptr)
     return;
 
   // Première fois que la démo est appelée avec des entrées (I0) valides ?
+  // en:
+  // First time the demo is called with the inputs (I0) valid?
   if(first_processing)
   {
     first_processing = false;
@@ -279,13 +293,16 @@ void OCVDemo::update()
   else
   {
     journal.trace("Calcul [%s] ok.", demo_en_cours->props.id.c_str());
-
+    
+    /*
     if(demo_en_cours->output.vrai_sortie.data != nullptr)
-      sortie_en_cours = demo_en_cours->output.vrai_sortie;
-    else if(demo_en_cours->output.nout > 0)
-      sortie_en_cours = demo_en_cours->output.images[demo_en_cours->output.nout];
+      demo_en_cours->output.vrai_sortie.copyTo(sortie_en_cours);
+    else 
+    */
+    if(demo_en_cours->output.nout > 0)
+      demo_en_cours->output.images[demo_en_cours->output.nout - 1].copyTo(sortie_en_cours);
     else
-      sortie_en_cours = I0;
+      I0.copyTo(sortie_en_cours);
   }
 
   std::vector<cv::Mat> lst;
@@ -404,6 +421,9 @@ void OCVDemo::release_all_videos()
 // Mise à jour du flux / image d'entrée
 // Requiert : demo_en_cours bien défini
 ///////////////////////////////////
+//Update flux / input image
+//Requires: demo_en_cours clear
+//
 void OCVDemo::maj_entree()
 {
   if(demo_en_cours == nullptr)
@@ -592,10 +612,17 @@ void OCVDemo::setup_demo(const Node &sel)
   // - Appel maj_entree()
   // - Affiche la barre d'outil si nécessaire
   ///////////////////////////////////////////
+  //en:
+  // - Locates the demo from the demos recorded
+  // - Initializes areas of interest
+  // - Call maj_entree() eg. major_entry() 
+  // - Displays the toolbar if necessary
+  //////////////////////////////////////////
 
   journal.verbose("update_demo()...");
   namedWindow(titre_principal, CV_WINDOW_NORMAL);
-
+  
+  //en: current demo
   demo_en_cours = nullptr;
   for(auto demo: items)
   {
@@ -610,16 +637,23 @@ void OCVDemo::setup_demo(const Node &sel)
       rdi1.y = demo->input.roi.y + demo->input.roi.height;
 
       demo->input.model = modele;
+ 
+      /* code mort
+      * dead code
       demo->setup_model(modele);
+      */
 
 
       // Réinitialisation des images de sorties (au cas où elles pointaient vers les images d'entrées)
+      // Resetting outputs images ( in case they pointed to the pictures of inputs )
       //for(auto i = 0u; i < DEMO_MAX_IMG_OUT; i++)
       //  demo->
 
-
+      /* code mort
+       * dead code 
       if(demo->configure_ui())
         break;
+      */
 
       if(demo_en_cours->props.requiert_masque)
         barre_outil_dessin.montre();
@@ -632,9 +666,12 @@ void OCVDemo::setup_demo(const Node &sel)
       img_selecteur.raz();
       img_selecteur.nmin = demo->props.input_min;
       img_selecteur.nmax = demo->props.input_max;
+
       for(const auto &img: modele_demo.children("img"))
         img_selecteur.ajoute_fichier(img.get_attribute_as_string("path"));
+
       int nmissing = demo->props.input_min - img_selecteur.get_nb_images();
+      journal.trace("nmissing is %d ", nmissing );
       if(nmissing > 0)
       {
         for(auto i = 0; i < nmissing; i++)
@@ -734,6 +771,7 @@ OCVDemo *OCVDemo::get_instance()
 OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 {
   journal.setup("", "ocvdemo");
+  journal.trace("OCVDemo::OCVDemo(utils::CmdeLine &cmdeline) just after journal.setup");
   utils::current_language = Localized::LANG_EN;
   langue.current_language = "en";
   video_en_cours = false;
@@ -770,7 +808,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   journal.trace("Application configuration:\n%s\n", modele_global.to_xml().c_str());
 
   maj_langue_systeme();
-
+    
   lockfile = utils::get_current_user_path() + PATH_SEP + "lock.dat";
   if(utils::files::file_exists(lockfile))
   {
@@ -804,18 +842,21 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   vbox.pack_start(barre_outils, Gtk::PACK_SHRINK);
   barre_outils.add(b_entree);
   barre_outils.add(b_save);
+  barre_outils.add(b_open);
   barre_outils.add(b_infos);
   barre_outils.add(b_exit);
 
   mosaique.add_listener(this);
 
   b_save.set_stock_id(Gtk::Stock::SAVE);
+  b_open.set_stock_id(Gtk::Stock::OPEN);
   b_exit.set_stock_id(Gtk::Stock::QUIT);
   b_infos.set_stock_id(Gtk::Stock::ABOUT);
   b_entree.set_stock_id(Gtk::Stock::PREFERENCES);
 
 
   b_save.signal_clicked().connect(sigc::mem_fun(*this, &OCVDemo::on_b_save));
+  b_open.signal_clicked().connect(sigc::mem_fun(*this, &OCVDemo::on_b_open));
   b_exit.signal_clicked().connect(sigc::mem_fun(*this, &OCVDemo::on_b_exit));
   b_infos.signal_clicked().connect(sigc::mem_fun(*this, &OCVDemo::on_b_infos));
   b_entree.signal_clicked().connect(sigc::mem_fun(*this, &OCVDemo::on_menu_entree));

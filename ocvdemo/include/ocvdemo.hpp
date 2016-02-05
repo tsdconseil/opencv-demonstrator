@@ -142,6 +142,7 @@ private:
 		       guint info, guint time);
   bool on_delete_event(GdkEventAny *event);
   void on_b_save();
+  void on_b_open();
   void on_b_exit();
   void on_b_infos();
 
@@ -216,7 +217,7 @@ private:
   int video_idx;
   // Barre d'outils
   Gtk::Toolbar barre_outils;
-  Gtk::ToolButton b_entree, b_infos, b_exit, b_save;
+  Gtk::ToolButton b_entree, b_open, b_infos, b_exit, b_save;
   // Chemin du fichier de configuration
   std::string chemin_fichier_config;
   // Barre d'outils
@@ -226,6 +227,9 @@ private:
   ImageSelecteur img_selecteur;
   bool video_en_cours, video_stop;
   bool first_processing;
+
+   cv::Mat img;
+
 
   // Objets envoyés dans la fifo de calcul
   struct ODEvent
@@ -238,7 +242,11 @@ private:
       CALCUL
     } type;
     // TO DEPRECATE
-    cv::Mat img;
+    
+    /* code mort
+     * dead code
+     cv::Mat img;
+     */
     OCVDemoItem *demo;
     utils::model::Node modele;
   };

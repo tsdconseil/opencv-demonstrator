@@ -95,7 +95,8 @@ void ImageSelecteur::maj_selection()
 
 
 void ImageSelecteur::maj_mosaique()
-{
+{ 
+  journal.trace("maj_mosaique");
   int width, height;
   width = gtk_image.get_allocated_width();
   height = gtk_image.get_allocated_height();
@@ -105,6 +106,8 @@ void ImageSelecteur::maj_mosaique()
 
   if((width != bigmat.cols) || (height != bigmat.rows))
   {
+    journal.trace("if((width != bigmat.cols) || (height != bigmat.rows))");
+
     bigmat = cv::Mat::zeros(cv::Size(width,height), CV_8UC3);
     pixbuf = Gdk::Pixbuf::create_from_data(bigmat.data,
           Gdk::Colorspace::COLORSPACE_RGB,
@@ -200,6 +203,7 @@ void ImageSelecteur::on_size_change(Gtk::Allocation &alloc)
 
 ImageSelecteur::ImageSelecteur()
 {
+  //sets up the window that displays input image.
   toolbar_est_pleine = true;
   nmin = 0;
   nmax = 100;

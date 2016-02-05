@@ -233,7 +233,7 @@ int PanoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     t0 = getTickCount() - t0;
 
     output.images[0] = pano;
-    output.vrai_sortie = pano; // to deprecate
+//    output.vrai_sortie = pano; // to deprecate
     output.names[0] = "Panorama";
 
     journal.verbose("%.2lf sec\n",  t0 / getTickFrequency());
