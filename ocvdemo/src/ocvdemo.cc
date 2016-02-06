@@ -40,9 +40,10 @@ OCVDemoItem::OCVDemoItem()
   output.nout = 1;
   props.requiert_roi = false;
   props.requiert_masque = false;
-  //props.requiert_mosaique = false;
+
+  // Default demo item requires only 1 input image / video
   props.input_min = 1;
-  props.input_max = 2;
+  props.input_max = 1;
   journal.setup("ocvdemo-item","");
 }
 
@@ -166,10 +167,7 @@ void OCVDemo::thread_video()
 int OCVDemo::on_video_image(const std::vector<cv::Mat> &tmp)
 {
   // Récupération d'une trame vidéo (mais ici on est dans le thread GTK)
-  //
-  //en:
-  //Recovery of a video frame (but here we are in the GTK thread)
-  //
+  // (Recovery of a video frame (but here we are in the GTK thread))
   if(demo_en_cours != nullptr)
   {
     I0 = tmp[0];
@@ -226,19 +224,14 @@ void OCVDemo::masque_clic(int x0, int y0)
 
 // Calcul d'une sortie à partir de l'image I0
 // avec mise à jour de la mosaique de sortie.
-//
-// Calculating an output from the image I0 
-// with updating the output mosaic
-
+// (Calculating an output from the image I0 with updating the output mosaic)
 void OCVDemo::update()
 {
-  
   if(demo_en_cours == nullptr)
     return;
 
   // Première fois que la démo est appelée avec des entrées (I0) valides ?
-  // en:
-  // First time the demo is called with the inputs (I0) valid?
+  // (First time the demo is called with the inputs (I0) valid?)
   if(first_processing)
   {
     first_processing = false;
@@ -418,12 +411,9 @@ void OCVDemo::release_all_videos()
 }
 
 ///////////////////////////////////
-// Mise à jour du flux / image d'entrée
-// Requiert : demo_en_cours bien défini
+// Mise à jour du flux / image d'entrée (update flux / input image)
+// Requiert : demo_en_cours bien défini (requires: demo_en_cours clear)
 ///////////////////////////////////
-//Update flux / input image
-//Requires: demo_en_cours clear
-//
 void OCVDemo::maj_entree()
 {
   if(demo_en_cours == nullptr)
@@ -671,7 +661,7 @@ void OCVDemo::setup_demo(const Node &sel)
         img_selecteur.ajoute_fichier(img.get_attribute_as_string("path"));
 
       int nmissing = demo->props.input_min - img_selecteur.get_nb_images();
-      journal.trace("nmissing is %d ", nmissing );
+      journal.verbose("nmissing is %d ", nmissing );
       if(nmissing > 0)
       {
         for(auto i = 0; i < nmissing; i++)
@@ -771,7 +761,7 @@ OCVDemo *OCVDemo::get_instance()
 OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 {
   journal.setup("", "ocvdemo");
-  journal.trace("OCVDemo::OCVDemo(utils::CmdeLine &cmdeline) just after journal.setup");
+  journal.trace("OCVDemo::OCVDemo() (constructeur).");
   utils::current_language = Localized::LANG_EN;
   langue.current_language = "en";
   video_en_cours = false;

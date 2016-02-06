@@ -64,7 +64,7 @@ void ImageMosaique::mouse_callback(int event, int x, int y, int flags)
 
 void ImageMosaique::update_image(int index, const cv::Mat &img)
 {
-  journal.trace(" ImageMosaique::update_image");
+  journal.verbose("ImageMosaique::update_image");
   mutex.lock();
   cv::Rect rect(img_pos[index].x, img_pos[index].y,
       img_pos[index].width, img_pos[index].height);
@@ -87,7 +87,6 @@ int ImageMosaique::show_multiple_images(std::string title,
     std::vector<cv::Mat> lst,
     std::vector<std::string> titles)
 {
-  journal.trace("ImageMosaique::show_multiple_images");
   mutex.lock();
   this->title = title;
   cv::Mat img;

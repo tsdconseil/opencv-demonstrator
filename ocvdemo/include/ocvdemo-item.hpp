@@ -128,19 +128,6 @@ public:
   /** To deprecate? Appelé dès lors que la ROI a changé */
   virtual void set_roi(const cv::Mat &I, const cv::Rect &new_roi){input.roi = new_roi;}
 
-  /** To deprecate?
-   * code mort
-   * dead code 
-   * */
-  // virtual int configure_ui(){return 0;}
-
-  /** To deprecate? 
-   * code mor
-   * dead code 
-   * */
-
-  // virtual void setup_model(Node &model) {}
-
 protected:
   utils::Logable journal;
 };

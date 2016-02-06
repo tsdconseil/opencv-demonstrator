@@ -228,9 +228,6 @@ private:
   bool video_en_cours, video_stop;
   bool first_processing;
 
-   cv::Mat img;
-
-
   // Objets envoyés dans la fifo de calcul
   struct ODEvent
   {
@@ -241,12 +238,7 @@ private:
       // Calcul sur une image
       CALCUL
     } type;
-    // TO DEPRECATE
-    
-    /* code mort
-     * dead code
-     cv::Mat img;
-     */
+
     OCVDemoItem *demo;
     utils::model::Node modele;
   };
