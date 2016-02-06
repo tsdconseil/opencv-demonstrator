@@ -103,7 +103,7 @@ public:
     std::string errmsg;
 
     /** TO DEPRECATE? Pointeur vers la "vraie" image de sortie ???? to remove !!!! */
-    Mat vrai_sortie;
+   // cv::Mat vrai_sortie;
   };
 
   /** Propriétés de la démo */
@@ -128,11 +128,18 @@ public:
   /** To deprecate? Appelé dès lors que la ROI a changé */
   virtual void set_roi(const cv::Mat &I, const cv::Rect &new_roi){input.roi = new_roi;}
 
-  /** To deprecate? */
-  virtual int configure_ui(){return 0;}
+  /** To deprecate?
+   * code mort
+   * dead code 
+   * */
+  // virtual int configure_ui(){return 0;}
 
-  /** To deprecate? */
-  virtual void setup_model(Node &model) {}
+  /** To deprecate? 
+   * code mor
+   * dead code 
+   * */
+
+  // virtual void setup_model(Node &model) {}
 
 protected:
   utils::Logable journal;

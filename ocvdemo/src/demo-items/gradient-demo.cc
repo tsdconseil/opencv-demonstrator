@@ -239,8 +239,9 @@ int CannyDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.images[0] = Scalar::all(0);
   I.copyTo(output.images[0], detected_edges);
   output.names[0] = "Contours";
+  
   return 0;
-}
+} 
 
 HoughDemo::HoughDemo()
 {

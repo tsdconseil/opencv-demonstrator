@@ -26,10 +26,19 @@
 
 void OCVDemo::setup_menu()
 {
+  journal.trace("menu setup-ocvdemo-mmi");
   agroup = Gtk::ActionGroup::create();
   agroup->add( Gtk::Action::create("MenuMain", "_Menu") );
   agroup->add( Gtk::Action::create("Input", langue.get_item("menu-entree")),
     sigc::mem_fun(*this, &OCVDemo::on_menu_entree) );
+
+  agroup->add( Gtk::Action::create("Save", langue.get_item("save")),
+    sigc::mem_fun(*this, &OCVDemo::on_b_save ) );
+
+
+  agroup->add( Gtk::Action::create("Open", langue.get_item("Ouvrier")),
+    sigc::mem_fun(*this, &OCVDemo::on_b_open) );
+
   agroup->add( Gtk::Action::create("Quit", langue.get_item("menu-quitter")),
     sigc::mem_fun(*this, &OCVDemo::on_menu_quitter) );
   Glib::RefPtr<Gtk::UIManager> m_refUIManager =
@@ -42,19 +51,25 @@ void OCVDemo::setup_menu()
       "  <menubar name='MenuBar'>"
       "    <menu action='MenuMain'>"
       "      <menuitem action='Input'/>"
+      "      <menuitem action='Save'/>"
+      "      <menuitem action='Open'/>"
       "      <menuitem action='Quit'/>"
       "    </menu>"
       "  </menubar>"
       "</ui>";
 
+  journal.trace("add-ui ocvdemo-mmi");
+
   m_refUIManager->add_ui_from_string(ui_info);
   Gtk::Widget *pMenuBar = m_refUIManager->get_widget("/MenuBar");
   vbox.pack_start(*pMenuBar, Gtk::PACK_SHRINK);
+  journal.trace("After add-ui ocvdemo-mmi");
+
 }
 
 void OCVDemo::on_menu_entree()
 {
-  journal.trace("menu entree.");
+  journal.trace("on menu entree. ocvdemo-mmi");
 
   auto cp = utils::model::Node::create_ram_node(modele_global.schema());
 
@@ -77,6 +92,7 @@ bool OCVDemo::on_delete_event(GdkEventAny *event)
 
 void OCVDemo::on_b_infos()
 {
+  journal.trace("on_b_infos ocvdemo-mmi");
   Gtk::AboutDialog ad;
   ad.set_copyright("(C) 2015 TSD Conseil / J.A.");
   Glib::RefPtr<Gdk::Pixbuf>  pix = Gdk::Pixbuf::create_from_file(utils::get_img_path() + "/logo.png");
@@ -117,6 +133,16 @@ void OCVDemo::maj_bts()
 {
   int ho = has_output();
   b_save.set_sensitive(ho);
+}
+
+void OCVDemo::on_b_open()
+{
+
+//just for fun
+  img_selecteur.raz(); 
+  img_selecteur.show();
+
+
 }
 
 void OCVDemo::on_b_save()
@@ -227,7 +253,7 @@ void OCVDemo::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context, int
 
 void OCVDemo::on_b_exit()
 {
-  journal.trace_major("Fin normale de l'application.");
+  journal.trace_major("Fin normale de l'application ocvdemo-mmi.");
   ODEvent evt;
   evt.type = ODEvent::FIN;
   event_fifo.push(evt);
@@ -241,6 +267,8 @@ void OCVDemo::on_b_exit()
 
 void OCVDemo::maj_langue_systeme()
 {
+  journal.trace_major("maj_langue_systeme() ocvdemo-mmi.");
+
   int sel = modele_global.get_attribute_as_int("langue");
 
   // TODO: remove this stupid redondance
@@ -250,6 +278,8 @@ void OCVDemo::maj_langue_systeme()
 
 void OCVDemo::maj_langue()
 {
+  journal.trace_major("maj_langue() ocvdemo-mmi.");
+
   auto prev_lg = langue.current_language;
   maj_langue_systeme();
 
@@ -260,7 +290,9 @@ void OCVDemo::maj_langue()
   b_infos.set_label(langue.get_item("apropos"));
   b_infos.set_tooltip_markup(langue.get_item("apropos-tt"));
   b_entree.set_label(langue.get_item("entree"));
+  b_open.set_label(langue.get_item("menu-entree"));
   b_entree.set_tooltip_markup(langue.get_item("entree-tt"));
+  b_open.set_tooltip_markup(langue.get_item("entree-tt"));
   // Apparently OpenCV windows support only ISO-8859-1
   titre_principal = utils::str::utf8_to_latin(langue.get_item("resultats"));
   wnd.set_title(langue.get_item("main-title"));
