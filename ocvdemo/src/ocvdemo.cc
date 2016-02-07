@@ -243,7 +243,7 @@ void OCVDemo::update()
   mutex_update.lock();
   journal.verbose("mutex_update ok.");
 
-  this->sortie_en_cours = Mat();
+  sortie_en_cours = false;
 
   if(modele_demo.is_nullptr())
   {
@@ -287,15 +287,10 @@ void OCVDemo::update()
   {
     journal.trace("Calcul [%s] ok.", demo_en_cours->props.id.c_str());
     
-    /*
-    if(demo_en_cours->output.vrai_sortie.data != nullptr)
-      demo_en_cours->output.vrai_sortie.copyTo(sortie_en_cours);
-    else 
-    */
     if(demo_en_cours->output.nout > 0)
-      demo_en_cours->output.images[demo_en_cours->output.nout - 1].copyTo(sortie_en_cours);
+      sortie_en_cours = true;
     else
-      I0.copyTo(sortie_en_cours);
+      sortie_en_cours = false;
   }
 
   std::vector<cv::Mat> lst;
@@ -698,7 +693,7 @@ void OCVDemo::on_event(const utils::mmi::SelectionChangeEvent &e)
   if(lock)
     return;
 
-  this->sortie_en_cours = Mat();
+  sortie_en_cours = false;
 
   if(e.new_selection.is_nullptr())
   {
@@ -931,12 +926,12 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 
 bool OCVDemo::has_output()
 {
-  return sortie_en_cours.data != nullptr;
+  return sortie_en_cours;
 }
 
 Mat OCVDemo::get_current_output()
 {
-  return sortie_en_cours;
+  return demo_en_cours->output.images[0];
 }
 
 

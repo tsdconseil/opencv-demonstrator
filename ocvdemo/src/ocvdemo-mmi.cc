@@ -217,7 +217,16 @@ void OCVDemo::on_b_save()
     }
 
     dialog.hide();
-    imwrite(filename, get_current_output());
+
+    if(demo_en_cours->output.nout == 1)
+      imwrite(filename, get_current_output());
+    else
+    {
+      auto fnaked = utils::files::remove_extension(filename);
+      auto ext = utils::files::get_extension(filename);
+      for(auto i = 0u; i < demo_en_cours->output.nout; i++)
+        imwrite(fnaked + utils::str::int2str(i) + "." + ext,  demo_en_cours->output.images[i]);
+    }
   }
 }
 

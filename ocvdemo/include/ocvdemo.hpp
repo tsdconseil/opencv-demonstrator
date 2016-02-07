@@ -223,7 +223,7 @@ private:
   // Barre d'outils
   MasqueBOutils barre_outil_dessin;
   int outil_dessin_en_cours;
-  cv::Mat sortie_en_cours;
+  bool sortie_en_cours;
   ImageSelecteur img_selecteur;
   bool video_en_cours, video_stop;
   bool first_processing;
