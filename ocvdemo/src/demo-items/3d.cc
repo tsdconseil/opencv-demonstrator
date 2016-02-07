@@ -42,7 +42,7 @@ StereoCalDemo::StereoCalDemo()
 {
   props.id = "stereo-cal";
   props.input_min = 2;
-  props.input_max = 2;
+  props.input_max = -1; // indefinite number of pairs
   res.valide = false;
 }
 
@@ -76,7 +76,7 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   std::vector<std::vector<cv::Point2f>> points_img[2];
 
   // Pour l'instant, on ne gère qu'une seule paire d'image
-  unsigned int npaires = 1;
+  unsigned int npaires = input.images.size() / 2;
 
   // Largeur d'un carré du damier (unité physique arbitraire)
   float largeur_carre = 10.0;
@@ -94,62 +94,63 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.names[1] = "Image 2";
 
   journal.verbose(" 1. Recherche des coins...");
-  for(auto k = 0; k < 2; k++)
+  for(auto p = 0; p < npaires; p++)
   {
-    std::vector<cv::Point2f> &coins = points_img[k][0];
-    bool found = findChessboardCorners(input.images[k], dim_damier, coins,
-        CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
-    journal.verbose("Image %d: trouvé %d coins.", k, coins.size());
-
-#   if 1
-    // Résolution d'ambiguité si damier carré
-    if((coins.size() == bh * bw) && (bh == bw))
+    for(auto k = 0; k < 2; k++)
     {
-      // Si les coins sont alignés verticalement, fait une rotation de 90° (pour lever l'ambiguité)
-      auto d = coins[1] - coins[0];
-      auto angle = std::fmod(atan2(d.y, d.x) + 2 * M_PI, 2 * M_PI);
-      if(angle > M_PI)
-        angle -= 2 * M_PI;
-      if((std::fabs(angle) > M_PI / 4) && (std::fabs(angle) < 3 * M_PI / 4))
+      std::vector<cv::Point2f> &coins = points_img[k][p];
+      bool found = findChessboardCorners(input.images[2*p+k], dim_damier, coins,
+          CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
+      journal.verbose("Image %d: trouvé %d coins.", k, coins.size());
+
+      // Résolution d'ambiguité si damier carré
+      if((coins.size() == bh * bw) && (bh == bw))
       {
-        journal.trace("Image %d: coins verticaux (%.2f radians) -> transposition.", k, angle);
-        std::vector<cv::Point2f> coins2 = coins;
-        for(auto i = 0u; i < bw; i++)
-          for(auto j = 0u; j < bw; j++)
-            coins[i+j*bw] = coins2[i*bw+j];
+        // Si les coins sont alignés verticalement, fait une rotation de 90° (pour lever l'ambiguité)
+        auto d = coins[1] - coins[0];
+        auto angle = std::fmod(atan2(d.y, d.x) + 2 * M_PI, 2 * M_PI);
+        if(angle > M_PI)
+          angle -= 2 * M_PI;
+        if((std::fabs(angle) > M_PI / 4) && (std::fabs(angle) < 3 * M_PI / 4))
+        {
+          journal.trace("Image %d: coins verticaux (%.2f radians) -> transposition.", k, angle);
+          std::vector<cv::Point2f> coins2 = coins;
+          for(auto i = 0u; i < bw; i++)
+            for(auto j = 0u; j < bw; j++)
+              coins[i+j*bw] = coins2[i*bw+j];
+        }
+
+        auto signe = coins[0].y - coins[2*bw].y;
+        if(signe < 0)
+        {
+          journal.trace("Image %d: miroir vertical.", k);
+          std::reverse(coins.begin(), coins.end());
+        }
+
+        signe = coins[0].x - coins[2].x;
+        if(signe < 0)
+        {
+          journal.trace("Image %d: miroir horizontal.", k);
+          for(auto i = 0u; i < bw; i++)
+            std::reverse(coins.begin()+i*bw, coins.begin()+(i+1)*bw);
+        }
       }
 
-      auto signe = coins[0].y - coins[2*bw].y;
-      if(signe < 0)
-      {
-        journal.trace("Image %d: miroir vertical.", k);
-        std::reverse(coins.begin(), coins.end());
-      }
 
-      signe = coins[0].x - coins[2].x;
-      if(signe < 0)
+      if(!found || (coins.size() < 5))
       {
-        journal.trace("Image %d: miroir horizontal.", k);
-        for(auto i = 0u; i < bw; i++)
-          std::reverse(coins.begin()+i*bw, coins.begin()+(i+1)*bw);
+        output.errmsg = langue.get_item("coins-non-trouves");
+        return -1;
       }
+      cv::Mat bw;
+      cv::cvtColor(input.images[2*p+k], bw, CV_BGR2GRAY);
+      cv::cornerSubPix(bw, coins, Size(11,11), Size(-1,-1),
+                       TermCriteria(CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 30, 0.01));
+
+      // Dessin des coins
+      if(p == 0)
+        cv::drawChessboardCorners(output.images[k], dim_damier, Mat(coins), found);
     }
-#   endif
-
-
-
-    if(!found || (coins.size() < 5))
-    {
-      output.errmsg = langue.get_item("coins-non-trouves");
-      return -1;
-    }
-    cv::Mat bw;
-    cv::cvtColor(input.images[k], bw, CV_BGR2GRAY);
-    cv::cornerSubPix(bw, coins, Size(11,11), Size(-1,-1),
-                     TermCriteria(CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 30, 0.01));
-
-    // Dessin des coins
-    cv::drawChessboardCorners(output.images[k], dim_damier, Mat(coins), found);
   }
 
   journal.verbose(" 2. Calibration...");
@@ -194,10 +195,6 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
                                 res.rectif_R[k], res.rectif_P[k],
                                 dim_img, CV_32FC2, //CV_16SC2,
                                 res.rmap[k][0], res.rmap[k][1]);
-
-  /*Rect vroi(cvRound(validRoi[k].x*sf), cvRound(validRoi[k].y*sf),
-            cvRound(validRoi[k].width*sf), cvRound(validRoi[k].height*sf));
-  rectangle(canvasPart, vroi, Scalar(0,0,255), 3, 8);*/
 
   // A FAIRE:
   // - Vérifier qualité de la calibration
