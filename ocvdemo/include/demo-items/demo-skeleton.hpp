@@ -20,18 +20,28 @@
     along with OCVDemo.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef MY_DEMO_HPP
-#define MY_DEMO_HPP
+#ifndef SKEKETON_DEMO_HPP
+#define SKELETON_DEMO_HPP
 
 #include "ocvdemo-item.hpp"
 
-// Replace "MyDemo" by the name of your class
-class MyDemo: public OCVDemoItem
+//for new demo change SkeletonDemo to your class name
+
+class SkeletonDemo: public OCVDemoItem
 {
-public:
+  public:
+  
+  SkeletonDemo()
+  {
+    props.id = "skeleton";
+  }
+
+  
+  public:
+
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+  
+
 };
-
-
 
 #endif

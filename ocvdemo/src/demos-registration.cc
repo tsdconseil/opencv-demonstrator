@@ -32,6 +32,9 @@
 #include "demo-items/video-demo.hpp"
 #include "demo-items/espaces-de-couleurs.hpp"
 #include "demo-items/3d.hpp"
+#include "demo-items/demo-skeleton.hpp"
+
+//add a line to include your new demo header file patterned just as demo-skeleton.hpp"
 
 void OCVDemo::add_demos()
 {
@@ -72,6 +75,10 @@ void OCVDemo::add_demos()
   items.push_back(new CascGenDemo("casc-yeux"));
   items.push_back(new CascGenDemo("casc-plate"));
   items.push_back(new CascGenDemo("casc-sil"));
+  items.push_back(new SkeletonDemo());
+
+// Here is the spot to add a new demo.  Copy/Paste and edit to match the name of your class.
+
 }
 
 

@@ -338,6 +338,31 @@
        en   = "Automatic learning">
   </cat>-->
 
+        <!--  The bone yard
+          fr: A ne rien faire démonstration conçu comme un guide pour les développeurs.
+    
+          en: A do nothing demo intended as a guide for developers. 
+    
+          ru: А не делать ничего демонстрационный предназначен в качестве руководства для разработчиков.
+        -->  
+        <!-- copy/past to above here then edit to fit your demo -->
+     <cat name = "bone_yard"
 
+       fr   = "Ossuaire"
+       en   = "Bone Yard"
+       ru   = "Костный двор" >
+
+        <!-- List of sub-categories and demo items -->
+
+       <demo name = "skeleton"
+             fr   = "le demo squelette "
+             en   = "Skeleton demo"
+             ru   = "Скелет демона">
+             <!--Image your demo will use is indicated on the next line -->       
+             <img path="data/img/key.png"/>
+       </demo>
+
+    </cat>
+       <!-- copy/paste -->
 
 </ocv-demo>
