@@ -1,6 +1,11 @@
 # Tutorial for adding a new demonstration
 
-This document describes how one can add its own demonstration in the software. 
+This document describes how one can add its own demonstration in the software.
+
+## step 0: Git compiling working. (`doc/build-instructions.md`)
+
+You will definitely need to be able compile from source to add a new demonstration. Setting up Git so you can eventually share your new demo would be a wise thing also : )     
+
 
 ## Step 1: Updating the table of contents (`data/model.xml`)
 
@@ -43,15 +48,20 @@ Note: replace `dummy` by the identifier (`name` attribute) that you had used in 
 
 ## Step 3: Implementing your demonstration
 
-- Copy the file `ocvdemo/include/demo-items/demo-skeleton.hpp' as `ocvdemo/include/demo-items/mydemo.hpp', where `mydemo` is the name of your demonstration (without capital letter)
-- Copy the file `ocvdemo/src/demo-items/demo-skeleton.cc' as `ocvdemo/src/demo-items/mydemo.cc'
-- Follow the instructions you can find in these two files so as to customize them for your demonstration
+- Copy and rename in place the file `ocvdemo/include/demo-items/demo-skeleton.hpp' as `ocvdemo/include/demo-items/mydemo.hpp', where `mydemo` is the name of your demonstration (without capital letters).  
+- Edit your new copy of `mydemo.hpp` to change the first line `/** @file demo-skeleton.hpp` to `/** @file mydemo.hpp`  and every instance of `skeleton` to `my` matching case and save.
+
+
+- Copy  and rename in place the file `ocvdemo/src/demo-items/demo-skeleton.cc` as `ocvdemo/src/demo-items/mydemo.cc`
+- Edit your new `mydemo.cc` as you did `mydemo.hpp
+- Do not customize beyound this untill you have a workng demo. Only thenfollow the instructions you can find in these two files and other demo fies so as to customize them for your demonstration
 
 ## Step 4: Makefile update
-In the `ocvdemo/Makefile` file, add the name of your source file at the end of the list of source files to be compiled (the list is defined in the constant `SOURCES_BASE`). Do not include the extension of the source file (as it is implied that it is `.cc`).
+In the `ocvdemo/Makefile` file, add the name of your source file `mydemo` at the end of the list of source files to be compiled (the list is defined in the constant `SOURCES_BASE`). Do not include the extension of the source file (as it is implied that it is `.cc`).
 
 ## Step 5: Registering your demonstration class
-In the source file `ocvdemo/src/demos-registration.cc`, add a line for your demonstration class.
+In the source file `ocvdemo/src/demos-registration.cc`, add an `#include `mydemo.hpp` near the top. 
+Then add a line ` items.push_back(new MyDemo());` for your demonstration class.
 
 ## Step 6: Rebuilding and checking
 Rebuild the project (type `make` in the folder `ocvdemo`), and run the executable to check that your demonstration works correctly.

@@ -22,22 +22,25 @@
 
 
 
-#include "demo-items/demo-skeleton.hpp" // REPLACE BY NAME OF YOUR INCLUDE FILE
+#include "demo-items/demo-skeleton.hpp" // REPLACE WITH THE NAME OF YOUR INCLUDE FILE
 
 
-// Replace "MyDemo" by the name of your class
-int MyDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+// Replace "SkeletonDemo" by the name of your class
+int SkeletonDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   // - The input image(s) are in the vector input.images (of type: vector<cv::Mat>).
   //   You can assume that input images are in BGR format, 8 bits.
   // - The output image(s) should be stored in output.images[0], output.images[1], ... (of type: array of cv::Mat)
   //   Output images can be in BGR or grayscale format, 8 bits or floating point (in this case from 0 to 1.0).
 
-  // For instance, we do here a very simple image processing operation:
-  // conversion from color to grayscale
-  //
-  cv::cvtColor(input.images[0], output.images[0], CV_BGR2GRAY);
-
+  // In this simple case we do the minimum. 
+  // set number of images out to one.
+  output.nout = 1;
+  //clone the input to the output.
+  output.images[0]=input.images[0].clone();
+  //set a name.
+  output.names[0] = "The same";
+  
   // Return code: 0 if computing is successful (return any other value to indicate a failure)
   return 0;
 }
