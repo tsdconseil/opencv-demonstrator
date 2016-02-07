@@ -683,5 +683,6 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 
 <node name="rectif"/>
 
+<node name="camera"/>
   
 </schema>

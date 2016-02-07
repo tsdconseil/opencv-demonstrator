@@ -302,7 +302,8 @@
 	    </demo>
 	    
 	    <demo name = "rectif" 
-	    	  fr   = "Rectification">
+	    	  fr   = "Rectification"
+	    	  en   = "Rectification">
 	    	  
 	       <img path = "data/img/1.jpg"/>
 	       <img path = "data/img/2.jpg"/>
@@ -338,6 +339,15 @@
        en   = "Automatic learning">
   </cat>-->
 
-
+  <cat name = "misc"
+       fr   = "Divers"
+       en   = "Miscelaenous">
+    <demo name = "camera"
+          fr   = "Capture caméra"
+          en   = "Camera capture">
+          <img path="0"/>
+          <img path="1"/>
+    </demo>
+  </cat>
 
 </ocv-demo>

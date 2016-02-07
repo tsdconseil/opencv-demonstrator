@@ -454,7 +454,7 @@ void OCVDemo::maj_entree()
         res = video_captures[vid].open(se.id_webcam);
       else
         res = video_captures[vid].open(se.chemin);
-
+      journal.verbose("Effectué.");
       if(!res)
       {
         utils::mmi::dialogs::show_error(langue.get_item("ech-vid-tit"),
@@ -465,7 +465,8 @@ void OCVDemo::maj_entree()
       }
       video_fp = se.chemin; // TODO : vecteur
       entree_video = true;
-      video_captures[0] >> I0; // TODO: à supprimer
+      video_captures[vid] >> I0; // TODO: à supprimer
+      vid++;
     }
     else
     {

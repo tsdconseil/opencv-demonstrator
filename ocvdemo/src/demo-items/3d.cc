@@ -49,6 +49,8 @@ StereoCalDemo::StereoCalDemo()
 int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   // (D'après G. Bradski, Learning OpenCV: Computer vision with the OpenCV library, 2008)
+  // Et aussi d'après l'exemple fourni avec opencv:
+  // opencv/sources/samples/cpp/stereo_calib.cpp
   res.valide = false;
 
   output.images[0] = input.images[0];
@@ -77,7 +79,7 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   unsigned int npaires = 1;
 
   // Largeur d'un carré du damier (unité physique arbitraire)
-  float largeur_carre = 1.0;
+  float largeur_carre = 10.0;
 
   journal.trace("Calibration stéréo...");
 
@@ -99,6 +101,7 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
         CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
     journal.verbose("Image %d: trouvé %d coins.", k, coins.size());
 
+#   if 1
     // Résolution d'ambiguité si damier carré
     if((coins.size() == bh * bw) && (bh == bw))
     {
@@ -130,11 +133,10 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
         for(auto i = 0u; i < bw; i++)
           std::reverse(coins.begin()+i*bw, coins.begin()+(i+1)*bw);
       }
-
     }
+#   endif
 
-    // Dessin des coins
-    cv::drawChessboardCorners(output.images[k], dim_damier, Mat(coins), found);
+
 
     if(!found || (coins.size() < 5))
     {
@@ -145,6 +147,9 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     cv::cvtColor(input.images[k], bw, CV_BGR2GRAY);
     cv::cornerSubPix(bw, coins, Size(11,11), Size(-1,-1),
                      TermCriteria(CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 30, 0.01));
+
+    // Dessin des coins
+    cv::drawChessboardCorners(output.images[k], dim_damier, Mat(coins), found);
   }
 
   journal.verbose(" 2. Calibration...");
@@ -152,7 +157,7 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   // Calcul des coordonnées 3D
   for(auto j = 0; j < dim_damier.height; j++ )
     for(auto k = 0; k < dim_damier.width; k++ )
-      points_obj[0].push_back(cv::Point3f(j * largeur_carre, k * largeur_carre, 0));
+      points_obj[0].push_back(cv::Point3f(k * largeur_carre, j * largeur_carre, 0));
 
 
   // Initialisation des matrices de caméra (identité)
@@ -165,6 +170,7 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
                       dim_img, res.R, res.T, res.E, res.F,
                       CV_CALIB_FIX_ASPECT_RATIO |
                       CV_CALIB_ZERO_TANGENT_DIST |
+                      //CV_CALIB_FIX_FOCAL_LENGTH |
                       CV_CALIB_SAME_FOCAL_LENGTH |
                       CV_CALIB_RATIONAL_MODEL |
                       CV_CALIB_FIX_K3 | CV_CALIB_FIX_K4 | CV_CALIB_FIX_K5);
@@ -175,17 +181,23 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
                     res.matrices_cameras[1], res.dcoefs[1],
                     dim_img, res.R, res.T,
                     res.rectif_R[0], res.rectif_R[1],
-                    res.rectif_P[0], res.rectif_P[1], res.Q);
-
-  dim_img.height *= 2;
-  dim_img.width *= 2;
+                    res.rectif_P[0], res.rectif_P[1],
+                    res.Q,
+                    CALIB_ZERO_DISPARITY,
+                    1 // 0 : Seulement les pixels valides sont visibles,
+                      // 1 : tous les pixels (y compris noirs) sont visibles
+                    );
 
   // Calcul des LUT pour la rectification de caméra
   for(auto k = 0u; k < 2; k++)
     cv::initUndistortRectifyMap(res.matrices_cameras[k], res.dcoefs[k],
                                 res.rectif_R[k], res.rectif_P[k],
-                                dim_img, CV_16SC2,
+                                dim_img, CV_32FC2, //CV_16SC2,
                                 res.rmap[k][0], res.rmap[k][1]);
+
+  /*Rect vroi(cvRound(validRoi[k].x*sf), cvRound(validRoi[k].y*sf),
+            cvRound(validRoi[k].width*sf), cvRound(validRoi[k].height*sf));
+  rectangle(canvasPart, vroi, Scalar(0,0,255), 3, 8);*/
 
   // A FAIRE:
   // - Vérifier qualité de la calibration
@@ -217,7 +229,6 @@ int RectificationDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outpu
   for(auto i = 0u; i < 2; i++)
   {
     journal.verbose("Rectification image %d...", i);
-    //cv::cvtColor(input.images[i], input.images[i], CV_BGR2GRAY);
     cv::remap(input.images[i], output.images[i],
               StereoCalDemo::res.rmap[i][0],
               StereoCalDemo::res.rmap[i][1],
