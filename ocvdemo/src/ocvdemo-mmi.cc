@@ -304,8 +304,10 @@ void OCVDemo::maj_langue()
   b_open.set_tooltip_markup(langue.get_item("entree-tt"));
   // Apparently OpenCV windows support only ISO-8859-1
   // Seems OpenCV does the right thing now.
-  //titre_principal = utils::str::utf8_to_latin(langue.get_item("resultats"));
-  titre_principal = langue.get_item("resultats");
+  // Correction. olnly works with OpenCV on Linux. 
+  // Still broke on windows.
+  titre_principal = utils::str::utf8_to_latin(langue.get_item("resultats"));
+  //titre_principal = langue.get_item("resultats");
 
   wnd.set_title(langue.get_item("main-title"));
 

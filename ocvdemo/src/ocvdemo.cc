@@ -879,9 +879,9 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   if(cmdeline.has_option("-s"))
   {
     journal.trace_major("Export tableau des fonctions supportees...");
-
+    //these are used to generate the web site
     auto s = this->export_html(Localized::Language::LANG_FR);
-    utils::files::save_txt_file("../../../site/contenu/opencv/ocvdemo/table-fr.html", s);
+    utils::files::save_txt_file("../../../site/contenu/opencv/ocvdemo/table.html", s);
     s = this->export_html(Localized::Language::LANG_EN);
     utils::files::save_txt_file("../../../site/contenu/opencv/ocvdemo/table-en.html", s);
     s = this->export_html(Localized::Language::LANG_DE);
