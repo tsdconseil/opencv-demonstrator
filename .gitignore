@@ -37,3 +37,4 @@ ocvext/build/*
 
 tags
 *.swp
+site/

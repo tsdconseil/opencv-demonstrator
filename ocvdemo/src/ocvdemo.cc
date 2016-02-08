@@ -333,7 +333,9 @@ void OCVDemo::update()
       if(langue.has_item(s))
         s = langue.get_item(s);
     }
-    titres.push_back(utils::str::utf8_to_latin(s)); // à passer en utf-8 dès que fenêtre GTK fait
+//  titres.push_back(utils::str::utf8_to_latin(s)); // à passer en utf-8 dès que fenêtre GTK fait
+    titres.push_back(s); 
+
   }
 
   mosaique.show_multiple_images(titre_principal, lst, titres);
@@ -879,11 +881,13 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
     journal.trace_major("Export tableau des fonctions supportees...");
 
     auto s = this->export_html(Localized::Language::LANG_FR);
-    utils::files::save_txt_file("../../../site/contenu/opencv/ocvdemo/table.html", s);
+    utils::files::save_txt_file("../../../site/contenu/opencv/ocvdemo/table-fr.html", s);
     s = this->export_html(Localized::Language::LANG_EN);
     utils::files::save_txt_file("../../../site/contenu/opencv/ocvdemo/table-en.html", s);
     s = this->export_html(Localized::Language::LANG_DE);
     utils::files::save_txt_file("../../../site/contenu/opencv/ocvdemo/table-de.html", s);
+    s = this->export_html(Localized::Language::LANG_RU);
+    utils::files::save_txt_file("../../../site/contenu/opencv/ocvdemo/table-ru.html", s);
 
     if(cmdeline.has_option("-c"))
     {
