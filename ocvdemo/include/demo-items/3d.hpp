@@ -110,6 +110,10 @@ class EpiDemo: public OCVDemoItem
 public:
   EpiDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+  void on_mouse(int x, int y, int evt, int wnd);
+  void raz();
+private:
+  std::vector<cv::Point2f> points[2];
 };
 
 /***************************************/

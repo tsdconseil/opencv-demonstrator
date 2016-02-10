@@ -325,6 +325,23 @@
 	       <img path = "data/img/stereo/coussins1.jpg"/>
 	    	  
 	    </demo>
+	    
+	    <demo name = "epi"
+              fr   = "Lignes épipolaires"
+              en   = "Epipolar lines">
+           <img path = "data/img/stereo/a0.jpg"/>
+	       <img path = "data/img/stereo/a1.jpg"/>
+        </demo>
+              
+              
+         <demo name="disp-map"
+               fr="Calcul de disparité"
+               en="Disparity map">
+
+             <img path="data/img/platre1.jpg"/>
+             <img path="data/img/platre2.jpg"/>
+
+         </demo>
 	       
        </cat>
 
@@ -334,18 +351,6 @@
                en="Homography computing"/>-->
 
 
-<!--        <demo name="epi"
-               fr="Lignes épipolaires"
-               en="Epipolar lines"/>-->
-
-         <demo name="disp-map"
-               fr="Calcul de disparité"
-               en="Disparity map">
-
-             <img path="data/img/platre1.jpg"/>
-             <img path="data/img/platre2.jpg"/>
-
-         </demo>
 
 
   </cat>

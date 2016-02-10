@@ -79,7 +79,10 @@ class OCVDemo:
     private CListener<ImageSelecteurRefresh>,
 
     // Evenement souris
-    private CListener<OCVMouseEvent>
+    private CListener<OCVMouseEvent>,
+
+    // Demande de rafraichissement de la part d'une démo
+    private CListener<OCVDemoItemRefresh>
 {
 public:
   /** Constructeur (devrait être privé !) */
@@ -120,6 +123,7 @@ private:
   std::string export_demos(utils::model::Node &cat, Localized::Language lg);
   void maj_entree();
   void add_demos();
+  void add_demo(OCVDemoItem *demo);
   void on_menu_entree();
   void on_menu_quitter();
   void setup_menu();
@@ -135,6 +139,9 @@ private:
 
   // Nouvelle image sélectionnée
   void on_event(const ImageSelecteurRefresh &e);
+
+  // Demande de rafraichissement en provenance d'une démo
+  void on_event(const OCVDemoItemRefresh &e);
   
   // Drag & drop
   void on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context,

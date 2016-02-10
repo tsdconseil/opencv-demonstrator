@@ -211,7 +211,7 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     output.names[i] = "Image " + utils::str::int2str(i);
 
   journal.verbose(" 1. Recherche des coins...");
-  for(auto p = 0; p < npaires; p++)
+  for(auto p = 0u; p < npaires; p++)
     for(auto k = 0; k < 2; k++)
       if(lookup_corners(input.images[2*p+k], output.images[2*p+k], input.model, points_img[k][p]))
         return -1;
@@ -304,17 +304,68 @@ int RectificationDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outpu
 
 
 //////////////////////////////////////////////////////////
-/// EPIPOLAR LINE DEMO                            ////////
-/// (TODO !)                                      ////////
+/// DEMO LIGNES EPIPOLAIRES                       ////////
 //////////////////////////////////////////////////////////
 EpiDemo::EpiDemo()
 {
   props.id = "epi";
+  props.input_min = 2;
+  props.input_max = 2;
+}
+
+void EpiDemo::raz()
+{
+  points[0].clear();
+  points[1].clear();
+}
+
+void EpiDemo::on_mouse(int x, int y, int evt, int wnd)
+{
+  journal.verbose("epi demo souris %d, %d.", x, y);
+  Point2f pt(x,y);
+  points[wnd].push_back(pt);
+  OCVDemoItemRefresh e;
+  CProvider<OCVDemoItemRefresh>::dispatch(e);
 }
 
 int EpiDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
+  // L'utilisateur choisi des points sur l'image 1
+  // On calcule les épilignes correspondantes sur l'image 2
 
+  if(!stereo_cal.valide)
+  {
+    output.errmsg = langue.get_item("pas-de-cal-stereo");
+    return -1;
+  }
+
+  output.nout = 2;
+  output.images[0] = input.images[0].clone();
+  output.images[1] = input.images[1].clone();
+
+  for(auto k = 0u; k < 2; k++)
+  {
+    auto npts = points[k].size();
+
+    if(npts == 0)
+      continue;
+
+    std::vector<cv::Vec3f> epilignes;
+    cv::computeCorrespondEpilines(cv::Mat(points[k]), 1 + k, stereo_cal.F, epilignes);
+
+    int sx = input.images[k].cols;
+
+    cv::RNG rng(0);
+    for(auto i = 0u; i < npts; i++)
+    {
+      cv::Scalar color(rng(256),rng(256),rng(256));
+      cv::line(output.images[1-k],
+               cv::Point(0, -epilignes[i][2]/epilignes[i][1]),
+               cv::Point(sx,-(epilignes[i][2]+epilignes[i][0]*sx)/epilignes[i][1]),
+               color);
+      cv::circle(output.images[k], points[k][i], 3, color, -1, CV_AA);
+    }
+  }
   return 0;
 }
 

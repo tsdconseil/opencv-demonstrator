@@ -387,16 +387,21 @@ void OCVDemo::on_event(const ChangeEvent &ce)
   maj_bts();
 }
 
+void OCVDemo::add_demo(OCVDemoItem *demo)
+{
+  items.push_back(demo);
+  demo->add_listener(this);
+}
+
 void OCVDemo::on_event(const ImageSelecteurRefresh &e)
 {
-  /*if(lock)
-    return;
-  lock = true;
-  update();
-  lock = false;
-  maj_bts();*/
   if(!ignore_refresh)
     maj_entree();
+}
+
+void OCVDemo::on_event(const OCVDemoItemRefresh &e)
+{
+  update();
 }
 
 void OCVDemo::release_all_videos()

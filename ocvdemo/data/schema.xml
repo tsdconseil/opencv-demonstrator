@@ -614,7 +614,8 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
   </node>
   
   <node name="epi">
-    
+   	<description lang="fr">Vous pouvez ajouter des points (en cliquant avec la souris) sur une des images, alors les épilignes correspondantes sur l'autre image sont tracées.</description>
+   	<description lang="en">You can add points (by clicking with the mouse) on one of the image, then corresponing epilines are plotted on the other image.</description>
   </node>
   
   <node name="contours">
