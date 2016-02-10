@@ -225,7 +225,10 @@ void MXml::add_child(const MXml &mx)
 void MXml::add_text(std::string s)
 {
   order.push_back(false);
-  text.push_back(str::latin_to_utf8(s));
+  //this corrupts utf8 if it contains Cyrillic text. 
+  //text.push_back(str::latin_to_utf8(s));
+  text.push_back(s);
+
 }
 
 std::string MXml::dump_content() const
