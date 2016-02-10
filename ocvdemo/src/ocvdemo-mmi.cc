@@ -224,7 +224,7 @@ void OCVDemo::on_b_save()
     {
       auto fnaked = utils::files::remove_extension(filename);
       auto ext = utils::files::get_extension(filename);
-      for(auto i = 0u; i < demo_en_cours->output.nout; i++)
+      for(auto i = 0; i < demo_en_cours->output.nout; i++)
         imwrite(fnaked + utils::str::int2str(i) + "." + ext,  demo_en_cours->output.images[i]);
     }
   }

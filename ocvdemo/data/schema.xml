@@ -614,7 +614,8 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
   </node>
   
   <node name="epi">
-    
+   	<description lang="fr">Vous pouvez ajouter des points (en cliquant avec la souris) sur une des images, alors les épilignes correspondantes sur l'autre image sont tracées.</description>
+   	<description lang="en">You can add points (by clicking with the mouse) on one of the image, then corresponing epilines are plotted on the other image.</description>
   </node>
   
   <node name="contours">
@@ -658,8 +659,7 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 <description lang="en">This demonstration enables you to fusion low resolution (8 bits) image, using the HDR module of OpenCV.</description>
 </node>
 
-<node name="stereo-cal">
-
+<node name="stereo-cal-prm">
     <attribute name="sel"
     fr="Type de coins"
     en="Coin type" min="0" max="2">
@@ -671,14 +671,20 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
     <attribute name="bw" 
       fr="Coins intérieurs (largeur)"
       en="Inner corners (first dimension)" 
-      default="7"/>
+      default="8"/>
       
     <attribute name="bh" 
       fr="Coins intérieurs (longueur)"
       en="Inner corners (other dimension)" 
-      default="7"/>
+      default="6"/>
+</node>
 
+<node name     = "stereo-cal" 
+      inherits = "stereo-cal-prm">
+</node>
 
+<node name     = "stereo-cal-live" 
+      inherits = "stereo-cal-prm">
 </node>
 
 <node name="rectif"/>

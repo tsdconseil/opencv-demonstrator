@@ -34,10 +34,13 @@
 using namespace cv;
 using namespace utils::model;
 
+
+struct OCVDemoItemRefresh {};
+
 ////////////////////////////////////////////////////////////////////////////
 /** @bref Classe de base pour toutes les démonstrations OpenCV */
 /** @brief Base class for all OpenCV demonstrations */
-class OCVDemoItem
+class OCVDemoItem: public CProvider<OCVDemoItemRefresh>
 {
 public:
 
@@ -88,7 +91,7 @@ public:
     /** @brief Number of output images */
     int nout;
 
-#   define DEMO_MAX_IMG_OUT 5
+#   define DEMO_MAX_IMG_OUT 20
 
     /** Images de sortie */
     /** @brief Output images */
@@ -125,8 +128,14 @@ public:
   /** Destructeur */
   virtual ~OCVDemoItem(){}
 
-  /** To deprecate? Appelé dès lors que la ROI a changé */
+  /** Appelé dès lors que la ROI a changé */
   virtual void set_roi(const cv::Mat &I, const cv::Rect &new_roi){input.roi = new_roi;}
+
+  /** Evenement souris */
+  virtual void on_mouse(int x, int y, int evt, int wnd) {};
+
+  /** Demande de remise à zéro de l'état de la démo */
+  virtual void raz() {};
 
 protected:
   utils::Logable journal;

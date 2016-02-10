@@ -73,7 +73,7 @@ void OCVDemo::on_event(const OCVMouseEvent &me)
         rdi1.y = me.y;
         compute_Ia();
         etat_souris = 0;
-        if(demo_en_cours != nullptr)
+        if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_roi))
         {
           int minx = min(rdi0.x, rdi1.x);
           int miny = min(rdi0.y, rdi1.y);
@@ -83,8 +83,12 @@ void OCVDemo::on_event(const OCVMouseEvent &me)
           journal.trace_major("Set rdi(%d,%d,%d,%d).",
                               rdi.x, rdi.y, rdi.width, rdi.height);
           demo_en_cours->set_roi(I0, rdi);
+          update();
         }
-        update();
+        else if(demo_en_cours != nullptr)
+        {
+          demo_en_cours->on_mouse(me.x, me.y, me.event, me.image);
+        }
       }
       break;
     }

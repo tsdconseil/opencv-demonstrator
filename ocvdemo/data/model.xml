@@ -291,24 +291,57 @@
        <cat name = "stereo"
             fr   = "Traitements stéréo"
             en   = "Stereo processing">
-            
+
         <demo name = "stereo-cal"
-	          fr   = "Calibration stéréo"
-	          en   = "Stereo calibration">
-	       
-	       <!-- TODO: images par défaut : à prendre avec webcams -->
-	       <img path = "data/img/1.jpg"/>
-	       <img path = "data/img/2.jpg"/>
+	          fr   = "Calibration stéréo (d'après images)"
+	          en   = "Stereo calibration (from images)">
+
+	       <img path = "data/img/stereo/a0.jpg"/>
+	       <img path = "data/img/stereo/a1.jpg"/>
+	       <img path = "data/img/stereo/b0.jpg"/>
+	       <img path = "data/img/stereo/b1.jpg"/>
+	       <img path = "data/img/stereo/c0.jpg"/>
+	       <img path = "data/img/stereo/c1.jpg"/>
+	       <img path = "data/img/stereo/d0.jpg"/>
+	       <img path = "data/img/stereo/d1.jpg"/>
+	       <img path = "data/img/stereo/e0.jpg"/>
+	       <img path = "data/img/stereo/e1.jpg"/>
+	       <img path = "data/img/stereo/f0.jpg"/>
+	       <img path = "data/img/stereo/f1.jpg"/>
+	    </demo>
+	    
+	    <demo name = "stereo-cal-live"
+	          fr   = "Calibration stéréo (d'après caméras)"
+	          en   = "Stereo calibration (from cameras)">
+	       <img path = "0"/>
+	       <img path = "1"/>
 	    </demo>
 	    
 	    <demo name = "rectif" 
 	    	  fr   = "Rectification"
 	    	  en   = "Rectification">
 	    	  
-	       <img path = "data/img/1.jpg"/>
-	       <img path = "data/img/2.jpg"/>
+	       <img path = "data/img/stereo/coussins0.jpg"/>
+	       <img path = "data/img/stereo/coussins1.jpg"/>
 	    	  
 	    </demo>
+	    
+	    <demo name = "epi"
+              fr   = "Lignes épipolaires"
+              en   = "Epipolar lines">
+           <img path = "data/img/stereo/a0.jpg"/>
+	       <img path = "data/img/stereo/a1.jpg"/>
+        </demo>
+              
+              
+         <demo name="disp-map"
+               fr="Calcul de disparité"
+               en="Disparity map">
+
+             <img path="data/img/platre1.jpg"/>
+             <img path="data/img/platre2.jpg"/>
+
+         </demo>
 	       
        </cat>
 
@@ -318,18 +351,6 @@
                en="Homography computing"/>-->
 
 
-<!--        <demo name="epi"
-               fr="Lignes épipolaires"
-               en="Epipolar lines"/>-->
-
-         <demo name="disp-map"
-               fr="Calcul de disparité"
-               en="Disparity map">
-
-             <img path="data/img/platre1.jpg"/>
-             <img path="data/img/platre2.jpg"/>
-
-         </demo>
 
 
   </cat>
@@ -348,7 +369,10 @@
           <img path="0"/>
           <img path="1"/>
     </demo>
-  </cat>        <!--  The bone yard
+  </cat>        
+  
+  
+  <!--  The bone yard
           fr: A ne rien faire démonstration conçu comme un guide pour les développeurs.
     
           en: A do nothing demo intended as a guide for developers. 
