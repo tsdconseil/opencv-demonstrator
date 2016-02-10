@@ -75,8 +75,11 @@ private:
   int proceed(const FilterDemoConfig &conf, cv::Mat &I, OCVDemoItemOutput &output);
 };
 
-//extern int filter_demo(const FilterDemoConfig &conf);
-
-
+class GaborDemo: public OCVDemoItem
+{
+public:
+  GaborDemo();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
 
 #endif

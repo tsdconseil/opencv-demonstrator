@@ -696,5 +696,15 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
  <description lang="fr"> <i>Ne me dérange pas ce trop ! </i>  Le<b> Skeleoton Demo </b> est ici comme un guide pour de nouvelles manifestations  </description>
  <description lang="ru"> <i>Не против этого слишком много ! </i>  <b>  Skeleoton Демо </b>здесь в качестве руководства для новых демонстраций   </description>
 </node>  
+
+<node name="gabor">
+	<attribute name="ksize" type="int" min="0" signed="false" default="31"/>
+	<attribute name="sigma" type="float" min="0" signed="false" default="5"/>
+	<attribute name="theta" type="float" min="0" signed="false" default="0"/>
+	<attribute name="lambda" type="float" min="0" signed="false" default="8"/>
+	<attribute name="gamma" type="float" min="0" signed="false" default="0.4"/>
+	<attribute name="psi" type="float" min="0" signed="false" default="1.57"/>
+</node>
+
 </schema>
 

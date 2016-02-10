@@ -24,6 +24,32 @@
 #include "demo-items/filter-demo.hpp"
 #include <random>
 
+GaborDemo::GaborDemo()
+{
+  props.id = "gabor";
+}
+
+int GaborDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+  int ksize = input.model.get_attribute_as_int("ksize");
+  float sigma = input.model.get_attribute_as_float("sigma");
+  float theta = input.model.get_attribute_as_float("theta");
+  float lambda = input.model.get_attribute_as_float("lambda");
+  float gamma = input.model.get_attribute_as_float("gamma");
+  float psi = input.model.get_attribute_as_float("psi");
+
+  if((ksize & 1) == 0)
+    ksize++;
+
+  cv::Mat K = cv::getGaborKernel(cv::Size(ksize, ksize), sigma, theta, lambda, gamma, psi);
+
+  cv::Mat tmp;
+  cv::cvtColor(input.images[0], tmp, CV_BGR2GRAY);
+  cv::filter2D(tmp, output.images[0], -1, K);
+
+  return 0;
+}
+
 FilterDemo::FilterDemo()
 {
   props.id = "filtrage";

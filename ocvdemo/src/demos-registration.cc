@@ -38,6 +38,7 @@
 
 void OCVDemo::add_demos()
 {
+  add_demo(new GaborDemo());
   add_demo(new CameraDemo());
   add_demo(new RectificationDemo());
   add_demo(new StereoCalDemo());

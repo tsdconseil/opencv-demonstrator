@@ -53,6 +53,10 @@
         <img path="data/img/gavarnie.jpg"/>
       </demo>
 
+	  <demo name = "gabor"
+	  		fr   = "Filtre de Gabor"
+	  		en   = "Gabor filter">
+	  </demo>
 
     </cat>
 
