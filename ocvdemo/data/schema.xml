@@ -698,12 +698,12 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 </node>  
 
 <node name="gabor">
-	<attribute name="ksize" type="int" min="0" signed="false" default="31"/>
-	<attribute name="sigma" type="float" min="0" signed="false" default="5"/>
-	<attribute name="theta" type="float" min="0" signed="false" default="0"/>
+	<attribute name="ksize" fr="Taille du noyau" en="Kernel size" type="int" min="0" signed="false" default="31"/>
+	<attribute name="sigma"  type="float" min="0" signed="false" default="5"/>
+	<attribute name="Angle theta"  type="float" min="0" signed="false" default="0"/>
 	<attribute name="lambda" type="float" min="0" signed="false" default="8"/>
-	<attribute name="gamma" type="float" min="0" signed="false" default="0.4"/>
-	<attribute name="psi" type="float" min="0" signed="false" default="1.57"/>
+	<attribute name="gamma"  type="float" min="0" signed="false" default="0.4"/>
+	<attribute name="psi"    type="float" min="0" signed="false" default="1.57"/>
 </node>
 
 </schema>

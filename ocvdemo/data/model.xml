@@ -300,18 +300,18 @@
 	          fr   = "Calibration stéréo (d'après images)"
 	          en   = "Stereo calibration (from images)">
 
-	       <img path = "data/img/stereo/a0.jpg"/>
 	       <img path = "data/img/stereo/a1.jpg"/>
-	       <img path = "data/img/stereo/b0.jpg"/>
+	       <img path = "data/img/stereo/a0.jpg"/>
 	       <img path = "data/img/stereo/b1.jpg"/>
+	       <img path = "data/img/stereo/b0.jpg"/>
+	       <!--<img path = "data/img/stereo/c1.jpg"/>
 	       <img path = "data/img/stereo/c0.jpg"/>
-	       <img path = "data/img/stereo/c1.jpg"/>
-	       <img path = "data/img/stereo/d0.jpg"/>
 	       <img path = "data/img/stereo/d1.jpg"/>
-	       <img path = "data/img/stereo/e0.jpg"/>
+	       <img path = "data/img/stereo/d0.jpg"/>
 	       <img path = "data/img/stereo/e1.jpg"/>
-	       <img path = "data/img/stereo/f0.jpg"/>
+	       <img path = "data/img/stereo/e0.jpg"/>
 	       <img path = "data/img/stereo/f1.jpg"/>
+	       <img path = "data/img/stereo/f0.jpg"/>-->
 	    </demo>
 	    
 	    <demo name = "stereo-cal-live"
@@ -333,8 +333,8 @@
 	    <demo name = "epi"
               fr   = "Lignes épipolaires"
               en   = "Epipolar lines">
-           <img path = "data/img/stereo/a0.jpg"/>
-	       <img path = "data/img/stereo/a1.jpg"/>
+           <img path = "data/img/stereo/a1.jpg"/>
+	       <img path = "data/img/stereo/a0.jpg"/>
         </demo>
               
               

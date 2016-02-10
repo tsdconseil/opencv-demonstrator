@@ -58,7 +58,7 @@ int StereoCalDemo::lookup_corners(cv::Mat &I,
 
   //journal.verbose("Image %d: trouvé %d coins.", k, coins.size());
 
-# if 0
+# if 1
   // Résolution d'ambiguité si damier carré
   if((coins.size() == bh * bw) && (bh == bw))
   {
@@ -86,7 +86,7 @@ int StereoCalDemo::lookup_corners(cv::Mat &I,
     signe = coins[0].x - coins[2].x;
     if(signe < 0)
     {
-      journal.trace("Image %d: miroir horizontal.", k);
+      journal.trace("Image: miroir horizontal.");
       for(auto i = 0u; i < bw; i++)
         std::reverse(coins.begin()+i*bw, coins.begin()+(i+1)*bw);
     }

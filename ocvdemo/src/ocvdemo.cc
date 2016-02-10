@@ -318,10 +318,10 @@ void OCVDemo::update()
     char buf[50];
     sprintf(buf, "o[id=%d]", j);
     std::string s = "";
-    if((j + 1 == img_count) && (img_count > 1))
+    /*if((j + 1 == img_count) && (img_count > 1))
       s = langue.get_item("img-sortie");
     if((j == 0) && (img_count > 1))
-      s = langue.get_item("img-entree");
+      s = langue.get_item("img-entree");*/
     if(modele_demo.has_child(std::string(buf)))
     {
       auto n = modele_demo.get_child(std::string(buf));
