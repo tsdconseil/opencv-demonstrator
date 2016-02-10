@@ -32,15 +32,16 @@
 #include "demo-items/video-demo.hpp"
 #include "demo-items/espaces-de-couleurs.hpp"
 #include "demo-items/3d.hpp"
-#include "demo-items/demo-skeleton.hpp"
 #include "demo-items/misc.hpp"
-//add a line to include your new demo header file patterned just as demo-skeleton.hpp"
+#include "demo-items/demo-skeleton.hpp"
+//add a line to include your new demo header file patterned just as "demo-skeleton.hpp"
 
 void OCVDemo::add_demos()
 {
   items.push_back(new CameraDemo());
   items.push_back(new RectificationDemo());
   items.push_back(new StereoCalDemo());
+  items.push_back(new StereoCalLiveDemo());
   items.push_back(new HDRDemo());
   items.push_back(new EpiDemo());
   items.push_back(new DispMapDemo());

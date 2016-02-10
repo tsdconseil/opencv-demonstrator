@@ -60,18 +60,39 @@ struct StereoCalResultats
   cv::Mat Q;
 };
 
+extern StereoCalResultats stereo_cal;
+
 
 /****************************************/
-/** @brief Stereo calibration demonstration */
+/** @brief Stereo calibration demonstration (from previously captured image pairs) */
 class StereoCalDemo: public OCVDemoItem
 {
 public:
   StereoCalDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+  int lookup_corners(cv::Mat &I,
+                     cv::Mat &O,
+                     utils::model::Node &model,
+                     std::vector<cv::Point2f> &coins);
+  static StereoCalDemo *get_instance();
 
-
-  static StereoCalResultats res;
+private:
+  static StereoCalDemo *instance;
 };
+
+
+/****************************************/
+/** @brief Stereo calibration demonstration (interactive calibration from live video) */
+class StereoCalLiveDemo: public OCVDemoItem
+{
+public:
+  StereoCalLiveDemo();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+
+private:
+  std::vector<std::vector<cv::Point2f>> pairs;
+};
+
 
 /****************************************/
 /** @brief Rectification demonstration */

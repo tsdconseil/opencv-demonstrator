@@ -3,6 +3,7 @@
 
    Démonstrations inspirées du livre :
     G. Bradski, Learning OpenCV: Computer vision with the OpenCV library, 2008
+    Et aussi d'après l'exemple fourni avec opencv: opencv/sources/samples/cpp/stereo_calib.cpp
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 
@@ -32,26 +33,144 @@
 # define M_PI 3.14159265358979323846
 #endif
 
-StereoCalResultats StereoCalDemo::res;
+
+StereoCalDemo *StereoCalDemo::instance;
+StereoCalResultats stereo_cal;
+
+StereoCalDemo *StereoCalDemo::get_instance()
+{
+  return instance;
+}
+
+int StereoCalDemo::lookup_corners(cv::Mat &I,
+                                  cv::Mat &O,
+                                  utils::model::Node &model,
+                                  std::vector<cv::Point2f> &coins)
+{
+  unsigned int bw = input.model.get_attribute_as_int("bw"),
+               bh = input.model.get_attribute_as_int("bh");
+  cv::Size dim_damier(bw,bh);
+
+  O = I;
+
+  bool found = cv::findChessboardCorners(I, dim_damier, coins,
+      CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
+
+  //journal.verbose("Image %d: trouvé %d coins.", k, coins.size());
+
+# if 0
+  // Résolution d'ambiguité si damier carré
+  if((coins.size() == bh * bw) && (bh == bw))
+  {
+    // Si les coins sont alignés verticalement, fait une rotation de 90° (pour lever l'ambiguité)
+    auto d = coins[1] - coins[0];
+    auto angle = std::fmod(atan2(d.y, d.x) + 2 * M_PI, 2 * M_PI);
+    if(angle > M_PI)
+      angle -= 2 * M_PI;
+    if((std::fabs(angle) > M_PI / 4) && (std::fabs(angle) < 3 * M_PI / 4))
+    {
+      journal.trace("Image: coins verticaux (%.2f radians) -> transposition.", angle);
+      std::vector<cv::Point2f> coins2 = coins;
+      for(auto i = 0u; i < bw; i++)
+        for(auto j = 0u; j < bw; j++)
+          coins[i+j*bw] = coins2[i*bw+j];
+    }
+
+    auto signe = coins[0].y - coins[2*bw].y;
+    if(signe < 0)
+    {
+      journal.trace("Image: miroir vertical.");
+      std::reverse(coins.begin(), coins.end());
+    }
+
+    signe = coins[0].x - coins[2].x;
+    if(signe < 0)
+    {
+      journal.trace("Image %d: miroir horizontal.", k);
+      for(auto i = 0u; i < bw; i++)
+        std::reverse(coins.begin()+i*bw, coins.begin()+(i+1)*bw);
+    }
+  }
+# endif
+
+
+  if(!found || (coins.size() < 5))
+  {
+    output.errmsg = langue.get_item("coins-non-trouves");
+    return -1;
+  }
+  cv::Mat gris;
+  cv::cvtColor(I, gris, CV_BGR2GRAY);
+  cv::cornerSubPix(gris, coins, Size(11,11), Size(-1,-1),
+                   TermCriteria(CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 30, 0.01));
+
+  // Dessin des coins
+  cv::drawChessboardCorners(O, dim_damier, Mat(coins), found);
+
+  return 0;
+}
+
+
+
+// Stereo cal demo :
+//  - (1) une démo à partir de vidéo (cu1), une autre démo à partir d'un jeu d'images (cu2) ?
+//  - (2) Une démo qui gère les deux
+//
+//  cu1 : nécessite boutons suivants :
+//     b1: détection des coins (ou automatique ?)
+//     b2: calibration à partir des paires déjà trouvées
+//
+
+StereoCalLiveDemo::StereoCalLiveDemo()
+{
+  props.id = "stereo-cal-live";
+  props.input_min = 2;
+  props.input_max = 2;
+}
+
+int StereoCalLiveDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+  unsigned int bw = input.model.get_attribute_as_int("bw"),
+               bh = input.model.get_attribute_as_int("bh");
+
+  output.nout = 2;
+
+  std::vector<cv::Point2f> coins[2];
+
+  auto scal = StereoCalDemo::get_instance();
+
+  for(auto i = 0u; i < 2; i++)
+    scal->lookup_corners(input.images[i],
+                         output.images[i],
+                         input.model,
+                         coins[i]);
+
+  if((coins[0].size() == bw * bh) && (coins[1].size() == bw * bh))
+  {
+    pairs.push_back(coins[0]);
+    pairs.push_back(coins[1]);
+    journal.trace("Nouvelle paires ajoutée (%d au total).", pairs.size() / 2);
+  }
+
+  return 0;
+}
+
 
 //////////////////////////////////////////////////////////
 /// STEREO CALIBRATION DEMO                       ////////
-/// (TODO !)                                      ////////
 //////////////////////////////////////////////////////////
 StereoCalDemo::StereoCalDemo()
 {
+  instance = this;
   props.id = "stereo-cal";
   props.input_min = 2;
   props.input_max = -1; // indefinite number of pairs
-  res.valide = false;
+  stereo_cal.valide = false;
 }
 
 int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  // (D'après G. Bradski, Learning OpenCV: Computer vision with the OpenCV library, 2008)
-  // Et aussi d'après l'exemple fourni avec opencv:
-  // opencv/sources/samples/cpp/stereo_calib.cpp
-  res.valide = false;
+  stereo_cal.valide = false;
 
   output.images[0] = input.images[0];
   cv::Size dim_img = input.images[0].size();
@@ -87,71 +206,15 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   points_img[0].resize(npaires);
   points_img[1].resize(npaires);
 
-  output.nout = 2;
-  output.images[0] = input.images[0].clone();
-  output.images[1] = input.images[1].clone();
-  output.names[0] = "Image 1";
-  output.names[1] = "Image 2";
+  output.nout = 2 * npaires;
+  for(auto i = 0u; i < 2 * npaires; i++)
+    output.names[i] = "Image " + utils::str::int2str(i);
 
   journal.verbose(" 1. Recherche des coins...");
   for(auto p = 0; p < npaires; p++)
-  {
     for(auto k = 0; k < 2; k++)
-    {
-      std::vector<cv::Point2f> &coins = points_img[k][p];
-      bool found = findChessboardCorners(input.images[2*p+k], dim_damier, coins,
-          CV_CALIB_CB_ADAPTIVE_THRESH | CV_CALIB_CB_NORMALIZE_IMAGE);
-      journal.verbose("Image %d: trouvé %d coins.", k, coins.size());
-
-      // Résolution d'ambiguité si damier carré
-      if((coins.size() == bh * bw) && (bh == bw))
-      {
-        // Si les coins sont alignés verticalement, fait une rotation de 90° (pour lever l'ambiguité)
-        auto d = coins[1] - coins[0];
-        auto angle = std::fmod(atan2(d.y, d.x) + 2 * M_PI, 2 * M_PI);
-        if(angle > M_PI)
-          angle -= 2 * M_PI;
-        if((std::fabs(angle) > M_PI / 4) && (std::fabs(angle) < 3 * M_PI / 4))
-        {
-          journal.trace("Image %d: coins verticaux (%.2f radians) -> transposition.", k, angle);
-          std::vector<cv::Point2f> coins2 = coins;
-          for(auto i = 0u; i < bw; i++)
-            for(auto j = 0u; j < bw; j++)
-              coins[i+j*bw] = coins2[i*bw+j];
-        }
-
-        auto signe = coins[0].y - coins[2*bw].y;
-        if(signe < 0)
-        {
-          journal.trace("Image %d: miroir vertical.", k);
-          std::reverse(coins.begin(), coins.end());
-        }
-
-        signe = coins[0].x - coins[2].x;
-        if(signe < 0)
-        {
-          journal.trace("Image %d: miroir horizontal.", k);
-          for(auto i = 0u; i < bw; i++)
-            std::reverse(coins.begin()+i*bw, coins.begin()+(i+1)*bw);
-        }
-      }
-
-
-      if(!found || (coins.size() < 5))
-      {
-        output.errmsg = langue.get_item("coins-non-trouves");
+      if(lookup_corners(input.images[2*p+k], output.images[2*p+k], input.model, points_img[k][p]))
         return -1;
-      }
-      cv::Mat bw;
-      cv::cvtColor(input.images[2*p+k], bw, CV_BGR2GRAY);
-      cv::cornerSubPix(bw, coins, Size(11,11), Size(-1,-1),
-                       TermCriteria(CV_TERMCRIT_ITER + CV_TERMCRIT_EPS, 30, 0.01));
-
-      // Dessin des coins
-      if(p == 0)
-        cv::drawChessboardCorners(output.images[k], dim_damier, Mat(coins), found);
-    }
-  }
 
   journal.verbose(" 2. Calibration...");
 
@@ -159,31 +222,33 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   for(auto j = 0; j < dim_damier.height; j++ )
     for(auto k = 0; k < dim_damier.width; k++ )
       points_obj[0].push_back(cv::Point3f(k * largeur_carre, j * largeur_carre, 0));
+  for(auto j = 1u; j < npaires; j++)
+    points_obj[j] = points_obj[0];
 
 
   // Initialisation des matrices de caméra (identité)
   for(auto i = 0u; i < 2; i++)
-    res.matrices_cameras[i] = Mat::eye(3, 3, CV_64F);
+    stereo_cal.matrices_cameras[i] = Mat::eye(3, 3, CV_64F);
 
   float rms = cv::stereoCalibrate(points_obj, points_img[0], points_img[1],
-                      res.matrices_cameras[0], res.dcoefs[0],
-                      res.matrices_cameras[1], res.dcoefs[1],
-                      dim_img, res.R, res.T, res.E, res.F,
+      stereo_cal.matrices_cameras[0], stereo_cal.dcoefs[0],
+      stereo_cal.matrices_cameras[1], stereo_cal.dcoefs[1],
+                      dim_img, stereo_cal.R, stereo_cal.T, stereo_cal.E, stereo_cal.F,
                       CV_CALIB_FIX_ASPECT_RATIO |
                       CV_CALIB_ZERO_TANGENT_DIST |
-                      //CV_CALIB_FIX_FOCAL_LENGTH |
-                      CV_CALIB_SAME_FOCAL_LENGTH |
+                      CV_CALIB_FIX_FOCAL_LENGTH |
+                      //CV_CALIB_SAME_FOCAL_LENGTH |
                       CV_CALIB_RATIONAL_MODEL |
                       CV_CALIB_FIX_K3 | CV_CALIB_FIX_K4 | CV_CALIB_FIX_K5);
 
   journal.verbose("Erreur RMS calibration: %.3f.", (float) rms);
 
-  cv::stereoRectify(res.matrices_cameras[0], res.dcoefs[0],
-                    res.matrices_cameras[1], res.dcoefs[1],
-                    dim_img, res.R, res.T,
-                    res.rectif_R[0], res.rectif_R[1],
-                    res.rectif_P[0], res.rectif_P[1],
-                    res.Q,
+  cv::stereoRectify(stereo_cal.matrices_cameras[0], stereo_cal.dcoefs[0],
+      stereo_cal.matrices_cameras[1], stereo_cal.dcoefs[1],
+                    dim_img, stereo_cal.R, stereo_cal.T,
+                    stereo_cal.rectif_R[0], stereo_cal.rectif_R[1],
+                    stereo_cal.rectif_P[0], stereo_cal.rectif_P[1],
+                    stereo_cal.Q,
                     CALIB_ZERO_DISPARITY,
                     1 // 0 : Seulement les pixels valides sont visibles,
                       // 1 : tous les pixels (y compris noirs) sont visibles
@@ -191,15 +256,15 @@ int StereoCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   // Calcul des LUT pour la rectification de caméra
   for(auto k = 0u; k < 2; k++)
-    cv::initUndistortRectifyMap(res.matrices_cameras[k], res.dcoefs[k],
-                                res.rectif_R[k], res.rectif_P[k],
+    cv::initUndistortRectifyMap(stereo_cal.matrices_cameras[k], stereo_cal.dcoefs[k],
+        stereo_cal.rectif_R[k], stereo_cal.rectif_P[k],
                                 dim_img, CV_32FC2, //CV_16SC2,
-                                res.rmap[k][0], res.rmap[k][1]);
+                                stereo_cal.rmap[k][0], stereo_cal.rmap[k][1]);
 
   // A FAIRE:
   // - Vérifier qualité de la calibration
 
-  res.valide = true;
+  stereo_cal.valide = true;
   return 0;
 }
 
@@ -217,7 +282,7 @@ int RectificationDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outpu
   output.names[0] = "Image 1";
   output.names[1] = "Image 2";
 
-  if(!StereoCalDemo::res.valide)
+  if(!stereo_cal.valide)
   {
     output.errmsg = langue.get_item("pas-de-cal-stereo");
     return -1;
@@ -227,8 +292,8 @@ int RectificationDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outpu
   {
     journal.verbose("Rectification image %d...", i);
     cv::remap(input.images[i], output.images[i],
-              StereoCalDemo::res.rmap[i][0],
-              StereoCalDemo::res.rmap[i][1],
+        stereo_cal.rmap[i][0],
+        stereo_cal.rmap[i][1],
               CV_INTER_LINEAR);
     journal.verbose("img rect: %d * %d.",
                     output.images[i].cols,
