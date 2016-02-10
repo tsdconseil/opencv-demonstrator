@@ -692,9 +692,9 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 <node name="camera"/>
 
 <node name="skeleton">
- <description lang="en"> <i>Don't mind this too much !</i> The<b> Skeleoton Demo</b> is here as a guide for new demonstrations </description>
- <description lang="fr"> <i>Ne me dérange pas ce trop ! </i>  Le<b> Skeleoton Demo </b> est ici comme un guide pour de nouvelles manifestations  </description>
- <description lang="ru"> <i>Не против этого слишком много ! </i>  <b>  Skeleoton Демо </b>здесь в качестве руководства для новых демонстраций   </description>
+ <description lang="en"> <i>Don't mind this too much !</i> The<b> Skeleton Demo</b> is here as a guide for new demonstrations </description>
+ <description lang="fr"> <i>Ne me dérange pas ce trop ! </i>  Le<b> Skeleton Demo </b> est ici comme un guide pour de nouvelles manifestations  </description>
+ <description lang="ru"> <i>Не против этого слишком много ! </i>  <b>Скелет Демо </b>здесь в качестве руководства для новых демонстраций   </description>
 </node>  
 
 <node name="gabor">

@@ -395,7 +395,7 @@
        <demo name = "skeleton"
              fr   = "le demo squelette "
              en   = "Skeleton demo"
-             ru   = "Скелет демона">
+             ru   = "Скелет Демо">
              <!--Image your demo will use is indicated on the next line -->       
              <img path="data/img/key.png"/>
        </demo>
