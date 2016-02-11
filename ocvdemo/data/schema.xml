@@ -133,22 +133,22 @@
   </node>
   
   <node name = "ma" fr="MA">
-    <attribute name="ksize" fr="Largeur / hauteur du noyau" unit="pixels" en="Kernel size (pixels)" type="int" min="1" max="100" default="3"/>
+    <attribute name="taille-noyau" fr="Largeur / hauteur du noyau" unit="pixels" en="Kernel size (pixels)" type="int" min="1" max="100" default="3"/>
   </node>
   
   <node name = "gaussian" fr="Gaussien">
   
-    <attribute name="ksize" fr="Largeur / hauteur du noyau" unit="pixels" en="Kernel size (pixels)" type="int" min="1" max="9" default="3"/>
+    <attribute name="taille-noyau" fr="Largeur / hauteur du noyau" unit="pixels" en="Kernel size (pixels)" type="int" min="1" max="9" default="3"/>
     <attribute name="sigma" fr="Ecart-type" type="float" default="0"/>
   
   </node>
   
   <node name = "median">
-    <attribute name="ksize" fr="Largeur / hauteur du noyau" unit="pixels" en="Kernel size (pixels)" type="int" min="1" max="15" default="3"/>
+    <attribute name="taille-noyau" fr="Largeur / hauteur du noyau" unit="pixels" en="Kernel size (pixels)" type="int" min="1" max="15" default="3"/>
   </node>
   
   <node name = "bilateral">
-     <attribute name="ksize" fr="Taille du noyau" unit="pixels" en="Kernel size (pixels)" 
+     <attribute name="taille-noyau" fr="Taille du noyau" unit="pixels" en="Kernel size (pixels)" 
       type="int" min="1" max="20" default="10"/>
      <attribute name="sigma-color" fr="Ecart-type couleur" en="Standard deviation (color)" type="float" default="100"/>
      <attribute name="sigma-space" fr="Ecart-type espace" en="Standard deviation (space)" type="float" default="20"/>
@@ -698,7 +698,7 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 </node>  
 
 <node name="gabor">
-	<attribute name="ksize" fr="Taille du noyau" en="Kernel size" type="int" min="0" signed="false" default="31"/>
+	<attribute name="taille-noyau" fr="Taille du noyau" en="Kernel size" type="int" min="0" signed="false" default="31"/>
 	<attribute name="sigma"  type="float" min="0" signed="false" default="5"/>
 	<attribute name="theta"  fr="Angle theta" en="Theta angle" type="float" min="0" signed="false" default="0"/>
 	<attribute name="lambda" type="float" min="0" signed="false" default="8"/>

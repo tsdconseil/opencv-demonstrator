@@ -22,7 +22,7 @@
  **/
 
 #include "ocvdemo.hpp"
-#include "demo-items/filter-demo.hpp"
+#include "demo-items/filtrage.hpp"
 #include "demo-items/morpho-demo.hpp"
 #include "demo-items/gradient-demo.hpp"
 #include "demo-items/photographie.hpp"
@@ -38,7 +38,7 @@
 
 void OCVDemo::add_demos()
 {
-  add_demo(new GaborDemo());
+  add_demo(new DemoFiltreGabor());
   add_demo(new CameraDemo());
   add_demo(new RectificationDemo());
   add_demo(new StereoCalDemo());
@@ -54,7 +54,7 @@ void OCVDemo::add_demos()
   add_demo(new PanoDemo());
   add_demo(new WShedDemo());
   add_demo(new SousArrierePlanDemo());
-  add_demo(new FilterDemo());
+  add_demo(new DemoFiltrage());
   add_demo(new HSVDemo());
   add_demo(new MorphoDemo());
   add_demo(new CannyDemo());

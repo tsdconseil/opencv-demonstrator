@@ -1,4 +1,4 @@
-/** @file filter-demo.hpp
+/** @file filtrage.hpp
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
 
@@ -20,65 +20,68 @@
     along with OCVDemo.  If not, see <http://www.gnu.org/licenses/>.
  **/
 
-#ifndef FILTER_DEMO_HPP
-#define FILTER_DEMO_HPP
+#ifndef FILTRAGE_DEMO_HPP
+#define FILTRAGE_DEMO_HPP
 
 #include "ocvdemo-item.hpp"
 
-struct FilterDemoConfig
+/** Configuration filtrage */
+struct DemoFiltrageConfig
 {
-  bool has_wn;
-  float sigma_wn;
-  bool has_sp;
-  float sigma_sp;
-  float p_sp;
+  bool bruit_blanc_actif;
+  float sigma_bb;
+  bool poivre_et_sel_actif;
+  float sigma_ps;
+  float p_ps;
+
   typedef enum
   {
-    FILTER_MA         = 0,
-    FILTER_GAUSSIAN   = 1,
-    FILTER_MEDIAN     = 2,
-    FILTER_BILATERAL  = 3
-  } filter_t;
-  filter_t filter_type;
+    FILTRE_MA         = 0,
+    FILTRE_GAUSSIEN   = 1,
+    FILTRE_MEDIAN     = 2,
+    FILTRE_BILATERAL  = 3
+  } filtre_t;
+
+  filtre_t type_filtre;
 
   struct
   {
-    int ksize;
+    int taille_noyau;
   } ma;
 
   struct
   {
-    int ksize;
+    int taille_noyau;
     float sigma;
-  } gaussian;
+  } gaussien;
 
   struct
   {
-    int ksize;
+    int taille_noyau;
   } median;
 
   struct
   {
-    int ksize;
-    float sigma_color, sigma_space;
+    int taille_noyau;
+    float sigma_couleur, sigma_espace;
   } bilateral;
 
 };
 
 
-class FilterDemo: public OCVDemoItem
+class DemoFiltrage: public OCVDemoItem
 {
 public:
-  FilterDemo();
+  DemoFiltrage();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 private:
-  int proceed(const FilterDemoConfig &conf, cv::Mat &I, OCVDemoItemOutput &output);
+  int proceed(const DemoFiltrageConfig &conf, cv::Mat &I, OCVDemoItemOutput &output);
 };
 
-class GaborDemo: public OCVDemoItem
+class DemoFiltreGabor: public OCVDemoItem
 {
 public:
-  GaborDemo();
+  DemoFiltreGabor();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
