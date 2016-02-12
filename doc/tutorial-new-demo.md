@@ -11,7 +11,7 @@ You will definitely need to be able compile from source to add a new demonstrati
 
 This XML file is organized as a list of **categories** (XML node `cat`), where each categories correspond to a folder in the demonstrator selection tree, and can contain other sub-categories or demonstration items (XML node `demo`).
 
-So if a revelant category already exists in the model, please add your demonstration there. Otherwise, you can create your own category. A category is described by its identifier (short name), and a short, localized, label (please provide at least french and english translation). For instance, the *basic image processing* category is defined as:
+So if a relevant category already exists in the model, please add your demonstration there. Otherwise, you can create your own category. A category is described by its identifier (short name), and a short, localized, label (please provide at least French and English translation). For instance, the *basic image processing* category is defined as:
 
 ```
 <cat name = "basic"
@@ -23,7 +23,7 @@ So if a revelant category already exists in the model, please add your demonstra
 </cat>
 ```
 
-A demonstration item is a XML node of type `demo`, and with the same attributes as a category (name identifier and localized labels), and with optional additionnal attributes and sub-nodes. An example of supported sub-node is the `img` sub-node (with field `path`) to specify the default input image(s) to be used for this demonstration (if no `img` sub-node is specified, a Lena image is used by default). 
+A demonstration item is a XML node of type `demo`, and with the same attributes as a category (name identifier and localized labels), and with optional additional attributes and sub-nodes. An example of supported sub-node is the `img` sub-node (with field `path`) to specify the default input image(s) to be used for this demonstration (if no `img` sub-node is specified, a Lena image is used by default). 
 
 For instance, to create a demonstration of id `dummy`, using the `data/img/box.png` file as default input image:
 
@@ -48,7 +48,7 @@ Note: replace `dummy` by the identifier (`name` attribute) that you had used in 
 
 ## Step 3: Implementing your demonstration
 
-- Copy and rename in place the file `ocvdemo/include/demo-items/demo-skeleton.hpp' as `ocvdemo/include/demo-items/mydemo.hpp', where `mydemo` is the name of your demonstration (without capital letters).  
+- Copy and rename in place the file `ocvdemo/include/demo-items/demo-skeleton.hpp` as `ocvdemo/include/demo-items/mydemo.hpp`, where `mydemo` is the name of your demonstration (without capital letters).  
 - Edit your new copy of `mydemo.hpp` to change the first line `/** @file demo-skeleton.hpp` to `/** @file mydemo.hpp`  and every instance of `skeleton` to `my` matching case and save.
 
 
@@ -64,5 +64,7 @@ In the source file `ocvdemo/src/demos-registration.cc`, add an `#include `mydemo
 Then add a line ` items.push_back(new MyDemo());` for your demonstration class.
 
 ## Step 6: Rebuilding and checking
-Rebuild the project (type `make` in the folder `ocvdemo`), and run the executable to check that your demonstration works correctly.
+Rebuild the project in top level folder of opencv-demomstration (type `make clean` followed with `make limix` or `make windows` depending on your platform, and run the executable to check that your demonstration works correctly.
 
+## Step 7 Optional Feedback
+Please help us identify and fix rough spots in this tutorial by opening an issue or making edits and making a pull request.
