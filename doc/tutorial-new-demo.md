@@ -48,7 +48,7 @@ Note: replace `dummy` by the identifier (`name` attribute) that you had used in 
 
 ## Step 3: Implementing your demonstration
 
-- Copy and rename in place the file `ocvdemo/include/demo-items/demo-skeleton.hpp' as `ocvdemo/include/demo-items/mydemo.hpp', where `mydemo` is the name of your demonstration (without capital letters).  
+- Copy and rename in place the file `ocvdemo/include/demo-items/demo-skeleton.hpp` as `ocvdemo/include/demo-items/mydemo.hpp`, where `mydemo` is the name of your demonstration (without capital letters).  
 - Edit your new copy of `mydemo.hpp` to change the first line `/** @file demo-skeleton.hpp` to `/** @file mydemo.hpp`  and every instance of `skeleton` to `my` matching case and save.
 
 
@@ -64,7 +64,7 @@ In the source file `ocvdemo/src/demos-registration.cc`, add an `#include `mydemo
 Then add a line ` items.push_back(new MyDemo());` for your demonstration class.
 
 ## Step 6: Rebuilding and checking
-Rebuild the project (type `make` in the folder `ocvdemo`), and run the executable to check that your demonstration works correctly.
+Rebuild the project in top level folder of opencv-demomstration (type `make clean` followed with `make limix` or `make windows` depending on your platform, and run the executable to check that your demonstration works correctly.
 
 ## Step 7 Optional Feedback
 Please help us identify and fix rough spots in this tutorial by opening an issue or making edits and making a pull request.
