@@ -415,7 +415,10 @@ CascGenDemo::CascGenDemo(std::string id): rng(12345)
     return;
   }
 
-  output.nout = 0;
+
+  // I do not know if this is correct but setting nout to 1 seems to do the right thing.
+  //output.nout = 0;
+  output.nout = 1;
 
   unsigned int i = 0;
   for(auto cname: cnames)

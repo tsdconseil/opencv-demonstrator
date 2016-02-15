@@ -299,7 +299,11 @@ void OCVDemo::update()
   lst.push_back(Ia);
   unsigned int img_count = demo_en_cours->output.nout;
 
-  if(demo_en_cours->output.images[img_count - 1 ].data == nullptr)
+// FIXME: if img_count is ever 0 the next line seg faults.
+// That is why several of the reco-demos have been failing.
+// I don't know what the correct thing to do here.
+
+if(demo_en_cours->output.images[img_count - 1 ].data == nullptr)
   {
     img_count = 0;
     journal.warning("Img count = %d, et image de sortie non initialisée.", img_count);
