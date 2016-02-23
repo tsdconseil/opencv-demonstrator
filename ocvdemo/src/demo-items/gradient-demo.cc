@@ -168,24 +168,27 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   cvtColor(tmp,tmp,CV_BGR2GRAY);
   if(sel2 == 0)
   {
-    Sobel(tmp,gx,CV_16S,1,0,3,1,0);
-    Sobel(tmp,gy,CV_16S,0,1,3,1,0);
+    Sobel(tmp,gx,CV_32F,1,0,3,1,0);
+    Sobel(tmp,gy,CV_32F,0,1,3,1,0);
   }
   else
   {
-    Scharr(tmp,gx,CV_16S,1,0);
-    Scharr(tmp,gy,CV_16S,0,1);
+    Scharr(tmp,gx,CV_32F,1,0);
+    Scharr(tmp,gy,CV_32F,0,1);
   }
-  convertScaleAbs(gx,agx);
-  convertScaleAbs(gy,agy);
   if(sel == 0)
   {
     output.nout = 1;
-    addWeighted(agx, .5, agy, .5, 0, output.images[0]);
+    cv::Mat mag, angle;
+    cv::cartToPolar(gx, gy, mag, angle);
+    //addWeighted(agx, .5, agy, .5, 0, output.images[0]);
+    cv::normalize(mag, output.images[0], 0, 255, cv::NORM_MINMAX);
     output.names[0] = langue.get_item("gabs");
   }
   else
   {
+    convertScaleAbs(gx,agx);
+    convertScaleAbs(gy,agy);
     output.nout = 2;
     output.images[0] = agx;
     output.images[1] = agy;
