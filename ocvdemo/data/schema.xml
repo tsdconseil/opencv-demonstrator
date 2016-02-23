@@ -308,26 +308,7 @@ It can be helpful to locate similar (of the same hue) objects on an image, or to
     <attribute name="taille-bloc" fr="Taille de bloc" en="Block size" type="int" size="2" default="50" min="3" max="1000"/>
   </node>
   
-  <node name = "canny">
-<description lang="fr">L'algorithme de Canny est une méthode en plusieurs étapes pour déterminer les points de contour dans une image. Elle est fondée sur le calcul du gradient de l'image, de la sélection des maxima locaux du gradient suivant sa direction, et enfin d'un seuillage avec hystérésis pour supprimer les faux positifs isolés.</description>
 
-<description lang="en">The Canny algorithm is a multi-steps method to localize the contour points in an image. It is based on the gradient of an image, the selection of local maxima of the gradient magnitude in the direction of the gradient, and finally a thresholding with histerys to suppress false positives (isolated contour points).</description>
-
-      <attribute name="seuil-bas" fr="Seuil bas" en="Low threshold" size="2" default="50">
-        <description lang="fr">Valeur basse pour le processus de seuillage avec histeresis.</description>
-        <description lang="fr">Lower value for the process of thresholding with histeresis.</description>
-      </attribute>
-      <attribute name="seuil-haut" fr="Seuil haut" en="High threshold" size="2" default="150">
-        <description lang="fr">Valeure haute pour le processus de seuillage avec histeresis.</description>
-        <description lang="fr">Higher value for the process of thresholding with histeresis.</description>
-      </attribute>
-      <attribute name="norme" fr="Type de norme" en="Norm type" min="0" max="1" default="1">
-        <description lang="fr">La norme L2 est la norme euclidienne et la plus précise. La norme L1 est plus rapide à calculer.</description>
-        <description lang="fr">The L2 norm (euclidian) is the most accurate. The L1 norm is faster to compute.</description>
-        <match value="0" name="0" fr="Norme L1" en="L1 norm"/>
-        <match value="1" name="1" fr="Norme L2" en="L2 norm"/>
-      </attribute>
-  </node>
         
   <node name = "hough">
 <description lang="fr">La transformée de Hough est une méthode robuste pour détecter des lignes ou des segments dans une image. L'implémentation dans OpenCV fait appel à l'algorithme de Canny pour déterminer les points de contour. De ce fait, il y a deux seuils à régler.
@@ -618,17 +599,32 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
    	<description lang="en">You can add points (by clicking with the mouse) on one of the image, then corresponing epilines are plotted on the other image.</description>
   </node>
   
-  <node name="contours">
-    <description lang="fr">Cet exemple permet de tester l'algorithme de séparation des contours, c'est-à-dire la fonction findContours() de OpenCV. En entrée, cette fonction prends un masque de contour (typiquement la sortie de l'algorithme de Canny), et détermine les contours des différents objets présents sur l'image.</description>
-    <description lang="en">This example enable to test the contour separation algorithm, that is the function findContours() of OpenCV. As input, this function takes a contour mask (typicaly the output of the Canny() function), and computes the contours of the different objects in the image.</description>
-    
-      <attribute name="seuil-bas" fr="Seuil bas" en="Low threshold" size="2" default="50">
-        <description lang="fr">Valeur basse pour le processus de seuillage avec histeresis.</description>
-        <description lang="en">Lower value for the process of thresholding with histeresis.</description>
+    <node name = "canny">
+<description lang="fr">L'algorithme de Canny est une méthode en plusieurs étapes pour déterminer les points de contour dans une image. Elle est fondée sur le calcul du gradient de l'image, de la sélection des maxima locaux du gradient suivant sa direction, et enfin d'un seuillage avec hystérésis pour supprimer les faux positifs isolés.</description>
+
+<description lang="en">The Canny algorithm is a multi-steps method to localize the contour points in an image. It is based on the gradient of an image, the selection of local maxima of the gradient magnitude in the direction of the gradient, and finally a thresholding with histerys to suppress false positives (isolated contour points).</description>
+
+      <attribute name="prefiltrage" fr="Pré-filtrage" en="Pre-filtering" type="boolean" default="false">
+        <description lang="fr">Active le préfiltrage (moyenne mobile) de l'image avant algorithme de Canny.</description>
+        <description lang="en">Enable image prefiltering (moving average) before Canny algorithm.</description>
+      </attribute>      
+
+      <attribute name="taille-noyau" fr="Dimension du noyau (Canny)" en="Canny kernel dimension" default="3" min="3">
       </attribute>
-      <attribute name="seuil-haut" fr="Seuil haut" en="High threshold" size="2" default="150">
-        <description lang="fr">Valeur haute pour le processus de seuillage avec histeresis.</description>
-        <description lang="en">Higher value for the process of thresholding with histeresis.</description>
+      
+      <attribute name="seuil-methode" fr="Type de seuils" en="Thresholds type" min="0" max="1" default="1">
+        <match name="0" value="0" fr="Fixe" en="Fixed"/>
+        <match name="1" value="1" fr="Automatique" en="Automatic"/>
+        <description lang="fr">En mode automatique, les seuils sont calculés d'après la valeur moyenne des pixels et leur écart type.</description>
+      </attribute>
+
+      <attribute name="seuil-bas" fr="Seuil bas" en="Low threshold" size="2" default="50" require="seuil-methode=0">
+        <description lang="fr">Valeur basse pour le processus de seuillage avec histeresis.</description>
+        <description lang="fr">Lower value for the process of thresholding with histeresis.</description>
+      </attribute>
+      <attribute name="seuil-haut" fr="Seuil haut" en="High threshold" size="2" default="150" require="seuil-methode=0">
+        <description lang="fr">Valeure haute pour le processus de seuillage avec histeresis.</description>
+        <description lang="fr">Higher value for the process of thresholding with histeresis.</description>
       </attribute>
       <attribute name="norme" fr="Type de norme" en="Norm type" min="0" max="1" default="1">
         <description lang="fr">La norme L2 est la norme euclidienne et la plus précise. La norme L1 est plus rapide à calculer.</description>
@@ -636,16 +632,17 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
         <match value="0" name="0" fr="Norme L1" en="L1 norm"/>
         <match value="1" name="1" fr="Norme L2" en="L2 norm"/>
       </attribute>
-      
-      <attribute name="typcont" fr="Type de contours à trouver" en="Kind of contour to find" min="0" max="1">
-        <match value="0" name="0" fr="Contours externes" en="External contours"/>
-        <match value="1" name="1" fr="Tous les contours" en="All contours"/>
-      </attribute>
-      
-      <!--<attribute name="nlev" fr="Nombre de niveaux" en="Number of levels" default="3"/>-->
-    
-      
-    
+  </node>
+  
+  <node name="contours" inherits="canny">
+    <description lang="fr">Cet exemple permet de tester l'algorithme de séparation des contours, c'est-à-dire la fonction findContours() de OpenCV. En entrée, cette fonction prends un masque de contour (typiquement la sortie de l'algorithme de Canny), et détermine les contours des différents objets présents sur l'image.</description>
+    <description lang="en">This example enable to test the contour separation algorithm, that is the function findContours() of OpenCV. As input, this function takes a contour mask (typicaly the output of the Canny() function), and computes the contours of the different objects in the image.</description>
+          
+    <attribute name="typcont" fr="Type de contours à trouver" en="Kind of contour to find" min="0" max="1">
+      <match value="0" name="0" fr="Contours externes" en="External contours"/>
+      <match value="1" name="1" fr="Tous les contours" en="All contours"/>
+    </attribute>
+    <!--<attribute name="nlev" fr="Nombre de niveaux" en="Number of levels" default="3"/>-->
   </node>
   
 <node name="corner-match">

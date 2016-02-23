@@ -31,20 +31,48 @@ ContourDemo::ContourDemo()
   props.id = "contours";
 }
 
+
+int calcule_canny(const cv::Mat &I, cv::Mat &masque_canny,
+                  const utils::model::Node &modele)
+{
+  Mat tmp;
+  cvtColor(I, tmp, CV_BGR2GRAY);
+
+  int seuil_methode = modele.get_attribute_as_int("seuil-methode");
+  int seuil_bas     = modele.get_attribute_as_int("seuil-bas");
+  int seuil_haut    = modele.get_attribute_as_int("seuil-haut");
+  int norme         = modele.get_attribute_as_int("norme");
+  int taille_noyau  = modele.get_attribute_as_int("taille-noyau");
+  bool prefiltrage  = modele.get_attribute_as_boolean("prefiltrage");
+
+
+  if(prefiltrage)
+    blur(tmp, tmp, Size(3,3));
+
+  if(seuil_methode == 1)
+  {
+    cv::Scalar moyenne, sigma;
+    cv::meanStdDev(tmp, moyenne, sigma);
+    seuil_bas = moyenne[0] - sigma[0];
+    seuil_haut = moyenne[0] + sigma[0];
+  }
+
+  //journal.trace("Canny: seuils = %d, %d.", seuil_bas, seuil_haut);
+  if(taille_noyau < 3)
+    taille_noyau = 3;
+
+  if((taille_noyau & 1) == 0)
+    taille_noyau++;
+
+  Canny(tmp, masque_canny, seuil_bas, seuil_haut, taille_noyau, norme == 1);
+
+  return 0;
+}
+
 int ContourDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  Mat detected_edges;
-  int seuil_bas  = input.model.get_attribute_as_int("seuil-bas");
-  int seuil_haut = input.model.get_attribute_as_int("seuil-haut");
-  int norme      = input.model.get_attribute_as_int("norme");
-  int taille_noyau = 3;
-
-
-  cvtColor(input.images[0], output.images[0], CV_BGR2GRAY);
-
-  Mat tmp;
-  blur(output.images[0], tmp, Size(3,3));
-  Canny(tmp, detected_edges, seuil_bas, seuil_haut, taille_noyau, norme == 1);
+  Mat masque_canny;
+  calcule_canny(input.images[0], masque_canny, input.model);
 
   output.names[0] = "Canny";
   output.names[1] = "Contours";
@@ -59,7 +87,7 @@ int ContourDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   morphologyEx(detected_edges, detected_edges, MORPH_CLOSE, K);*/
 
-  output.images[0] = detected_edges;
+  output.images[0] = masque_canny;
 
   int type_contour = input.model.get_attribute_as_int("typcont");
 
@@ -69,7 +97,7 @@ int ContourDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   vector<vector<Point> > contours;
   vector<Vec4i> hierarchie;
-  findContours(detected_edges, contours,
+  findContours(masque_canny, contours,
                hierarchie,
                mode,
                CHAIN_APPROX_SIMPLE,
@@ -77,7 +105,7 @@ int ContourDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   RNG rng(12345);
   // Dessine les contours
-  Mat dessin = Mat::zeros(detected_edges.size(), CV_8UC3 );
+  Mat dessin = Mat::zeros(masque_canny.size(), CV_8UC3 );
   for(auto i = 0u; i < contours.size(); i++ )
   {
    Scalar couleur = Scalar(rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255));
@@ -202,22 +230,8 @@ CannyDemo::CannyDemo()
 
 int CannyDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  Mat detected_edges;
-  int seuil_bas  = input.model.get_attribute_as_int("seuil-bas");
-  int seuil_haut = input.model.get_attribute_as_int("seuil-haut");
-  int norme      = input.model.get_attribute_as_int("norme");
-  int taille_noyau = 3;
-  Mat tmp;
-  auto I = input.images[0];
-  cvtColor(I,tmp,CV_BGR2GRAY);
-  blur(tmp,tmp,Size(3,3));
-  Canny(tmp, detected_edges, seuil_bas, seuil_haut, taille_noyau, norme == 1);
-  /// Using Canny's output as a mask, we display our result
-  output.images[0].create(I.size(), I.type());
-  output.images[0] = Scalar::all(0);
-  I.copyTo(output.images[0], detected_edges);
+  calcule_canny(input.images[0], output.images[0], input.model);
   output.names[0] = "Contours";
-  
   return 0;
 } 
 
