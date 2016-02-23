@@ -37,76 +37,54 @@ int ContourDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   int seuil_bas  = input.model.get_attribute_as_int("seuil-bas");
   int seuil_haut = input.model.get_attribute_as_int("seuil-haut");
   int norme      = input.model.get_attribute_as_int("norme");
-  //int ratio = 3;
   int taille_noyau = 3;
+
+
+  cvtColor(input.images[0], output.images[0], CV_BGR2GRAY);
+
   Mat tmp;
-  auto I = input.images[0];
-  cvtColor(I,tmp,CV_BGR2GRAY);
-  output.images[0] = tmp;
-  I = tmp;
-  blur(tmp,tmp,Size(3,3));
+  blur(output.images[0], tmp, Size(3,3));
   Canny(tmp, detected_edges, seuil_bas, seuil_haut, taille_noyau, norme == 1);
-  /// Using Canny's output as a mask, we display our result
-  //out.images[1].create(I.size(), I.type());
-  //out.images[1] = Scalar::all(0);
-  //I.copyTo(O[0], detected_edges);
+
   output.names[0] = "Canny";
   output.names[1] = "Contours";
   output.nout = 2;
 
-  int kernel_width = 5;
+  /*int kernel_width = 5;
   int kernel_type = MORPH_RECT;
   Mat K = getStructuringElement(kernel_type,
                                       Size(2*kernel_width + 1, 2*kernel_width+1),
                                       Point(kernel_width, kernel_width));
 
 
-  //morphologyEx(detected_edges, detected_edges, MORPH_CLOSE, K);
+  morphologyEx(detected_edges, detected_edges, MORPH_CLOSE, K);*/
+
   output.images[0] = detected_edges;
 
-  int typCont = input.model.get_attribute_as_int("typcont");
+  int type_contour = input.model.get_attribute_as_int("typcont");
 
   int mode = RETR_EXTERNAL;
-
-  if(typCont == 1)
+  if(type_contour == 1)
     mode = RETR_TREE;
 
-  journal.trace("findcountours...");
-  vector<vector<Point> > contours0;
-  vector<Vec4i> hierarchy;
-  findContours(detected_edges, contours0,
-               hierarchy,
+  vector<vector<Point> > contours;
+  vector<Vec4i> hierarchie;
+  findContours(detected_edges, contours,
+               hierarchie,
                mode,
                CHAIN_APPROX_SIMPLE,
                Point(0,0));
-  journal.trace("ok.");
 
   RNG rng(12345);
-  /// Draw contours
-  Mat drawing = Mat::zeros(detected_edges.size(), CV_8UC3 );
-  for(auto i = 0u; i < contours0.size(); i++ )
+  // Dessine les contours
+  Mat dessin = Mat::zeros(detected_edges.size(), CV_8UC3 );
+  for(auto i = 0u; i < contours.size(); i++ )
   {
-   Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-   drawContours(drawing, contours0, i, color, 2, 8, hierarchy, 0, Point() );
+   Scalar couleur = Scalar(rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255));
+   drawContours(dessin, contours, i, couleur, 2, 8, hierarchie, 0, Point());
   }
 
-# if 0
-  vector<vector<Point> > contours;
-  contours.resize(contours0.size());
-  for(size_t k = 0; k < contours0.size(); k++)
-    cv::approxPolyDP(Mat(contours0[k]), contours[k], 3, true);
-
-  const int w = 500;
-  int nlev = model.get_attribute_as_int("nlev");
-  //int levels = 3;
-  Mat cnt_img = Mat::zeros(I.size(), CV_8UC3);
-  //int _levels = nlev - 3;
-  journal.trace("drawcountours...");
-  drawContours(cnt_img, contours, /*_levels <= 0 ? 3 : */-1, Scalar(128,255,255),
-                3, /*LINE_AA*/CV_AA, hierarchy, std::abs(nlev/*_levels*/) );
-  journal.trace("ok.");
-# endif
-  output.images[1] = drawing;
+  output.images[1] = dessin;
   return 0;
 }
 
