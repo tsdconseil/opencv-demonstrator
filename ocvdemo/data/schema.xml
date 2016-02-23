@@ -609,7 +609,7 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
         <description lang="en">Enable image prefiltering (moving average) before Canny algorithm.</description>
       </attribute>      
 
-      <attribute name="taille-noyau" fr="Dimension du noyau (Canny)" en="Canny kernel dimension" default="3" min="3">
+      <attribute name="taille-noyau" fr="Dimension du noyau (Canny)" en="Canny kernel dimension" default="3" min="3" max="7">
       </attribute>
       
       <attribute name="seuil-methode" fr="Type de seuils" en="Thresholds type" min="0" max="1" default="1">
