@@ -898,11 +898,6 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
     s = this->export_html(Localized::Language::LANG_RU);
     utils::files::save_txt_file("../../../site/contenu/opencv/ocvdemo/table-ru.html", s);
 
-    if(cmdeline.has_option("-c"))
-    {
-      journal.trace_major("Export des captures d'écran...");
-      export_captures();
-    }
   }
 
 
@@ -929,6 +924,13 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 
   utils::hal::thread_start(this, &OCVDemo::thread_calcul);
   utils::hal::thread_start(this, &OCVDemo::thread_video);
+
+  //moved "-c" from above to here so it runs after thread_calcul has been started.
+  if(cmdeline.has_option("-c"))
+  {
+    journal.trace_major("Export des captures d'écran...");
+    export_captures();
+  }
 
   //gtk_dispatcher = new utils::mmi::GtkDispatcher<cv::Mat>;
   gtk_dispatcher.add_listener(this, &OCVDemo::on_video_image);
