@@ -190,7 +190,6 @@
       <demo name = "casc-yeux"
             fr   = "Yeux"
             en   = "Eye detector">
-        <img path = "data/img/7seau3.jpg"/>
       </demo>
 
       <demo name = "casc-plate"
