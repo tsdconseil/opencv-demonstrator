@@ -70,11 +70,6 @@ void ImageSelecteur::maj_actif()
 
 }
 
-void ImageSelecteur::maj_taille()
-{
-  maj_mosaique();
-}
-
 void ImageSelecteur::maj_selection()
 {
   auto n = images.size();
@@ -88,6 +83,16 @@ void ImageSelecteur::maj_selection()
         cv::Rect(im.px - 3, im.py - 3, img_width + 3, img_height + 3),
                  color, 3);
   }
+ 
+  pixbuf = Gdk::Pixbuf::create_from_data(bigmat.data,
+                                         Gdk::Colorspace::COLORSPACE_RGB,
+                                         false,
+                                         8,
+                                         bigmat.cols,
+                                         bigmat.rows,
+                                         3 * bigmat.cols);
+  gtk_image.set(pixbuf);
+                       
   journal.verbose("reshow...");
   //this->gtk_image.show();
   gtk_image.queue_draw();
@@ -198,7 +203,7 @@ void ImageSelecteur::maj_mosaique()
 
 void ImageSelecteur::on_size_change(Gtk::Allocation &alloc)
 {
-  maj_taille();
+  maj_mosaique();
 }
 
 ImageSelecteur::ImageSelecteur()
@@ -217,7 +222,7 @@ ImageSelecteur::ImageSelecteur()
 
   csel = -1;
 
-  maj_taille();
+  maj_mosaique();
 
   toolbar.add(b_open);
   toolbar.add(b_ajout);
@@ -482,26 +487,6 @@ std::string ImageSelecteur::media_open_dialog(utils::model::Node mod)
   title = utils::langue.get_item("wiz0-title");
   description = utils::langue.get_item("wiz0-desc");*/
 
-# if 0
-  std::string s, title = utils::langue.get_item("title-open");
-
-  Gtk::FileChooserDialog dialog(title, Gtk::FILE_CHOOSER_ACTION_OPEN);
-  dialog.set_position(Gtk::WIN_POS_CENTER_ALWAYS);
-  dialog.set_transient_for(*this);
-  dialog.set_modal(true);
-  //Add response buttons the the dialog:
-  dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-  dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
-
-  //Show the dialog and wait for a user response:
-  int result = dialog.run();
-
-  //Handle the response:
-  if(result != Gtk::RESPONSE_OK)
-    return "";
-
-  return dialog.get_filename();
-# endif
 }
 
 void ImageSelecteur::on_b_add()

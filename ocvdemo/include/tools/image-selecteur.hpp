@@ -76,7 +76,7 @@ private:
   bool on_b_pressed(GdkEventButton *event);
   bool on_b_released(GdkEventButton *event);
   bool on_k_released(GdkEventKey *event);
-  void maj_taille(); // Obsolete
+
   void on_b_open();
   void on_b_add();
   void on_b_del();
