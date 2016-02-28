@@ -102,8 +102,9 @@ SousArrierePlanDemo::SousArrierePlanDemo()
 {
   props.id  = "sous-arriere-plan";
   nframes = 0;
-  output.nout = 2;
+  output.nout = 3;
   output.names[0] = "masque";
+  output.names[2] = "arriere-plan";
   osel = -1;
   //this->mog2 = createBackgroundSubtractorMOG2();
 }
@@ -134,20 +135,23 @@ int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &out
 
   resize(I,tmp,Size(0,0),0.25,0.25);
 
-  //if(sel == 0)
-    //mog(tmp, mask);
-  //else
-  //  mog2(tmp, mask);
-  journal.trace("MOG...");
+
+
   algo->apply(tmp, mask);
-  journal.trace("ok.");
+
+  algo->getBackgroundImage(output.images[2]);
+
+
   resize(mask,output.images[1],Size(0,0),4,4);
+
+
 
   nframes++;
 
   if(nframes < 5)
   {
     output.images[1] = I.clone();
+    output.images[2] = I.clone();
     return 0;
   }
 
