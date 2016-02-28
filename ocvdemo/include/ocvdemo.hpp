@@ -265,6 +265,9 @@ private:
     signal_image_video_traitee,
     signal_video_suspendue;
 
+  // Levé quand au moins une trame vidéo à fini d'être traitée
+  utils::hal::Signal signal_une_trame_traitee;
+
   bool ignore_refresh;
 };
 

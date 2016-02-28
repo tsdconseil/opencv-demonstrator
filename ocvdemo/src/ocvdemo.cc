@@ -129,10 +129,12 @@ void OCVDemo::thread_video()
     tmp.resize(video_captures.size());
 
     mutex_video.lock();
-    journal.verbose("[tvideo] lecture trame...");
+
     for(auto i = 0u; i < video_captures.size(); i++)
     {
+      journal.verbose("[tvideo] lecture trame video[%d]...", i);
       video_captures[i] >> tmp[i];
+      journal.verbose("[tvideo] ok.");
 
       if(tmp[i].empty())
       {
@@ -159,8 +161,19 @@ void OCVDemo::thread_video()
       continue;
     }
 
+    journal.verbose("gtk dispatcher...");
     gtk_dispatcher.on_event(tmp);
-    signal_image_video_traitee.wait();
+
+    // Pour éviter le deadlock, attends soit que :
+    //  - fin de traitement
+    //  - ou demande d'arrêt de la vidéo
+    for(;;)
+    {
+      if(signal_image_video_traitee.wait(10) == 0)
+        break;
+      if(video_stop)
+        break;
+    }
   }
 }
 
@@ -168,6 +181,7 @@ int OCVDemo::on_video_image(const std::vector<cv::Mat> &tmp)
 {
   // Récupération d'une trame vidéo (mais ici on est dans le thread GTK)
   // (Recovery of a video frame (but here we are in the GTK thread))
+  journal.verbose("on_video_image...");
   if(demo_en_cours != nullptr)
   {
     I0 = tmp[0];
@@ -348,6 +362,7 @@ if(demo_en_cours->output.images[img_count - 1 ].data == nullptr)
   journal.verbose("Liberation mutex_update...");
   mutex_update.unlock();
 
+  signal_une_trame_traitee.raise();
   cv::waitKey(10); // Encore nécessaire à cause de la fenêtre OpenCV
 }
 
@@ -494,56 +509,6 @@ void OCVDemo::maj_entree()
   else
     update();
 
-# if 0
-  if(img_selecteur.has_video())
-  {
-    std::vector<std::string> vlist;
-    img_selecteur.get_video_list(vlist);
-
-    video_captures.push_back(cv::VideoCapture());
-
-    // TODO: manage more than one video file
-    journal.trace("Ouverture fichier video [%s]...", vlist[0].c_str());
-
-    int res;
-
-    //for(auto i = 0u; i < vlist.size(); i++)
-
-    // TODO: hack to clean up
-    if(vlist[0].size() == 1)
-      res = video_captures[0].open(((int) vlist[0][0]) - '0');
-    else
-      res = video_captures[0].open(vlist[0]);
-
-    if(!res)
-    {
-      utils::mmi::dialogs::show_error(langue.get_item("ech-vid-tit"),
-          langue.get_item("ech-vid-sd"),
-          langue.get_item("ech-vid-d") + "\n" + vlist[0]);
-      mutex_video.unlock();
-      return;
-    }
-    video_fp = vlist[0];
-    entree_video = true;
-    video_captures[0] >> I0; // TODO: à supprimer
-    mutex_video.unlock();
-    signal_video_demarre.raise();
-  }
-  else
-  {
-    mutex_video.unlock();
-    this->img_selecteur.get_list(demo_en_cours->input.images);
-    I0 = demo_en_cours->input.images[0].clone();
-    if(I0.data == nullptr)
-    {
-      utils::mmi::dialogs::show_error("Erreur",
-          "Impossible de charger l'image", "");
-      destroyWindow(titre_principal);
-      mosaique.callback_init_ok = false;
-    }
-    update();
-  }
-# endif
   maj_bts();
 }
 
@@ -925,15 +890,16 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   utils::hal::thread_start(this, &OCVDemo::thread_calcul);
   utils::hal::thread_start(this, &OCVDemo::thread_video);
 
-  //moved "-c" from above to here so it runs after thread_calcul has been started.
+  gtk_dispatcher.add_listener(this, &OCVDemo::on_video_image);
+
+  // Moved "-c" from above to here so it runs after thread_calcul has been started.
   if(cmdeline.has_option("-c"))
   {
     journal.trace_major("Export des captures d'écran...");
     export_captures();
+    journal.trace_major("Toutes les captures ont été exportées.");
+    exit(0);
   }
-
-  //gtk_dispatcher = new utils::mmi::GtkDispatcher<cv::Mat>;
-  gtk_dispatcher.add_listener(this, &OCVDemo::on_video_image);
 
   Gtk::Main::run(wnd);
 }

@@ -103,18 +103,36 @@ void OCVDemo::export_captures(utils::model::Node &cat)
     auto demo = cat.get_child_at("demo", i);
     auto id = demo.get_attribute_as_string("name");
 
+    // Quelques démo requièrent une caméra pour fonctionner
+    if(!demo.get_attribute_as_boolean("export"))
+      continue;
+
     journal.trace_major("Export démo [%s]...", id.c_str());
 
-    setup_demo(demo);
+    // Arrête tout
+    setup_demo(tdm.get_child_at("cat", 0));
+    signal_une_trame_traitee.clear();
 
-    std::string s = "../../../site/data/log/opencv/demo/list/imgs/";
+    // Démarre nouvelle démo
+    setup_demo(demo);
+    journal.trace("Attente fin traitement...");
+
+    // Il n'y a qu'un seul thread GTK => doit laisser la main
+    // aux autres tâches
+    //signal_une_trame_traitee.wait(); => non car bloquant pour GTK
+    while(!signal_une_trame_traitee.is_raised())
+    {
+      if(Gtk::Main::events_pending())
+        Gtk::Main::iteration();
+    }
+
+    journal.trace("Fin traitement ok.");
+
+    std::string s = "../../site/data/log/opencv/demo/list/imgs/";
 
     s += id + ".jpg";
 
-    Mat A = get_current_output();
-
-
-    A = mosaique.get_global_img();
+    Mat A = mosaique.get_global_img();
 
     if(A.data == nullptr)
     {
@@ -127,6 +145,8 @@ void OCVDemo::export_captures(utils::model::Node &cat)
 
     journal.verbose("taille finale = %d * %d.", A.cols, A.rows);
     imwrite(s, A);
+    if(!utils::files::file_exists(s))
+      journal.warning("Echec lors de la sauvegarde du fichier.");
   }
 }
 

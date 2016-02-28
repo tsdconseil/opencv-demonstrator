@@ -74,6 +74,7 @@
     <sub type="o"/>
     <attribute name="needs-mosaic" type="bool" default="false"/>
     <sub type="img"/>
+    <attribute name="export" type="boolean" default="true"/>
   </node>
   
   <node name="img">

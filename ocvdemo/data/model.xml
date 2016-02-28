@@ -315,7 +315,8 @@
 	    
 	    <demo name = "stereo-cal-live"
 	          fr   = "Calibration stéréo (d'après caméras)"
-	          en   = "Stereo calibration (from cameras)">
+	          en   = "Stereo calibration (from cameras)"
+	          export = "false">
 	       <img path = "0"/>
 	       <img path = "1"/>
 	    </demo>
@@ -368,7 +369,8 @@
        en   = "Miscelaenous">
     <demo name = "camera"
           fr   = "Capture caméra"
-          en   = "Camera capture">
+          en   = "Camera capture"
+          export = "false">
           <img path="0"/>
           <img path="1"/>
     </demo>
