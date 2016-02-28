@@ -39,7 +39,10 @@ int InpaintDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   if(input.mask.data != nullptr)
     cv::inpaint(I, input.mask, output.images[1], 3, CV_INPAINT_TELEA);
   else
+  {
+    journal.trace("Le masque n'est pas défini.");
     output.images[1] = I.clone();
+  }
   return 0;
 }
 

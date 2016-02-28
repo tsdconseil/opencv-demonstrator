@@ -73,21 +73,26 @@ void OCVDemo::on_event(const OCVMouseEvent &me)
         rdi1.y = me.y;
         compute_Ia();
         etat_souris = 0;
-        if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_roi))
+        if(demo_en_cours != nullptr)
         {
-          int minx = min(rdi0.x, rdi1.x);
-          int miny = min(rdi0.y, rdi1.y);
-          int maxx = max(rdi0.x, rdi1.x);
-          int maxy = max(rdi0.y, rdi1.y);
-          Rect rdi(minx, miny, maxx - minx, maxy - miny);
-          journal.trace_major("Set rdi(%d,%d,%d,%d).",
-                              rdi.x, rdi.y, rdi.width, rdi.height);
-          demo_en_cours->set_roi(I0, rdi);
-          update();
-        }
-        else if(demo_en_cours != nullptr)
-        {
-          demo_en_cours->on_mouse(me.x, me.y, me.event, me.image);
+          if(demo_en_cours->props.requiert_roi)
+          {
+            int minx = min(rdi0.x, rdi1.x);
+            int miny = min(rdi0.y, rdi1.y);
+            int maxx = max(rdi0.x, rdi1.x);
+            int maxy = max(rdi0.y, rdi1.y);
+            Rect rdi(minx, miny, maxx - minx, maxy - miny);
+            journal.trace_major("Set rdi(%d,%d,%d,%d).",
+                                rdi.x, rdi.y, rdi.width, rdi.height);
+            demo_en_cours->set_roi(I0, rdi);
+            update();
+          }
+          else if(demo_en_cours->props.requiert_masque)
+          {
+            update();
+          }
+          else
+            demo_en_cours->on_mouse(me.x, me.y, me.event, me.image);
         }
       }
       break;
