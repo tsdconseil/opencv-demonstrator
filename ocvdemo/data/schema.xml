@@ -607,7 +607,14 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
       <attribute name="prefiltrage" fr="Pré-filtrage" en="Pre-filtering" type="boolean" default="false">
         <description lang="fr">Active le préfiltrage (moyenne mobile) de l'image avant algorithme de Canny.</description>
         <description lang="en">Enable image prefiltering (moving average) before Canny algorithm.</description>
-      </attribute>      
+      </attribute>
+      
+      <attribute name     = "taille-noyau-prefiltrage" fr="Dimension du noyau (préfiltrage)" 
+                 en       = "Prefiltering kernel dimension" 
+                 default  = "3" 
+                 min      = "3"
+                 require  = "prefiltrage=true">
+      </attribute>
 
       <attribute name="taille-noyau" fr="Dimension du noyau (Canny)" en="Canny kernel dimension" default="3" min="3" max="7">
       </attribute>

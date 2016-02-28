@@ -44,10 +44,11 @@ int calcule_canny(const cv::Mat &I, cv::Mat &masque_canny,
   int norme         = modele.get_attribute_as_int("norme");
   int taille_noyau  = modele.get_attribute_as_int("taille-noyau");
   bool prefiltrage  = modele.get_attribute_as_boolean("prefiltrage");
+  int taille_prefilt = modele.get_attribute_as_int("taille-noyau-prefiltrage");
 
 
   if(prefiltrage)
-    blur(tmp, tmp, Size(3,3));
+    blur(tmp, tmp, Size(taille_prefilt,taille_prefilt));
 
   if(seuil_methode == 1)
   {
