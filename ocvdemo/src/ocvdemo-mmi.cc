@@ -306,8 +306,11 @@ void OCVDemo::maj_langue()
   // Seems OpenCV does the right thing now.
   // Correction. olnly works with OpenCV on Linux. 
   // Still broke on windows.
+#ifdef WIN
   titre_principal = utils::str::utf8_to_latin(langue.get_item("resultats"));
-  //titre_principal = langue.get_item("resultats");
+#else  
+  titre_principal = langue.get_item("resultats");
+#endif
 
   wnd.set_title(langue.get_item("main-title"));
 
