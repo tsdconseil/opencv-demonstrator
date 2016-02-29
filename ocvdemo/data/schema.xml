@@ -258,11 +258,16 @@ This demonstration enables you to compute the gradient, with different possible 
 
 <description lang="en">The histogram is an estimate of the distribution of the pixels on one or several images. This demonstration enables you to compute the RGB, HSV or luminance histogram.</description>
 
-    <attribute type="int" name="sel" fr="Mode" en="Mode" default="1" min="0" max="2">
+    <attribute type="int" name="sel" fr="Mode" en="Mode" default="1" min="0" max="3">
       <match value="0" name="rvb" fr="Histogrammes séparés RGB" en="RGB 1d histograms"/>
       <match value="1" name="gris" fr="Histogramme luminance" en="Luminance 1d histogram"/>
       <match value="2" name="tsv" fr="Histogrammes séparés TSV" en="HSV 1d histograms"/>
-<!--      <match value="3" name="ts" fr="Histogramme 2d T-S" en="H-S 2d histogram"/>-->
+      <match value="3" name="ts" fr="Histogramme 2d T-S" en="H-S 2d histogram"/>
+      <description lang="fr">En mode histogramme 2D T-S, la teinte est en ordonnée, et la saturation en abcisse.</description>
+      <description lang="fr">In 2D H-S histogram mode, the Y axis represent the hue, and the saturation is on the X axis.</description>
+    </attribute>
+    
+    <attribute type="int" name="nbins" fr="Nombre de bins" en="Bins count" size="2" default="50">
     </attribute>
   </node>
   

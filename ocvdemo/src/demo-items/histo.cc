@@ -23,27 +23,39 @@
 
 #include "demo-items/histo.hpp"
 
-static void calc_histo(const Mat &img, MatND &hist, int channel, float maxval, double &maxprob)
+static void calcul_histogramme_1d(const Mat &I,
+                                  MatND &hist,
+                                  int canal,
+                                  int maxval,
+                                  int nbins)
 {
-  // Quantize the hue to 30 levels
-  // and the saturation to 32 levels
-  int hbins = 100;//30;//, sbins = 32;
-  int histSize[] = {hbins};//, sbins};
-  // hue varies from 0 to 179, see cvtColor
-  float hranges[] = { 0, maxval};//180 };
-  // saturation varies from 0 (black-gray-white) to
-  // 255 (pure spectrum color)
-  //float sranges[] = { 0, 256 };
-  const float * ranges[] = { hranges};//, sranges };
-  // we compute the histogram from the 0-th and 1-st channels
-  int channels[] = {channel};//0, 1};
-  calcHist(&img, 1, channels, Mat(), // do not use mask
-      hist, 1, histSize, ranges,
-      true, // the histogram is uniform
-      false );
+  float hranges[] = {0, (float) maxval};
+  const float *ranges[] = {hranges};
+
+  calcHist(&I, 1, &canal, Mat(), // (pas de masque)
+           hist, 1, &nbins, ranges,
+           true, // Histogram uniforme
+           false);
+
   normalize(hist, hist, 0, 255, NORM_MINMAX);
-  maxprob = 0;
-  minMaxLoc(hist, 0, &maxprob, 0, 0);
+}
+
+static void calcul_histogramme_2d(const Mat &I,
+                                  MatND &hist,
+                                  int canaux[],
+                                  int maxval[],
+                                  int nbins[])
+{
+  float hranges0[] = {0, (float) maxval[0]};
+  float hranges1[] = {0, (float) maxval[1]};
+  const float *ranges[] = {hranges0, hranges1};
+
+  calcHist(&I, 1, canaux, Mat(), // (pas de masque)
+           hist, 2, nbins, ranges,
+           true, // Histogram uniforme
+           false); // Pas d'accumulation
+
+  normalize(hist, hist, 0, 255, NORM_MINMAX);
 }
 
 HistoBP::HistoBP()
@@ -123,35 +135,9 @@ HistoCalc::HistoCalc()
   props.id = "hist-calc";
 }
 
-
-#if 0
-cv::Mat HistoCalc::get_2d_histogram_image(const cv::Mat &image)
-{
-  // Pour un histogramme 2d
-  /*Mat histImg = Mat::zeros(sbins*scale, hbins*10, CV_8UC3);
-  for( int h = 0; h < hbins; h++ )
-    for( int s = 0; s < sbins; s++ )
-    {
-      float binVal = hist.at<float>(h, s);
-      int intensity = cvRound(binVal*255/maxVal);
-      rectangle( histImg, Point(h*scale, s*scale),
-          Point( (h+1)*scale - 1, (s+1)*scale - 1),
-          Scalar::all(intensity),
-          CV_FILLED );
-    }*/
-  return Mat();
-}
-#endif
-
-
-static void plot_curve(const MatND &x, Mat &image, Scalar color,
-                       float yscale)
+static void dessine_courbe(const MatND &x, Mat &image, Scalar color, float yscale)
 {
   uint32_t n = x.rows;
-
-  //if(image.data == nullptr)
-    //image = Mat(Size(n,256), CV_8UC3, cv::Scalar(255,255,255));
-
   float sx = image.cols, sy = image.rows;
 
   float lxi = x.at<float>(0)  * yscale;
@@ -162,7 +148,7 @@ static void plot_curve(const MatND &x, Mat &image, Scalar color,
     line(image,
          Point((i-1)* sx / n,sy-lxi),
          Point(i* sx / n,sy-xi),
-         color);
+         color, 2, CV_AA);
 
     lxi = xi;
   }
@@ -171,156 +157,55 @@ static void plot_curve(const MatND &x, Mat &image, Scalar color,
 
 
 
-
-#if 0
-// Computes the 1D histogram and returns an image of it.
-// D'aprÃ¨s "OpenCV 2 Computer Vision Application programming cookbook", Robert LaganiÃ¨re
-// (Mise Ã  jour : d'aprÃ¨s le manuel utilisateur)
-cv::Mat HistoCalc::get_1d_histogram_image(const cv::Mat &image,
-					  int channel,
-					  float maxval)
-{
-  // Quantize the hue to 30 levels
-  // and the saturation to 32 levels
-  int hbins = 100;//30;//, sbins = 32;
-  int histSize[] = {hbins};//, sbins};
-  // hue varies from 0 to 179, see cvtColor
-  float hranges[] = { 0, maxval};//180 };
-  // saturation varies from 0 (black-gray-white) to
-  // 255 (pure spectrum color)
-  //float sranges[] = { 0, 256 };
-  const float * ranges[] = { hranges};//, sranges };
-  MatND hist;
-  // we compute the histogram from the 0-th and 1-st channels
-  int channels[] = {channel};//0, 1};
-  calcHist(&image, 1, channels, Mat(), // do not use mask
-	    hist, 1, histSize, ranges,
-	    true, // the histogram is uniform
-	    false );
-  double maxVal=0;
-  minMaxLoc(hist, 0, &maxVal, 0, 0);
-  //int scale = 10;
-
-
-
-  // Image on which to display histogram
-  cv::Mat histImg(histSize[0], histSize[0],
-		  CV_8U,cv::Scalar(255));
-
-  // set highest point at 90% of nbins
-  int hpt = static_cast<int>(0.9*histSize[0]);
-  // Draw a vertical line for each bin
-  for( int h = 0; h < histSize[0]; h++ ) 
-  {
-    float binVal = hist.at<float>(h);
-    int intensity = static_cast<int>(binVal*hpt/maxVal);
-    // This function draws a line between 2 points
-    cv::line(histImg,cv::Point(h,histSize[0]),
-	     cv::Point(h,histSize[0]-intensity),
-	     cv::Scalar::all(0));
-  }
-
-
-
-  cvtColor(histImg, histImg, CV_GRAY2BGR);
-  return histImg;
-
-# if 0
-  // Compute histogram first
-  //cv::MatND hist;
-
-  //int histSize = 1;
-
-  // Compute histogram
-  cv::calcHist(&image,
-	       1,
-	       // histogram from 1 image only
-	       channels, // the channel used
-	       cv::Mat(), // no mask is used
-	       hist,
-	       // the resulting histogram
-	       1,
-	       // it is a 1D histogram
-	       histSize, // number of bins
-	       ranges
-	       // pixel value range
-	       );
-
-  // Get min and max bin values
-  double maxVal=0;
-  double minVal=0;
-  cv::minMaxLoc(hist, &minVal, &maxVal, 0, 0);
-  // Image on which to display histogram
-  cv::Mat histImg(histSize[0], histSize[0],
-		  CV_8U,cv::Scalar(255));
-  // set highest point at 90% of nbins
-  int hpt = static_cast<int>(0.9*histSize[0]);
-  // Draw a vertical line for each bin
-  for( int h = 0; h < histSize[0]; h++ ) {
-    float binVal = hist.at<float>(h);
-    int intensity = static_cast<int>(binVal*hpt/maxVal);
-    // This function draws a line between 2 points
-    cv::line(histImg,cv::Point(h,histSize[0]),
-	     cv::Point(h,histSize[0]-intensity),
-	     cv::Scalar::all(0));
-  }
-  return histImg;
-# endif
-}
-#endif
-
 int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  int sel = input.model.get_attribute_as_int("sel");
   // 0 : histogrammes sÃ©parÃ©s RGB
   // 1 : histogramme niveaux de gris
   // 2 : histogrammes sÃ©parÃ©s HSV
   // 3 : histogramme 2D HS
+  int sel = input.model.get_attribute_as_int("sel");
+  int nbins = input.model.get_attribute_as_int("nbins");
+  MatND hist;
+  Mat I = input.images[0];
 
   if(sel == 0)
   {
     output.nout = 1;
     MatND hist[3];
-    double maxprobs[3];
-    for(auto i = 0u; i < 3; i++)
-      calc_histo(input.images[0], hist[i], i, 255, maxprobs[i]);
 
     output.images[0] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[0], output.images[0], Scalar(255,0,0), 512.0 / maxprobs[0]);
-    plot_curve(hist[1], output.images[0], Scalar(0,255,0), 512.0 / maxprobs[1]);
-    plot_curve(hist[2], output.images[0], Scalar(0,0,255), 512.0 / maxprobs[2]);
+
+    for(auto i = 0u; i < 3; i++)
+      calcul_histogramme_1d(I, hist[i], i, 255, nbins);
+
+    dessine_courbe(hist[0], output.images[0], Scalar(255,0,0), 512.0 / 255);
+    dessine_courbe(hist[1], output.images[0], Scalar(0,255,0), 512.0 / 255);
+    dessine_courbe(hist[2], output.images[0], Scalar(0,0,255), 512.0 / 255);
     output.names[0] = langue.get_item("histo-bvr");
   }
   else if(sel == 1)
   {
     cv::Mat Ig;
-    cv::cvtColor(input.images[0], Ig, CV_BGR2GRAY);
+    cv::cvtColor(I, Ig, CV_BGR2GRAY);
 
-    MatND hist;
-    double maxprob;
-    calc_histo(Ig, hist, 0, 255, maxprob);
-    printf("SX = %d, SY = %d.\n", 100, (int) ceil(maxprob));
+    calcul_histogramme_1d(Ig, hist, 0, 255, nbins);
     output.images[0] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist, output.images[0], Scalar(0,0,0), 512.0 / maxprob);
+    dessine_courbe(hist, output.images[0], Scalar(0,0,0), 512.0 / 255);
     output.names[0] = "Histogramme luminance";
   }
   else if(sel == 2)
   {
     Mat I2;
-    cvtColor(input.images[0], I2, CV_BGR2HSV);
-    MatND hist[3];
-    double maxprobs[3];
-    //for(auto i = 0u; i < 3; i++)
-    calc_histo(I2, hist[0], 0, 179, maxprobs[0]);
-    calc_histo(I2, hist[1], 1, 255, maxprobs[1]);
-    calc_histo(I2, hist[2], 2, 255, maxprobs[2]);
+    cvtColor(I, I2, CV_BGR2HSV);
+    int vmax[3] = {179,255,255};
 
-    output.images[0] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[0], output.images[0], Scalar(0,0,0), 512.0 / maxprobs[0]);
-    output.images[1] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[1], output.images[1], Scalar(0,0,0), 512.0 / maxprobs[1]);
-    output.images[2] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
-    plot_curve(hist[2], output.images[2], Scalar(0,0,0), 512.0 / maxprobs[2]);
+    for(auto i = 0u; i < 3; i++)
+    {
+      calcul_histogramme_1d(I2, hist, 0, vmax[i], nbins);
+      output.images[i] = Mat(Size(512,512), CV_8UC3, cv::Scalar(255,255,255));
+      dessine_courbe(hist, output.images[i], Scalar(0,0,0), 512.0 / 255.0);
+    }
+
     output.nout = 3;
     output.names[0] = "Teinte / Hue";
     output.names[1] = "Saturation";
@@ -328,11 +213,16 @@ int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   }
   else if(sel == 3)
   {
-    output.nout = 0;
-    /*Mat I2;
+    output.nout = 1;
+    Mat I2;
     cvtColor(I, I2, CV_BGR2HSV);
-    O = get_2d_histogram_image(I2);
-    nb_outputs = 1;*/
+    int canaux[2] = {0, 1}; // Teinte & Saturation
+    int vmax[2] = {180, 255};
+    int vnbins[2] = {nbins, nbins};
+    calcul_histogramme_2d(I2, hist, canaux, vmax, vnbins);
+    while(hist.cols < 400)
+      cv::pyrUp(hist, hist);
+    output.images[0] = hist;
   }
   return 0;
 }
