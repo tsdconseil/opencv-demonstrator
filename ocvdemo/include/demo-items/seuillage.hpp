@@ -44,21 +44,7 @@ public:
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
-/** @brief Démonstration algorithme grabcut */
-class GrabCutDemo: public OCVDemoItem
-{
-public:
-  GrabCutDemo();
-  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
-};
 
-/** @brief Démonstration algorithme watershed */
-class WShedDemo: public OCVDemoItem
-{
-public:
-  WShedDemo();
-  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
-};
 
 /** @brief Démonstration transformée de distance */
 class DTransDemo: public OCVDemoItem
