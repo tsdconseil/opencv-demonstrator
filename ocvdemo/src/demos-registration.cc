@@ -33,11 +33,13 @@
 #include "demo-items/espaces-de-couleurs.hpp"
 #include "demo-items/3d.hpp"
 #include "demo-items/misc.hpp"
+#include "demo-items/segmentation.hpp"
 #include "demo-items/demo-skeleton.hpp"
 //add a line to include your new demo header file patterned just as "demo-skeleton.hpp"
 
 void OCVDemo::add_demos()
 {
+  add_demo(new DemoMahalanobis());
   add_demo(new DemoFiltreGabor());
   add_demo(new CameraDemo());
   add_demo(new RectificationDemo());

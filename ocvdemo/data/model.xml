@@ -159,7 +159,11 @@
              <img path="data/img/pieces.jpg"/>
        </demo>
 
-
+      <demo name = "mahalanobis"
+            fr   = "Distance de Mahalanobis"
+            en   = "Mahalanobis distance">
+         <img path="./data/img/jouets.jpg"/>
+      </demo>
 
 
     </cat>

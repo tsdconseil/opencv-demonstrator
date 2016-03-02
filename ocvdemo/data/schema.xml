@@ -716,5 +716,13 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 	<attribute name="psi"    type="float" min="0" signed="false" default="1.57"/>
 </node>
 
+<node name = "mahalanobis">
+  <description lang="fr">La distance de Mahalanobis permet de mesurer l'écart entre la couleur d'un pixel et un pixel type modélisé par une loi gaussienne (valeur moyenne et matrice de covariance).
+Dans cette démonstration, le pixel moyen (et la matrice de covariance) est estimé d'après un zone d'intérêt (rectangle vert) que vous pouvez changer avec la souris.</description>
+  <description lang="en">The Mahalanobis distance enable to measure the gap between a given pixel and a model pixel modelized as a gaussian law of known mean and covariance matrix.
+In this demonstration, the mean pixel (and its covariance matrix) is estimated using a region of interest (green rectangle), that you can change with the mouse.</description>
+  <!--   <attribute name="" -->
+</node>
+
 </schema>
 
