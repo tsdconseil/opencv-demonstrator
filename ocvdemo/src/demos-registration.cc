@@ -39,6 +39,7 @@
 
 void OCVDemo::add_demos()
 {
+  add_demo(new DemoSqueletisation());
   add_demo(new DemoMahalanobis());
   add_demo(new DemoFiltreGabor());
   add_demo(new CameraDemo());

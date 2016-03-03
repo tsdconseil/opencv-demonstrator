@@ -32,6 +32,11 @@ public:
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
-
+class DemoSqueletisation: public OCVDemoItem
+{
+public:
+  DemoSqueletisation();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
 
 #endif /* MORPHO_DEMO_HPP_ */

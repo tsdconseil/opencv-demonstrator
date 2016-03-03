@@ -66,4 +66,47 @@ int MorphoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   return 0;
 }
 
+DemoSqueletisation::DemoSqueletisation()
+{
+  props.id = "squeletisation";
+}
+
+int DemoSqueletisation::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+  //Mat A = input.images[0];
+  Mat A;
+
+  output.nout = 2;
+
+  cv::cvtColor(input.images[0], A, CV_BGR2GRAY);
+
+  cv::threshold(A, A, 128, 255, cv::THRESH_OTSU);
+  A = 255 - A;
+
+  output.images[0] = A.clone();
+
+  cv::Mat K = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3, 3));
+
+  cv::Mat squelette(A.size(), CV_8UC1, cv::Scalar(0));
+  cv::Mat temp(A.size(), CV_8UC1);
+
+  bool done;
+  do
+  {
+    cv::morphologyEx(A, temp, cv::MORPH_OPEN, K);
+    cv::bitwise_not(temp, temp);
+    cv::bitwise_and(A, temp, temp);
+    cv::bitwise_or(squelette, temp, squelette);
+    cv::erode(A, A, K);
+
+    double max;
+    cv::minMaxLoc(A, 0, &max);
+    done = (max == 0);
+  } while (!done);
+
+  output.images[1] = squelette;
+  return 0;
+}
+
+
 

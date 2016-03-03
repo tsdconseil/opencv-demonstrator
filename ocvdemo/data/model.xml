@@ -23,11 +23,8 @@
     </demo>
 
 
-    <demo name = "morpho"
-          fr   = "Opérateurs morphologiques"
-          en   = "Morphological operations"
-          img-count = "2"
-          default-img="data/img/baboon.jpg"/>
+    
+
 
     <cat  name = "derivation"
           fr   = "Dérivation"
@@ -168,6 +165,21 @@
 
     </cat>
 
+    <cat name = "morpho" 
+         fr   = "Opérations morphologiques"
+         en   = "Morphological operations">
+
+        <demo name = "morpho"
+          fr   = "Opérateurs morphologiques"
+          en   = "Morphological operations"/>
+          
+        <demo name = "squeletisation"
+              fr   = "Squeletisation"
+              en   = "Squeletization">
+          <img path="./data/img/pieces.jpg"/>
+        </demo>
+
+    </cat>
 
     <demo name = "dft"
           fr   = "Transformée de Fourier"

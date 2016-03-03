@@ -724,5 +724,8 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
   <!--   <attribute name="" -->
 </node>
 
+<node name = "squeletisation">
+</node>
+
 </schema>
 
