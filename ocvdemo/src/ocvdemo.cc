@@ -898,7 +898,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
     journal.trace_major("Export des captures d'écran...");
     export_captures();
     journal.trace_major("Toutes les captures ont été exportées.");
-    exit(0);
+    on_b_exit();
   }
 
   Gtk::Main::run(wnd);
