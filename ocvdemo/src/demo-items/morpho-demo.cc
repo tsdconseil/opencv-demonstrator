@@ -69,14 +69,14 @@ int MorphoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 DemoSqueletisation::DemoSqueletisation()
 {
   props.id = "squeletisation";
+  output.nout = 2;
+  output.names[0] = "Binarisation";
+  output.names[1] = "Squelitisation";
 }
 
 int DemoSqueletisation::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  //Mat A = input.images[0];
   Mat A;
-
-  output.nout = 2;
 
   cv::cvtColor(input.images[0], A, CV_BGR2GRAY);
 
@@ -90,6 +90,8 @@ int DemoSqueletisation::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outp
   cv::Mat squelette(A.size(), CV_8UC1, cv::Scalar(0));
   cv::Mat temp(A.size(), CV_8UC1);
 
+  // Algorithme d'après page web
+  // http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/
   bool done;
   do
   {

@@ -176,7 +176,8 @@
         <demo name = "squeletisation"
               fr   = "Squeletisation"
               en   = "Squeletization">
-          <img path="./data/img/pieces.jpg"/>
+          <!--  <img path="./data/img/pieces.jpg"/>-->
+          <img path="./data/img/logo2.png"/>
         </demo>
 
     </cat>

@@ -799,6 +799,7 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 
 <node name = "squeletisation">
 <description lang="fr">La squeletisation permet d'extraire la structure d'une forme. L'algorithme implémenté ici est basé sur le page <a href="http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/">OpenCV - Morphological Skeleton</a>.</description>
+<description lang="fr">The squeletization enables to extract the structure of a shape. The algorithm used here is based on the description made on the web page <a href="http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/">OpenCV - Morphological Skeleton</a>.</description>
 </node>
 
 <node name = "stereo-fmat">
