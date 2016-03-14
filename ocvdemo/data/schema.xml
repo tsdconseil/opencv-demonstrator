@@ -564,7 +564,71 @@ The principle is to localize the initial seeds positions for the watershed algor
   <node name="disp-map">  
 <description lang="fr">Calcul de la disparité entre deux images, qui doivent avoir été correctement rectifiées auparavant (les images doivent être alignées verticalement).</description>
 <description lang="en">Compute the disparity map between two images, which must have been correctly rectified before (the images must be vertically aligned).</description>
+
+<attribute name     = "sel"
+           type     = "int"
+           default  = "0"
+           fr       = "Algorithme"
+           en       = "Algorithm"
+           min      = "0"
+           max      = "1">
+  <match value="0" name="0" fr="Block matching" schema="bm"/>
+  <match value="1" name="1" fr="Hirschmuller" schema="hirschmuller"/>
+</attribute>
+
+<sub type="bm" min="1" max="1"/>
+<sub type="hirschmuller" min="1" max="1"/>
+
+
+<attribute name     = "rectifie"
+           type     = "boolean" 
+           default  = "false"
+           fr       = "Pré-rectification des images"
+           en       = "Pre-rectification of the input images">
+   <description lang = "fr">Rectification verticale des images d'entrée d'après la calibration stéréo précédemment effectuée.</description>
+   <description lang = "en">Vertical rectification of the input images according to the previously made stereo calibration.</description>
+</attribute>
+
+<attribute name     = "calc-prof"
+           type     = "boolean"
+           default  = "false"
+           fr       = "Calcul de la profondeur"
+           en       = "Depth computation">
+   <description lang = "fr">Calcul de la profondeur (distance en Z) de chaque pixel d'après la disparité.</description>
+   <description lang = "en">Computing of the depth (Z distance) of each pixel according to the disparity.</description>
+</attribute>
+
+<attribute name     = "zmax"
+           type     = "float"
+           fr       = "Distance maximale"
+           en       = "Maximal distance"
+           default  = "10"
+           unit     = "m"
+           require  = "calc-prof=true">
+  <description lang = "fr">Distance maximale pour la mise à l'échelle de la carte de distance.</description>
+  <description lang = "en">Maximal distance for the distance map scaling.</description>
+</attribute>
+
   </node>
+  
+  <node name="bm">
+  
+    <attribute name="taille-bloc" fr="Taille bloc SAD" 
+    en="SAD block size"
+    default="9" min="5" max="255" size="2"/>
+        
+  
+  </node>
+  
+  <node name="hirschmuller">
+    <attribute name="prefiltercap" type="int" default="31"/>
+    <attribute name="blocksize" type="int" default="31"/>
+    <attribute name="mindisp" type="int" default="31"/>
+    <attribute name="numdisp" type="int" default="31"/>
+    <attribute name="seuil-texture" type="int" default="31"/>
+    <attribute name="ratio-unicite" type="int" default="31"/>
+  </node>
+  
   
   <node name="cam-cal">
     <description lang="fr">Cette petite démonstration vous permet de tester les fonctions de calibration automatique de caméra incluses dans OpenCV. Pour simplifier, seulement une image est utilisée pour la calibration, mais avec plusieurs images les résultats sont plus précis.
@@ -681,12 +745,19 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
     <attribute name="bw" 
       fr="Coins intérieurs (largeur)"
       en="Inner corners (first dimension)" 
-      default="8"/>
+      default="9"/>
       
     <attribute name="bh" 
       fr="Coins intérieurs (longueur)"
       en="Inner corners (other dimension)" 
       default="6"/>
+      
+    <attribute name    = "taille"
+               fr      = "Largeur des carrés"
+               en      = "Width of each square"
+               type    = "float"
+               default = "0.02"
+               unit    = "m"/> 
 </node>
 
 <node name     = "stereo-cal" 
@@ -697,7 +768,9 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
       inherits = "stereo-cal-prm">
 </node>
 
-<node name="rectif"/>
+<node name="rectif">
+
+</node>
 
 <node name="camera"/>
 
@@ -725,6 +798,10 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 </node>
 
 <node name = "squeletisation">
+<description lang="fr">La squeletisation permet d'extraire la structure d'une forme. L'algorithme implémenté ici est basé sur le page <a href="http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/">OpenCV - Morphological Skeleton</a>.</description>
+</node>
+
+<node name = "stereo-fmat">
 </node>
 
 </schema>

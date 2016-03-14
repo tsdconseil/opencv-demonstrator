@@ -117,7 +117,7 @@ int ImageMosaique::show_multiple_images(std::string title,
     mutex.unlock();
     return -1;
   }
-  else if(nArgs > 12)
+  else if(nArgs > 20)
   {
     journal.anomaly("%s: Number of arguments too large.", __func__);
     mutex.unlock();
@@ -150,8 +150,8 @@ int ImageMosaique::show_multiple_images(std::string title,
   else if (nArgs == 3)
   {
     w = 3; h = 1;
-    sizex = 350;
-    sizey = 350;
+    sizex = 640;//350;
+    sizey = 480;//350;
   }
   else if (nArgs == 4)
   {

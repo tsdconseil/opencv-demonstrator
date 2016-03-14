@@ -116,5 +116,9 @@
   <item name = "pas-de-cal-stereo" 
   		fr   = "La calibration stéréo n'a pas encore été effectuée." 
   		en   = "Stereo calibration has not yet be done."/>
+  		
+  <item name = "prof"
+        fr   = "Profondeur"
+        en   = "Depth"/>
 </section>
 

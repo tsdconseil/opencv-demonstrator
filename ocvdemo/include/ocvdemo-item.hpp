@@ -91,7 +91,7 @@ public:
     /** @brief Number of output images */
     int nout;
 
-#   define DEMO_MAX_IMG_OUT 20
+#   define DEMO_MAX_IMG_OUT 50
 
     /** Images de sortie */
     /** @brief Output images */

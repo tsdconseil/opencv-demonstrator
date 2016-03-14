@@ -80,6 +80,13 @@ private:
   static StereoCalDemo *instance;
 };
 
+/** @brief Recherche de matrice fondamentale à partir des points d'intérêts */
+class StereoFMatDemo: public OCVDemoItem
+{
+  StereoFMatDemo();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
+
 
 /****************************************/
 /** @brief Stereo calibration demonstration (interactive calibration from live video) */
@@ -116,6 +123,8 @@ private:
   std::vector<cv::Point2f> points[2];
 };
 
+
+
 /***************************************/
 /** @brief Disparity map demonstration
  *  Compute the disparity map between 2 rectified images. */
@@ -125,6 +134,8 @@ public:
   DispMapDemo();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
+
+
 
 /********************************************/
 /** @brief Camera calibration demonstration

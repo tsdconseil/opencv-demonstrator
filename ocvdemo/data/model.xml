@@ -308,18 +308,39 @@
 
 
        <cat name = "stereo"
-            fr   = "Traitements stéréo"
-            en   = "Stereo processing">
+            fr   = "Vision stéréo"
+            en   = "Stereo vision">
 
         <demo name = "stereo-cal"
 	          fr   = "Calibration stéréo (d'après images)"
 	          en   = "Stereo calibration (from images)">
+	          
+<!-- <img path = "data/img/imagenes/left00.ppm"/>
+<img path = "data/img/imagenes/right00.ppm"/>
+<img path = "data/img/imagenes/left01.ppm"/>
+<img path = "data/img/imagenes/right01.ppm"/>
+<img path = "data/img/imagenes/left02.ppm"/>
+<img path = "data/img/imagenes/right02.ppm"/>
+<img path = "data/img/imagenes/left03.ppm"/>
+<img path = "data/img/imagenes/right03.ppm"/>-->
+<img path = "data/img/imagenes/left04.ppm"/>
+<img path = "data/img/imagenes/right04.ppm"/>
+<img path = "data/img/imagenes/left05.ppm"/>
+<img path = "data/img/imagenes/right05.ppm"/>
+<img path = "data/img/imagenes/left06.ppm"/>
+<img path = "data/img/imagenes/right06.ppm"/>
+<img path = "data/img/imagenes/left07.ppm"/>
+<img path = "data/img/imagenes/right07.ppm"/>
+<img path = "data/img/imagenes/left08.ppm"/>
+<img path = "data/img/imagenes/right08.ppm"/>
+<img path = "data/img/imagenes/left09.ppm"/>
+<img path = "data/img/imagenes/right09.ppm"/>
 
-	       <img path = "data/img/stereo/a1.jpg"/>
-	       <img path = "data/img/stereo/a0.jpg"/>
+<!--  	       <img path = "data/img/stereo/a1.jpg"/>
+         <img path = "data/img/stereo/a0.jpg"/>
 	       <img path = "data/img/stereo/b1.jpg"/>
 	       <img path = "data/img/stereo/b0.jpg"/>
-	       <!--<img path = "data/img/stereo/c1.jpg"/>
+	       <img path = "data/img/stereo/c1.jpg"/>
 	       <img path = "data/img/stereo/c0.jpg"/>
 	       <img path = "data/img/stereo/d1.jpg"/>
 	       <img path = "data/img/stereo/d0.jpg"/>
@@ -337,29 +358,46 @@
 	       <img path = "1"/>
 	    </demo>
 	    
-	    <demo name = "rectif" 
-	    	  fr   = "Rectification"
-	    	  en   = "Rectification">
-	    	  
-	       <img path = "data/img/stereo/coussins0.jpg"/>
-	       <img path = "data/img/stereo/coussins1.jpg"/>
-	    	  
-	    </demo>
+	    <!--<demo name = "stereo-fmat"
+	          fr   = "Calcul de matrice fondamentale"
+	          en   = "Fundamental matrix computation">
+	       <img path = "data/img/stereo/a1.jpg"/>
+         <img path = "data/img/stereo/a0.jpg"/>
+	    </demo> -->
+	    
+
 	    
 	    <demo name = "epi"
               fr   = "Lignes épipolaires"
               en   = "Epipolar lines">
-           <img path = "data/img/stereo/a1.jpg"/>
-	       <img path = "data/img/stereo/a0.jpg"/>
+           <!--  <img path = "data/img/stereo/a1.jpg"/>
+	       <img path = "data/img/stereo/a0.jpg"/>-->
+	       <img path = "data/img/imagenes/left08.ppm"/>
+<img path = "data/img/imagenes/right08.ppm"/>
         </demo>
               
-              
-         <demo name="disp-map"
-               fr="Calcul de disparité"
-               en="Disparity map">
 
-             <img path="data/img/platre1.jpg"/>
-             <img path="data/img/platre2.jpg"/>
+      <demo name = "rectif" 
+          fr   = "Rectification"
+          en   = "Rectification">
+          
+<!--           <img path = "data/img/stereo/coussins0.jpg"/>
+         <img path = "data/img/stereo/coussins1.jpg"/>-->
+         
+         <img path = "data/img/imagenes/left08.ppm"/>
+<img path = "data/img/imagenes/right08.ppm"/>
+          
+      </demo>
+              
+<demo name = "disp-map"
+      fr   = "Calcul de disparité"
+      en   = "Disparity map">
+
+<img path = "data/img/imagenes/left08.ppm"/>
+<img path = "data/img/imagenes/right08.ppm"/>
+
+<!-- <img path="data/img/platre1.jpg"/>
+             <img path="data/img/platre2.jpg"/> -->  
 
          </demo>
 	       
