@@ -108,3 +108,33 @@ int HSVDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   return 0;
 }
 
+DemoBalleTennis::DemoBalleTennis()
+{
+  props.id = "tennis";
+}
+
+int DemoBalleTennis::proceed(OCVDemoItemInput &input,
+                             OCVDemoItemOutput &output)
+{
+  Mat &I = input.images[0];
+
+  // Solutions :
+  // (1) Mahalanobis distance, puis seuillage
+  // (2) Projection arrière d'histogramme
+  // (3) Seuillage simple sur teinte / saturation
+
+  Mat tsv, masque;
+  cvtColor(I, tsv, CV_BGR2HSV);
+  inRange(tsv, Scalar(input.model.get_attribute_as_int("T0"),
+      input.model.get_attribute_as_int("S0"),
+      input.model.get_attribute_as_int("V0")),
+      Scalar(input.model.get_attribute_as_int("T1"),
+          input.model.get_attribute_as_int("S1"),
+          input.model.get_attribute_as_int("V1")),
+          masque);
+
+  output.images[0] = masque;
+
+  return 0;
+}
+

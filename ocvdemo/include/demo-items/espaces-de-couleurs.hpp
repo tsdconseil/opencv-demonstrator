@@ -39,5 +39,11 @@ public:
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
+class DemoBalleTennis: public OCVDemoItem
+{
+public:
+  DemoBalleTennis();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
 
 #endif

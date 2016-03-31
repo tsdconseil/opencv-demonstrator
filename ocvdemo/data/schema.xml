@@ -467,6 +467,22 @@ This demonstration allows you to choose a color according to its HSV values.</de
     
   </node>
   
+<node name = "tennis">
+    <attribute name="T0" fr="Teinte min" en="Minimal hue" min="0" max="179" default="18">
+    </attribute>
+    <attribute name="S0" fr="Saturation min" en="Minimal saturation" min="0" max="255" default="100">
+    </attribute>
+    <attribute name="V0" fr="Valeur min" en="Minimal value" min="0" max="255" default="128">
+    </attribute>
+    
+    <attribute name="T1" fr="Teinte max" en="Maximal hue" min="0" max="179" default="30">
+    </attribute>
+    <attribute name="S1" fr="Saturation max" en="Maximal saturation" min="0" max="255" default="255">
+    </attribute>
+    <attribute name="V1" fr="Valeur max" en="Maximal value" min="0" max="255" default="255">
+    </attribute>
+</node>
+  
   <node name = "grabcut">
     <description lang="fr">Séparation avant-plan / arrière-plan, à partir d'une pré-localisation d'un rectangle contenant l'avant plan.
 <b>Note :</b> La séparation pourrait être améliorée en précisant manuellement d'autres points comme faisant partie de l'avant ou de l'arrière plan.</description>
@@ -615,9 +631,13 @@ The principle is to localize the initial seeds positions for the watershed algor
   
     <attribute name="taille-bloc" fr="Taille bloc SAD" 
     en="SAD block size"
-    default="9" min="5" max="255" size="2"/>
-        
-  
+    default="50" min="5" max="255" size="2"/>
+    
+    <attribute name="seuil-texture" default="25" size="2"/>
+    <attribute name="ratio-unicite" default="1" size="2"/>
+    <attribute name="speckles-fen" default="5" size="2"/>
+    <attribute name="speckles-intervalle" default="5" size="2"/>
+    <attribute name="disp-max-diff" default="45" size="2"/>
   </node>
   
   <node name="hirschmuller">
@@ -803,6 +823,9 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 </node>
 
 <node name = "stereo-fmat">
+</node>
+
+<node name = "suivi-balle-3d">
 </node>
 
 </schema>

@@ -120,7 +120,7 @@
     </cat>
 
 
-    <!--<cat name = "couleurs"
+    <cat name = "couleurs"
          fr    = "Espaces de couleurs"
          en    = "Color spaces">
 
@@ -128,8 +128,14 @@
          fr   = "Teinte / Saturation / Valeur (TSV)"
          en   = "Hue / Saturation / Value (HSV)">
     </demo>
+    
+    <demo name = "tennis"
+          fr   = "Détection d'un objet par la teinte"
+          en   = "Object detection using hue">
+       <img path = "data/img/jouets.jpg"/>
+    </demo>
 
-    </cat>-->
+    </cat>
 
 
     <cat name = "segmentation"
@@ -323,7 +329,9 @@
 <img path = "data/img/imagenes/left02.ppm"/>
 <img path = "data/img/imagenes/right02.ppm"/>
 <img path = "data/img/imagenes/left03.ppm"/>
-<img path = "data/img/imagenes/right03.ppm"/>-->
+<img path = "data/img/imagenes/right03.ppm"/> -->
+
+
 <img path = "data/img/imagenes/left04.ppm"/>
 <img path = "data/img/imagenes/right04.ppm"/>
 <img path = "data/img/imagenes/left05.ppm"/>
@@ -337,18 +345,18 @@
 <img path = "data/img/imagenes/left09.ppm"/>
 <img path = "data/img/imagenes/right09.ppm"/>
 
-<!--  	       <img path = "data/img/stereo/a1.jpg"/>
+<!--   	       <img path = "data/img/stereo/a1.jpg"/>
          <img path = "data/img/stereo/a0.jpg"/>
 	       <img path = "data/img/stereo/b1.jpg"/>
 	       <img path = "data/img/stereo/b0.jpg"/>
 	       <img path = "data/img/stereo/c1.jpg"/>
-	       <img path = "data/img/stereo/c0.jpg"/>
-	       <img path = "data/img/stereo/d1.jpg"/>
+	       <img path = "data/img/stereo/c0.jpg"/> -->
+<!-- 	       <img path = "data/img/stereo/d1.jpg"/>
 	       <img path = "data/img/stereo/d0.jpg"/>
 	       <img path = "data/img/stereo/e1.jpg"/>
 	       <img path = "data/img/stereo/e0.jpg"/>
 	       <img path = "data/img/stereo/f1.jpg"/>
-	       <img path = "data/img/stereo/f0.jpg"/>-->
+	       <img path = "data/img/stereo/f0.jpg"/> -->
 	    </demo>
 	    
 	    <demo name = "stereo-cal-live"
@@ -371,9 +379,9 @@
 	    <demo name = "epi"
               fr   = "Lignes épipolaires"
               en   = "Epipolar lines">
-           <!--  <img path = "data/img/stereo/a1.jpg"/>
+<!--            <img path = "data/img/stereo/a1.jpg"/>
 	       <img path = "data/img/stereo/a0.jpg"/>-->
-	       <img path = "data/img/imagenes/left08.ppm"/>
+<img path = "data/img/imagenes/left08.ppm"/>
 <img path = "data/img/imagenes/right08.ppm"/>
         </demo>
               
@@ -385,8 +393,11 @@
 <!--           <img path = "data/img/stereo/coussins0.jpg"/>
          <img path = "data/img/stereo/coussins1.jpg"/>-->
          
-         <img path = "data/img/imagenes/left08.ppm"/>
+<img path = "data/img/imagenes/left08.ppm"/>
 <img path = "data/img/imagenes/right08.ppm"/>
+
+<!--            <img path = "data/img/stereo/a1.jpg"/>
+         <img path = "data/img/stereo/a0.jpg"/> -->
           
       </demo>
               
@@ -401,6 +412,16 @@
              <img path="data/img/platre2.jpg"/> -->  
 
          </demo>
+         
+<demo name = "suivi-balle-3d"
+      fr   = "Localisation d'une balle en 3 dimensions"
+      en   = "ball localization in 3 dimensions">
+      
+<img path = "data/img/imagenes/left08.ppm"/>
+<img path = "data/img/imagenes/right08.ppm"/>
+      
+</demo>
+         
 	       
        </cat>
 
