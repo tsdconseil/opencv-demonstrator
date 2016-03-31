@@ -5,6 +5,7 @@ DemoMahalanobis::DemoMahalanobis()
 {
   props.id = "mahalanobis";
   props.requiert_roi = true;
+  input.roi = Rect(116,77,134-116,96-77);
 }
 
 

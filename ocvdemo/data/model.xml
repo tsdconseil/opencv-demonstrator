@@ -130,8 +130,8 @@
     </demo>
     
     <demo name = "tennis"
-          fr   = "Détection d'un objet par la teinte"
-          en   = "Object detection using hue">
+          fr   = "Détection d'un objet suivant sa couleur"
+          en   = "Object detection by color">
        <img path = "data/img/jouets.jpg"/>
     </demo>
 
