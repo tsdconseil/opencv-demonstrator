@@ -531,11 +531,11 @@ int DispMapDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     sb->setBlockSize(bsize);
     sb->setMinDisparity(0);
     sb->setNumDisparities(((I[0].cols/8) + 15) & -16);
-    sb->setTextureThreshold(10);
-    sb->setUniquenessRatio(15);
-    sb->setSpeckleWindowSize(100);
-    sb->setSpeckleRange(32);
-    sb->setDisp12MaxDiff(1);
+    sb->setTextureThreshold(input.model.get_attribute_as_int("bm/seuil-texture"));
+    sb->setUniquenessRatio(input.model.get_attribute_as_int("bm/ratio-unicite"));
+    sb->setSpeckleWindowSize(input.model.get_attribute_as_int("bm/speckles-fen"));
+    sb->setSpeckleRange(input.model.get_attribute_as_int("bm/speckles-intervalle"));
+    sb->setDisp12MaxDiff(input.model.get_attribute_as_int("bm/disp-max-diff"));
     matcher = sb;
 
     // StereoBM ne supporte que des images en niveaux de gris
@@ -754,6 +754,15 @@ int CamCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   return 0;
 }
 
+DemoLocalisation3D::DemoLocalisation3D()
+{
 
+}
+
+int DemoLocalisation3D::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+
+  return 0;
+}
 
 

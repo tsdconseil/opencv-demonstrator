@@ -148,4 +148,15 @@ public:
 };
 
 
+/********************************************/
+/** @brief Localisation en 3D d'une balle à partir
+ *  d'une caméra stéréo. */
+class DemoLocalisation3D: public OCVDemoItem
+{
+public:
+  DemoLocalisation3D();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
+
+
 #endif
