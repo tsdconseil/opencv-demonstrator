@@ -39,22 +39,6 @@ MatchDemo::MatchDemo()
   lock = false;
 }
 
-#if 0
-void MatchDemo::setup_model(Node &model)
-{
-  if(!lock)
-  {
-    lock = true;
-    Node i = model.get_child_at("pano-img", 0);
-    i.set_attribute("path",
-        utils::get_execution_path() + "/data/img/lac1.jpg");//box.png");
-    i = model.get_child_at("pano-img", 1);
-    i.set_attribute("path",
-        utils::get_execution_path() + "/data/img/lac2.jpg");//box-in-scene.png");
-    lock = false;
-  }
-}
-#endif
 
 int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
