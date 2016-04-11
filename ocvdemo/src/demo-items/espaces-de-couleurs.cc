@@ -133,7 +133,20 @@ int DemoBalleTennis::proceed(OCVDemoItemInput &input,
           input.model.get_attribute_as_int("V1")),
           masque);
 
-  output.images[0] = masque;
+  Mat dst;
+  Point balle_loc;
+  cv::distanceTransform(masque, dst, CV_DIST_L2, 3);
+  cv::minMaxLoc(dst, nullptr, nullptr, nullptr, &balle_loc);
+
+  Mat O = input.images[0].clone();
+
+  // Position de la balle détectée
+  cv::line(O, balle_loc - Point(5,0), balle_loc + Point(5,0),
+           Scalar(0,0,255), 1);
+  cv::line(O, balle_loc - Point(0,5), balle_loc + Point(0,5),
+           Scalar(0,0,255), 1);
+
+  output.images[0] = O;
 
   return 0;
 }

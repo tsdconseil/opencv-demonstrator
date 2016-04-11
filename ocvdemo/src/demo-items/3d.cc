@@ -756,11 +756,105 @@ int CamCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
 DemoLocalisation3D::DemoLocalisation3D()
 {
-
+  props.id = "suivi-balle-3d";
+  props.input_min = 2;
+  props.input_max = 2;
 }
 
 int DemoLocalisation3D::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
+  if(!stereo_cal.valide)
+  {
+    output.errmsg = langue.get_item("pas-de-cal-stereo");
+    return -1;
+  }
+
+  Point balle_loc[2];
+
+  output.nout = 3;
+
+  for(auto k = 0u; k < 2; k++)
+  {
+    Mat &I = input.images[k];
+    Mat tsv, masque;
+    cvtColor(I, tsv, CV_BGR2HSV);
+    inRange(tsv, Scalar(18, 100, 128),
+            Scalar(30, 255, 255), masque);
+    Mat dst;
+    cv::distanceTransform(masque, dst, CV_DIST_L2, 3);
+    cv::minMaxLoc(dst, nullptr, nullptr, nullptr, &balle_loc[k]);
+
+    journal.trace("Balle loc[%d]: %d, %d.", balle_loc[k].x, balle_loc[k].y);
+
+    Mat O = input.images[k].clone();
+
+    // Position de la balle détectée
+    cv::line(O, balle_loc[0] - Point(5,0), balle_loc[0] + Point(5,0),
+             Scalar(0,0,255), 1);
+    cv::line(O, balle_loc[0] - Point(0,5), balle_loc[0] + Point(0,5),
+             Scalar(0,0,255), 1);
+    output.images[k] = O;
+  }
+
+  //Mat O = input.images[0].clone();
+
+  //p1(1) = Point2f(balle_loc[1].x,balle_loc[1].y);
+
+  // Calcul de la position en 3D
+  cv::Point2f loc_rectifiee[2];
+  for(auto k = 0u; k < 2; k++)
+  {
+    Mat_<Point2f> p1(1,1), p2(1,1);
+    p1(0) = Point2f(balle_loc[0].x,balle_loc[0].y);
+    cv::undistortPoints(p1,
+         p2,
+         stereo_cal.matrices_cameras[k],
+         stereo_cal.dcoefs[k],
+         stereo_cal.rectif_R[k],
+         stereo_cal.rectif_P[k]);
+    loc_rectifiee[k] = p2(0);
+  }
+
+  // 2D vers 3D
+  float y_dist = loc_rectifiee[0].y - loc_rectifiee[1].y;
+  float x_dist = loc_rectifiee[0].x - loc_rectifiee[1].x;
+
+  journal.trace("X dist = %.2f, Y dist = %.2f.", x_dist, y_dist);
+
+  cv::Point3f p0, p1;
+
+  p0.x = loc_rectifiee[0].x;
+  p0.y = loc_rectifiee[0].y;
+  p0.z = x_dist;
+  //p0[3] = 0;
+
+  Mat_<Point3f> mp0(1,1), mp1(1,1);
+
+  mp0(0) = p0;
+  cv::perspectiveTransform(mp0, mp1, stereo_cal.Q); // ????
+  p1 = mp1(0);
+
+  journal.trace("Coordonnées 3D = %.2f, %.2f, %.2f.", p1.x, p1.y, p1.z);
+
+
+  /*Mat O;
+  cv::remap(input.images[0], O,
+            stereo_cal.rmap[0][0],
+            stereo_cal.rmap[0][1],
+            CV_INTER_LINEAR);*/
+  Mat O = input.images[0];
+
+  // Juste un test : reprojection du point 3d vers l'image 0
+  // ==> On devrait avoir à peu près les coordonnées du point détecté.
+  Mat_<Point2f> mp2; // Coordonnées dans l'image 0
+  cv::projectPoints(mp1,
+          stereo_cal.R, stereo_cal.T,
+          stereo_cal.matrices_cameras[0],
+          stereo_cal.dcoefs[0],
+          mp2);
+  journal.trace("Balle reprojetee sur img0 : %.2f, %.2f.", mp2(0).x, mp2(0).y);
+
+  output.images[2] = O;
 
   return 0;
 }
