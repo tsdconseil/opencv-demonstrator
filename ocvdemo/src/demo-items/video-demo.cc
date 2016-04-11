@@ -207,6 +207,9 @@ int OptFlowDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.nout = 2;
   output.images[0] = I;
 
+  if(Iprec.size() != I.size())
+    reset = true;
+
   if(reset)
   {
     reset = false;
