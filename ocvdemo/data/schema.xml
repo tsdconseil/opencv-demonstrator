@@ -563,6 +563,9 @@ Le principe consiste à déterminer les graines initiales pour l'algorithme Wate
 
 
 The principle is to localize the initial seeds positions for the watershed algorithm with thresholding and morphological operations.</description>
+
+  <attribute name="seuil-dist" type="float" default="0.7" fr="Seuil distance"/>
+
   </node>
   
   <node name="inpaint">

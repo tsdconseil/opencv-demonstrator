@@ -99,6 +99,9 @@ int WShedDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   Mat gray, nb, ret;
   cvtColor(input.images[0], gray, CV_BGR2GRAY);
   threshold(gray,nb,0,255,CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+
+
+
   //Execute morphological-open
   morphologyEx(nb,ret,MORPH_OPEN,Mat::ones(9,9,CV_8SC1),Point(4,4),2);
   Mat distTransformed(ret.rows,ret.cols,CV_32F);
@@ -112,7 +115,7 @@ int WShedDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.names[1] = "Distance Transformation";
 
   //threshold the transformed image to obtain markers for watershed
-  threshold(distTransformed,distTransformed,0.7 * 255,255,CV_THRESH_BINARY);
+  threshold(distTransformed,distTransformed,input.model.get_attribute_as_float("seuil-dist") * 255,255,CV_THRESH_BINARY);
   distTransformed.convertTo(distTransformed,CV_8UC1);
   output.images[2] = distTransformed.clone();
   output.names[2] = "Thresholded dist. trans.";
