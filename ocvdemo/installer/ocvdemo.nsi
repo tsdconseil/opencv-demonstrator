@@ -24,7 +24,7 @@
 
   ;Name and file
   Name "Demonstration OpenCV"
-  OutFile "ocvdemo-1.02-win32-i386.exe"
+  OutFile "ocvdemo-1.03-win32-i386.exe"
 
 SetDateSave on
 SetDatablockOptimize on
