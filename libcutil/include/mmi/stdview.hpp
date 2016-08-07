@@ -510,6 +510,7 @@ class NodeView: private CListener<ChangeEvent>,
 {
 public:
   NodeView(Node model);
+  NodeView(Gtk::Window *mainWin, Node model);
   NodeView(Gtk::Window *mainWin, Node model,
            const NodeViewConfiguration &config);
   ~NodeView();

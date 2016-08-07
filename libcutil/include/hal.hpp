@@ -87,7 +87,7 @@ private:
 
 
 /** @brief Portable thread-safe FIFO class */
-template<class T>
+template<typename T>
 class Fifo
 {
 public:
@@ -99,7 +99,7 @@ public:
 
   /** @brief Push n elements in the fifo.
    *  Blocks the caller if fifo space is to short. */
-  void push(T *t, uint32_t nelem);
+  void push(const T *t, uint32_t nelem);
 
   /** @brief Pop an element from the fifo.
    *  Blocks the caller if fifo is empty. */

@@ -50,13 +50,13 @@ void thread_start(A *target_class,
 }
 
 
-template<class T>
+template<typename T>
 Fifo<T>::Fifo(uint32_t capacity)
 {
   this->capacity = capacity;
 }
 
-template<class T>
+template<typename T>
 void Fifo<T>::push(T t)
 {
   for(;;)
@@ -76,7 +76,7 @@ void Fifo<T>::push(T t)
   mutex.unlock();
 }
 
-template<class T>
+template<typename T>
 uint32_t Fifo<T>::size() const
 {
   /*uint32_t res;
@@ -87,8 +87,8 @@ uint32_t Fifo<T>::size() const
   return list.size();
 }
 
-template<class T>
-void Fifo<T>::push(T *t, uint32_t nelem)
+template<typename T>
+void Fifo<T>::push(const T *t, uint32_t nelem)
 {
   for(;;)
   {
@@ -108,7 +108,7 @@ void Fifo<T>::push(T *t, uint32_t nelem)
   mutex.unlock();
 }
 
-template<class T>
+template<typename T>
 int Fifo<T>::pop(T *t, uint32_t nelem, uint32_t timeout)
 {
   for(;;)
@@ -134,7 +134,7 @@ int Fifo<T>::pop(T *t, uint32_t nelem, uint32_t timeout)
   return nelem;
 }
 
-template<class T>
+template<typename T>
 int Fifo<T>::pop_with_timeout(uint32_t timeout_ms, T &res)
 {
   for(;;)
@@ -157,7 +157,7 @@ int Fifo<T>::pop_with_timeout(uint32_t timeout_ms, T &res)
   return 0;
 }
 
-template<class T>
+template<typename T>
 T Fifo<T>::pop()
 {
   T res;
@@ -180,19 +180,19 @@ T Fifo<T>::pop()
   return res;
 }
 
-template<class T>
+template<typename T>
 bool Fifo<T>::full() const
 {
   return list.size() == capacity;
 }
 
-template<class T>
+template<typename T>
 bool Fifo<T>::empty() const
 {
   return list.size() == 0;
 }
 
-template<class T>
+template<typename T>
 void Fifo<T>::clear()
 {
   mutex.lock();

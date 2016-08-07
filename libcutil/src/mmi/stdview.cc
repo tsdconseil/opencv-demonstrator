@@ -544,7 +544,7 @@ static bool can_tab_display(const SubSchema &ss)
     return false;
   if (ss.ptr->children.size() > 0)
     return false;
-  if(ss.ptr->attributes.size() > 3)
+  if(ss.ptr->attributes.size() > 4)
     return false;
   return true;
 }
@@ -640,6 +640,13 @@ bool NodeView::MyTreeModel::drag_data_received_vfunc(
     return true;
   }
   return false;
+}
+
+NodeView::NodeView(Gtk::Window *mainWin, Node model)
+:  table(model, NodeViewConfiguration()), tree_view(this)
+{
+  NodeViewConfiguration config;
+  init(mainWin, model, config);
 }
 
 NodeView::NodeView(Node model) :

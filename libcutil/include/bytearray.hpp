@@ -19,10 +19,11 @@ namespace model
 class ByteArray
 {
  public:
+  ByteArray(int len);
   ByteArray();
   ByteArray(const unsigned char *buffer, unsigned int len, bool bigendian = false);
   ByteArray(const ByteArray &ba);
-  ByteArray(unsigned char x);
+  //ByteArray(unsigned char x);
   ByteArray(std::string str, bool is_decimal = true);
 
   void operator =(const ByteArray &ba);
@@ -58,9 +59,10 @@ class ByteArray
 
   void insert(uint8_t c);
 
- private:
   std::deque<unsigned char> data;
   bool bigendian;
+
+ private:
   static utils::Logable log;
 };
 

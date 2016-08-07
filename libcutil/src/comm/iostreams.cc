@@ -6,21 +6,24 @@ namespace utils
 namespace comm
 {
 
-int read(model::ByteArray &ba, uint32_t length, int timeout)
+int InputStream::read(model::ByteArray &ba, uint32_t length, int timeout)
 {
-  /*uint8_t *buf = (uint8_t *) malloc(length);
+  uint8_t *buf = (uint8_t *) malloc(length);
   ba.clear();
   int nr = read(buf, length, timeout);
 
   if(nr > 0)
-  {
-    ba.put()
-  }
+    ba.put(buf, nr);
 
   free(buf);
-  return nr;*/
-  return 0;
+  return nr;
 }
+
+// a cos theta + b sin theta = d
+// a² cos² + b² sin² = d²
+// a² cos² + a² sin² + (b² - a²) sin² = d²
+// sin² = (d² - a²) / (b² - a²)
+//
 
 int InputStream::read(uint8_t *buffer, uint32_t length, int timeout)
 {

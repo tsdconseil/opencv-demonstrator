@@ -64,10 +64,10 @@ std::string ByteArray::to_string() const
   return s;
 }
 
-ByteArray::ByteArray(unsigned char x)
+/*ByteArray::ByteArray(unsigned char x)
 {
   putc(x);
-}
+}*/
 
 const unsigned char &ByteArray::operator[](unsigned int i) const
 {
@@ -82,6 +82,12 @@ unsigned char &ByteArray::operator[](unsigned int i)
 ByteArray::ByteArray(/*bool bigendian*/)
 {
   this->bigendian = false;
+}
+
+ByteArray::ByteArray(int len)
+{
+  this->bigendian = false;
+  data.resize(len);
 }
 
 ByteArray::ByteArray(const unsigned char *buffer, unsigned int len, bool bigendian)
@@ -112,9 +118,10 @@ bool ByteArray::operator !=(const ByteArray &ba) const
 
 void ByteArray::operator =(const ByteArray &ba)
 {
-  clear();
-  for(unsigned int i = 0; i < ba.size(); i++)
-    putc(ba.data[i]);
+  //clear();
+  data = ba.data;
+  //for(unsigned int i = 0; i < ba.size(); i++)
+  //  putc(ba.data[i]);
 }
 
 ByteArray ByteArray::operator +(const ByteArray &ba) const
@@ -139,20 +146,20 @@ void ByteArray::putc(uint8_t c)
 
 void ByteArray::putw(uint16_t w)
 {
-  putc((uint8_t) ((w >> 8) & 0xff));
   putc((uint8_t) (w & 0xff));
+  putc((uint8_t) ((w >> 8) & 0xff));
 }
 
 void ByteArray::putl(uint32_t l)
 {
-  putw((uint16_t) ((l >> 16) & 0xffff));
   putw((uint16_t) (l & 0xffff));
+  putw((uint16_t) ((l >> 16) & 0xffff));
 }
 
 void ByteArray::putL(uint64_t l)
 {
-  putl((uint32_t) ((l >> 32) & 0xffffffff));
   putl((uint32_t) (l & 0xffffffff));
+  putl((uint32_t) ((l >> 32) & 0xffffffff));
 }
 
 void ByteArray::putf(float f)
@@ -285,22 +292,22 @@ void ByteArray::insert(uint8_t c)
 
 uint16_t ByteArray::popw()
 {
-  uint16_t b = popc() & 0xff;
   uint16_t l = popc() & 0xff;
+  uint16_t b = popc() & 0xff;
   return ((b << 8) | l);
 }
 
 uint32_t ByteArray::popl()
 {
-  uint32_t b = popw() & 0xffff;
   uint32_t l = popw() & 0xffff;
+  uint32_t b = popw() & 0xffff;
   return ((b << 16) | l);
 }
 
 uint64_t ByteArray::popL()
 {
-  uint64_t b = popl() & 0xffffffff;
   uint64_t l = popl() & 0xffffffff;
+  uint64_t b = popl() & 0xffffffff;
   return ((b << 32) | l);
 }
 

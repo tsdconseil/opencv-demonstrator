@@ -60,7 +60,6 @@ TraceManager::TraceManager()
   tracers[2] = &std_tracer;
   tmp_buffer = (char *) malloc(TRACE_BSIZE);
   main_log = this->register_module("main");
-  //dsp_log  = this->register_module("dsp");
 }
 
 uint32_t TraceManager::get_anomaly_count()

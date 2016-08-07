@@ -53,12 +53,10 @@ public:
    *  @returns -1 if timeout occured */
   int get_line(std::string &res, int timeout);
 
-  /** @return number of bytes readen */
+  /** @return number of bytes read */
   virtual int read(uint8_t *buffer, uint32_t length, int timeout);
 
-#ifndef TESTCLI  
   int read(model::ByteArray &ba, uint32_t length, int timeout);
-#endif
 
   virtual void discard_rx_buffer();
 protected:
