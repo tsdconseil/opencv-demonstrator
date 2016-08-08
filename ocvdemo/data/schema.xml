@@ -861,6 +861,58 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 </node>
 
 <node name = "2d-2classes">
+
+  <attribute name     = "napp"
+             fr       = "Taille de l'ensemble d'entrainement"
+             en       = "Size of training set"
+             size     = "2"
+             min      = "1"
+             default  = "500"/>
+
+  <attribute name = "sel"
+             fr   = "Algorithme"
+             en   = "Algo"
+             min  = "0"
+             max  = "1">
+     <match value="0" fr="Machine à vecteurs de support" schema="svm"/>
+     <match value="1" fr="K plus proches voisins" schema="kppv"/>
+  </attribute>
+  <sub min="1" max="1" type="svm"/>
+  <sub min="1" max="1" type="kppv"/>
+</node>
+
+<node name="svm" fr = "Machine à vecteurs de support">
+  <attribute name="C" type="float" default="0.01"/>
+  <attribute name = "kernel"
+             fr   = "Type de noyau"
+             en   = "Kernel type"
+             min  = "0"
+             max  = "5"
+             default = "2">
+     <match value="0" fr="Linéaire" schema="svm-lin"/>
+     <match value="1" fr="Polynomial" schema="svm-poly"/>
+     <match value="2" fr="RBF" schema="svm-rbf"/>
+     <match value="3" fr="Sigmoid"/> 
+     <match value="4" fr="Chi2"/>
+     <match value="5" fr="Inter"/>
+  </attribute>
+  <sub min="1" max="1" type="svm-lin"/>
+  <sub min="1" max="1" type="svm-poly"/>
+  <sub min="1" max="1" type="svm-rbf"/>
+</node>
+
+<node name="kppv" fr="K plus proches voisins">
+</node>
+
+<node name="svm-rbf">
+  <attribute name="gamma" type="float" default="2.0" min="0.0001"/>
+</node>
+
+<node name="svm-poly">
+  <attribute name="degre" type="int" default="3" min="1" fr="Degré" en="Degree"/>
+</node>
+
+<node name="svm-lin">
 </node>
 
 </schema>
