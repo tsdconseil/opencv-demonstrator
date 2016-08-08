@@ -831,5 +831,37 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 <node name = "suivi-balle-3d">
 </node>
 
+<node name = "hog">
+
+  <attribute name     = "nbins" 
+             fr       = "Nombre de bins" 
+             en       = "Bins count"
+             default  = "16"
+             min      = "4">
+     <description lang="fr">Défini la résolution de l'histogramme (résolution angulaire = 360° / nombre de bins).</description>
+     <description lang="en">Define the histogram resultion (angular resolution = 360° / number of bins).</description>
+  </attribute>
+  <attribute name     = "dim-cellule" 
+             fr       = "Dimension cellule" 
+             en       = "Cell dimension"
+             unit     = "pixel"
+             default  = "16"
+             min      = "1">
+     <description lang="fr">Dimension (en pixels) de chaque cellule d'analyse.</description>
+  </attribute>
+  <attribute name     = "dim-bloc" 
+             fr       = "Dimension bloc" 
+             en       = "Block dimension"
+             unit     = "cellule"
+             default  = "1"
+             min      = "1">
+     <description lang="fr">Dimension (en nombre de cellules) de chaque bloc.</description>
+  </attribute>
+
+</node>
+
+<node name = "2d-2classes">
+</node>
+
 </schema>
 

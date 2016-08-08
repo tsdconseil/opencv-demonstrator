@@ -79,7 +79,12 @@ private:
   bool cascade_ok;
 };
 
-
+class DemoHog: public OCVDemoItem
+{
+public:
+  DemoHog();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
 
 
 

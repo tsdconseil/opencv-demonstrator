@@ -220,7 +220,13 @@
             en   = "Car plates">
          <img path = "data/img/plaque-immat-russe.png"/>
       </demo>
+      
     </cat>
+    
+      <demo name = "hog"
+            fr   = "Histrogramme de gradient orienté (HOG)"
+            en   = "Histogram of oriented gradients (HOG)">
+      </demo>
 
 
     <cat name="corner" fr="Point d'intérêts / Traits"
@@ -435,10 +441,15 @@
 
   </cat>
 
-  <!--<cat name = "appr"
+  <cat name = "appr"
        fr   = "Apprentissage automatique"
        en   = "Automatic learning">
-  </cat>-->
+       
+     <demo name = "2d-2classes"
+           fr   = "Problème de séparation 2D - 2 classes"
+           en   = "2D - 2 classes separation problem"
+     </demo>
+  </cat>
 
   <cat name = "misc"
        fr   = "Divers"
@@ -461,23 +472,23 @@
           ru: А не делать ничего демонстрационный предназначен в качестве руководства для разработчиков.
         -->  
         <!-- copy/past to above here then edit to fit your demo -->
-     <cat name = "bone_yard"
+     <!-- <cat name = "bone_yard"
 
 
 
        fr   = "Ossuaire"
        en   = "Bone Yard"
-       ru   = "Костный двор" >        <!-- List of sub-categories and demo items -->
+       ru   = "Костный двор" >        <-- List of sub-categories and demo items 
 
        <demo name = "skeleton"
              fr   = "le demo squelette "
              en   = "Skeleton demo"
              ru   = "Скелет Демо">
-             <!--Image your demo will use is indicated on the next line -->       
+             <--Image your demo will use is indicated on the next line  
              <img path="data/img/key.png"/>
        </demo>
 
-    </cat>
+    </cat> -->
        <!-- copy/paste -->
 
 </ocv-demo>

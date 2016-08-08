@@ -468,5 +468,94 @@ int CascGenDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   return 0;
 }
 
+DemoHog::DemoHog()
+{
+  props.id = "hog";
+}
 
+int DemoHog::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+  //HOGDescriptor::getDefaultPeopleDetector();
+
+  HOGDescriptor hog;
+  std::vector<float> ders;
+  std::vector<Point>locs;
+
+  cv::Mat img;
+  cvtColor(input.images[0], img, CV_BGR2GRAY);
+
+  journal.trace("img.size = %d * %d.", img.cols, img.rows);
+
+  hog.nbins             = input.model.get_attribute_as_int("nbins");
+  hog.nlevels           = 64;
+  hog.signedGradient    = true;
+  hog.derivAperture     = 0;
+  hog.winSigma          = -1;
+  hog.histogramNormType = 0;
+  hog.L2HysThreshold    = 0.2;
+  hog.gammaCorrection   = false;
+  uint16_t dim_cellule  = input.model.get_attribute_as_int("dim-cellule");
+  uint16_t dim_bloc     = input.model.get_attribute_as_int("dim-bloc");
+  hog.cellSize          = Size(dim_cellule,dim_cellule);
+  hog.winSize           = Size(dim_bloc*dim_cellule,dim_bloc*dim_cellule);
+  hog.blockStride       = Size(dim_bloc*dim_cellule,dim_bloc*dim_cellule);
+  hog.blockSize         = Size(dim_bloc*dim_cellule,dim_bloc*dim_cellule);
+  hog.compute(img, ders);
+
+  // Théoriquement, 512 * 512 / (16 * 16) = 1024 cellules
+  // Chaque cellule = 16 bins => 16 k elements
+  journal.trace("ders.size = %d.", ders.size());
+
+  // Dessin HOG
+  uint16_t sx = img.cols, sy = img.rows;
+  uint16_t ncellsx = sx / dim_cellule, ncellsy = sy / dim_cellule;
+  uint16_t res = 16;
+  Mat O = Mat::zeros(Size(ncellsx * res, ncellsy * res), CV_32F);
+
+  Mat tmp = Mat::zeros(Size(res,res), CV_32F);
+  for(auto b = 0; b < hog.nbins; b++)
+  {
+    Mat masque2 = Mat::zeros(Size(res, res), CV_32F);
+    Point p1(res/2,res/2), p2;
+    float angle = (b * 2 * 3.1415926) / hog.nbins;
+    p2.x = res/2 + 2 * res * cos(angle);
+    p2.y = res/2 + 2 * res * sin(angle);
+    cv::line(masque2, p1, p2, Scalar(1), 1, CV_AA);
+    p2.x = res/2 - 2 * res * cos(angle);
+    p2.y = res/2 - 2 * res * sin(angle);
+    cv::line(masque2, p1, p2, Scalar(1), 1, CV_AA);
+    tmp = tmp + masque2;
+  }
+
+  for(auto y = 0; y < ncellsy; y++)
+  {
+    for(auto x = 0; x < ncellsx; x++)
+    {
+      Mat masque = Mat::zeros(Size(res, res), CV_32F);
+      for(auto b = 0; b < hog.nbins; b++)
+      {
+        float val = ders.at(y * ncellsx * hog.nbins + x * hog.nbins + b);
+        Mat masque2 = Mat::zeros(Size(res, res), CV_32F);
+        Point p1(res/2,res/2), p2;
+        float angle = (b * 2 * 3.1415926) / hog.nbins;
+        p2.x = res/2 + 2 * res * cos(angle);
+        p2.y = res/2 + 2 * res * sin(angle);
+        cv::line(masque2, p1, p2, Scalar(val), 1, CV_AA);
+        p2.x = res/2 - 2 * res * cos(angle);
+        p2.y = res/2 - 2 * res * sin(angle);
+        cv::line(masque2, p1, p2, Scalar(val), 1, CV_AA);
+        masque = masque + masque2;
+      }
+      masque = masque / tmp;
+      Mat rdi(O, Rect(x * res, y * res, res, res));
+      masque.copyTo(rdi);
+    }
+  }
+
+  cv::normalize(O, O, 0, 255, NORM_MINMAX);
+  O.convertTo(O, CV_8U);
+  cvtColor(O, O, CV_GRAY2BGR);
+  output.images[0] = O;
+  return 0;
+}
 

@@ -34,11 +34,13 @@
 #include "demo-items/3d.hpp"
 #include "demo-items/misc.hpp"
 #include "demo-items/segmentation.hpp"
+#include "demo-items/appauto.hpp"
 #include "demo-items/demo-skeleton.hpp"
 //add a line to include your new demo header file patterned just as "demo-skeleton.hpp"
 
 void OCVDemo::add_demos()
 {
+  add_demo(new DemoHog());
   add_demo(new DemoLocalisation3D());
   add_demo(new DemoBalleTennis());
   add_demo(new DemoSqueletisation());
