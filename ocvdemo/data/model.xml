@@ -447,7 +447,7 @@
        
      <demo name = "2d-2classes"
            fr   = "Problème de séparation 2D - 2 classes"
-           en   = "2D - 2 classes separation problem"
+           en   = "2D - 2 classes separation problem">
      </demo>
   </cat>
 
@@ -473,22 +473,18 @@
         -->  
         <!-- copy/past to above here then edit to fit your demo -->
      <!-- <cat name = "bone_yard"
-
-
-
        fr   = "Ossuaire"
        en   = "Bone Yard"
-       ru   = "Костный двор" >        <-- List of sub-categories and demo items 
+       ru   = "Костный двор" > 
 
        <demo name = "skeleton"
              fr   = "le demo squelette "
              en   = "Skeleton demo"
              ru   = "Скелет Демо">
-             <--Image your demo will use is indicated on the next line  
+             Image your demo will use is indicated on the next line  
              <img path="data/img/key.png"/>
        </demo>
 
     </cat> -->
-       <!-- copy/paste -->
 
 </ocv-demo>

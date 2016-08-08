@@ -40,6 +40,7 @@
 
 void OCVDemo::add_demos()
 {
+  add_demo(new DemoAppAuto());
   add_demo(new DemoHog());
   add_demo(new DemoLocalisation3D());
   add_demo(new DemoBalleTennis());
