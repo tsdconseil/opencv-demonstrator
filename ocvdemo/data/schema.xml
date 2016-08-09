@@ -862,6 +862,8 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 
 <node name = "2d-2classes">
 
+  <description lang="fr">Exemple simple de classification à deux classes et avec des traits à deux dimensions (le modèle simulé est une courbe sinusoïdale).</description>
+
   <attribute name     = "napp"
              fr       = "Taille de l'ensemble d'entrainement"
              en       = "Size of training set"
@@ -882,7 +884,9 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 </node>
 
 <node name="svm" fr = "Machine à vecteurs de support">
-  <attribute name="C" type="float" default="0.01"/>
+  <attribute name="C" type="float" default="0.02">
+    <description lang="fr">Cette constante permet de régler le compromis précision du modèle / modération du risque de sur-apprentissage.</description>
+  </attribute>
   <attribute name = "kernel"
              fr   = "Type de noyau"
              en   = "Kernel type"
