@@ -34,19 +34,6 @@ using namespace cv;
 using namespace cv::ml;
 
 
-/*DemoMultiClasses::DemoMultiClasses()
-{
-  props.id = "2d-nclasses";
-  props.input_min = 0;
-  props.input_max = 0;
-}
-
-
-int DemoMultiClasses::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
-{
-  return 0;
-}*/
-
 DemoAppAuto::DemoAppAuto()
 {
   props.id = "2d-2classes";
@@ -115,16 +102,6 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
         i--;
         continue;
       }
-
-      /*if(x2 < 0)
-        x2 = 0;
-      if(x2 >= 1)
-        x2 = 0.999999;
-      if(y2 < 0)
-        y2 = 0;
-      if(y2 >= 1)
-        y2 = 0.999999;*/
-
       classe = std::floor(x2 * n1) + std::floor(y2 * n2) * n1;
     }
 
@@ -132,12 +109,6 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
     y = y + rng.gaussian(bruit);
 
     assert(classe < MAX_CLASSES);
-
-    /*Scalar couleur = Scalar(255, 0, 0);
-    if(classe == 1)
-      couleur = Scalar(0, 255, 0);*/
-
-    //int xi = (x * sx / (2 * 3.1415926f));
     int xi = sx/2 + x * sx / 2;
     int yi = sy/2 + y * sy / 2;
 
@@ -186,13 +157,6 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
   for(auto i = 0u; i < MAX_CLASSES; i++)
     for(auto j = 0u; j < 3; j++)
       c[i][j] = couleurs[i][j];
-    /*c[i]
-  c[0][0] = 255;
-  c[0][1] = 0;
-  c[0][2] = 0;
-  c[1][0] = 0;
-  c[1][1] = 255;
-  c[1][2] = 0;*/
 
   Mat traits(Size(2,1),CV_32F);
   float *tptr = traits.ptr<float>();
@@ -200,7 +164,6 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
   {
     for(auto x = 0u; x < sx2; x++)
     {
-      //tptr[0] = ((float) x * 2 * 3.1415926) / sx2;
       tptr[0] = (((float) x) - sx2/2) / (sx2 / 2);
       tptr[1] = (((float) y) - sy2/2) / (sy2 / 2);
       int res = svm->predict(traits);

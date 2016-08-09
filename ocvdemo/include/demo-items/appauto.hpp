@@ -25,21 +25,12 @@
 
 #include "ocvdemo-item.hpp"
 
-//for new demo change SkeletonDemo to your class name
-
 class DemoAppAuto: public OCVDemoItem
 {
 public:
   DemoAppAuto();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
-
-/*class DemoMultiClasses: public OCVDemoItem
-{
-public:
-  DemoMultiClasses();
-  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
-};*/
 
 
 #endif
