@@ -862,7 +862,7 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 
 <node name = "2d-2classes">
 
-  <description lang="fr">Exemple simple de classification à deux classes et avec des traits à deux dimensions (le modèle simulé est une courbe sinusoïdale).</description>
+  <description lang="fr">Exemple simple de classification avec des traits à deux dimensions.</description>
 
   <attribute name     = "napp"
              fr       = "Taille de l'ensemble d'entrainement"
@@ -870,6 +870,23 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
              size     = "2"
              min      = "1"
              default  = "500"/>
+             
+  <attribute name     = "nclasses"
+             fr       = "Nombre de classes"
+             en       = "Number of classes to learn"
+             min      = "2"
+             default  = "2"
+             max      = "4"/>
+             
+  <attribute name     = "bruit"
+             fr       = "Ecart-type du bruit"
+             en       = "Noise on training data (standard deviation)"
+             type     = "float"
+             default  = "0"
+             min      = "0"
+             max      = "10">
+    <description lang="fr">Défini (si non nul) la quantité de bruit appliqué sur les données d'entraînement.</description>
+  </attribute>
 
   <attribute name = "sel"
              fr   = "Algorithme"

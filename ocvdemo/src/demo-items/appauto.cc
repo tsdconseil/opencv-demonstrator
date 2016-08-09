@@ -33,6 +33,20 @@
 using namespace cv;
 using namespace cv::ml;
 
+
+/*DemoMultiClasses::DemoMultiClasses()
+{
+  props.id = "2d-nclasses";
+  props.input_min = 0;
+  props.input_max = 0;
+}
+
+
+int DemoMultiClasses::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
+{
+  return 0;
+}*/
+
 DemoAppAuto::DemoAppAuto()
 {
   props.id = "2d-2classes";
@@ -44,8 +58,10 @@ DemoAppAuto::DemoAppAuto()
 int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
 {
   // (1) Génération d'un jeu de données
+  uint16_t nclasses = entree.model.get_attribute_as_int("nclasses");
   uint32_t n = entree.model.get_attribute_as_int("napp"),
       ntraits = 2u;
+  float bruit = entree.model.get_attribute_as_float("bruit");
   Mat mat_entrainement(Size(ntraits,n), CV_32F);
 
   uint32_t sx = 512, sy = 512;
@@ -61,32 +77,77 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
 
   uint16_t dl = (5 * 512) / sx;
 
-  journal.verbose("Generation jeu de donnees...");
+  journal.trace("Generation jeu de donnees (n = %d, nclasses = %d)...", n, nclasses);
+
+
+  int n1 = std::floor(std::sqrt(nclasses));
+  int n2 = std::ceil(nclasses / n1);
+
+  journal.verbose("Partition du plan : %d * %d.", n1, n2);
+
+# define MAX_CLASSES 4
+  Scalar couleurs[MAX_CLASSES];
+  couleurs[0] = Scalar(255,0,0);
+  couleurs[1] = Scalar(0,255,0);
+  couleurs[2] = Scalar(0,0,255);
+  couleurs[3] = Scalar(255,0,255);
+
   for(auto i = 0u; i < n; i++)
   {
     uint8_t classe = 0;
-    float x = rng.uniform(0.0f, 2 * 3.1415926f);
+    //float x = rng.uniform(0.0f, 2 * 3.1415926f);
+    float x = rng.uniform(-1.0f, 1.0f);
     float y = rng.uniform(-1.0f, 1.0f);
-    if(y >= std::sin(x))
-      classe = 1;
-    //x = x + rng.gaussian(0.02f);
-    //y = y + rng.gaussian(0.02f);
 
-    Scalar couleur = Scalar(255, 0, 0);
+    if(nclasses == 2)
+    {
+      if(y >= std::sin(3.1415926 * x))
+        classe = 1;
+    }
+    else
+    {
+      // Entre 0 et 1
+      float x2 = (x + 1) / 2;
+      float y2 = (y + 1) / 2;
+
+      if((x2 < 0) || (x2 >= 1) || (y2 < 0) || (y2 >= 1))
+      {
+        i--;
+        continue;
+      }
+
+      /*if(x2 < 0)
+        x2 = 0;
+      if(x2 >= 1)
+        x2 = 0.999999;
+      if(y2 < 0)
+        y2 = 0;
+      if(y2 >= 1)
+        y2 = 0.999999;*/
+
+      classe = std::floor(x2 * n1) + std::floor(y2 * n2) * n1;
+    }
+
+    x = x + rng.gaussian(bruit);
+    y = y + rng.gaussian(bruit);
+
+    assert(classe < MAX_CLASSES);
+
+    /*Scalar couleur = Scalar(255, 0, 0);
     if(classe == 1)
-      couleur = Scalar(0, 255, 0);
+      couleur = Scalar(0, 255, 0);*/
 
-    int xi = (x * sx / (2 * 3.1415926f));
+    //int xi = (x * sx / (2 * 3.1415926f));
+    int xi = sx/2 + x * sx / 2;
     int yi = sy/2 + y * sy / 2;
 
-    cv::line(O, Point(xi-dl,yi), Point(xi+dl,yi), couleur, 1, CV_AA);
-    cv::line(O, Point(xi,yi-dl), Point(xi,yi+dl), couleur, 1, CV_AA);
+    cv::line(O, Point(xi-dl,yi), Point(xi+dl,yi), couleurs[classe], 1, CV_AA);
+    cv::line(O, Point(xi,yi-dl), Point(xi,yi+dl), couleurs[classe], 1, CV_AA);
 
     *optr++ = x;
     *optr++ = y;
     //mat_entrainement.at<float>(i,0) = x;
     //mat_entrainement.at<float>(i,1) = y;
-
     *ptr++ = classe;
   }
   journal.verbose("ok.");
@@ -119,68 +180,19 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
   svm->train(mat_entrainement, ROW_SAMPLE, labels);
   journal.verbose("Ok.");
 
-  //Mat sv = svm->getSupportVectors();
-
-
-  // (3) Affichage des vecteurs de support
-
-
-
-
-
   journal.verbose("Echantillonnage du plan...");
-  // (4) Classification (échantillonnage du plan)
-
-
-
-  //Mat O3 = Mat(Size(sx,sy),CV_32F);
-  //float *o3_ptr = O3.ptr<float>();
-
   Vec3b *o2ptr = O2.ptr<Vec3b>();
-
-  Vec3b c[2];
+  Vec3b c[MAX_CLASSES];
+  for(auto i = 0u; i < MAX_CLASSES; i++)
+    for(auto j = 0u; j < 3; j++)
+      c[i][j] = couleurs[i][j];
+    /*c[i]
   c[0][0] = 255;
   c[0][1] = 0;
   c[0][2] = 0;
   c[1][0] = 0;
   c[1][1] = 255;
-  c[1][2] = 0;
-
-
-
-# if 0
-  journal.verbose("Creation matrice de traits...");
-  Mat traits(Size(2,sx2*sy2),CV_32F);
-  float *tptr = traits.ptr<float>();
-  for(auto y = 0u; y < sy2; y++)
-  {
-    for(auto x = 0u; x < sx2; x++)
-    {
-      *tptr++ = ((float) x * 2 * 3.1415926) / sx2;
-      *tptr++ = (((float) y) - sy2/2) / (sy2 / 2);
-    }
-  }
-
-  journal.verbose("Prediction SVM...");
-
-
-  cv::Mat res(Size(1,sx2*sy2), CV_32S);
-  svm->predict(traits, res);
-
-  journal.verbose("Mise en forme des resultats...");
-  int *iptr = res.ptr<int>();
-  for(auto y = 0u; y < sy2; y++)
-  {
-    for(auto x = 0u; x < sx2; x++)
-    {
-      int res = *iptr++;
-      assert((res == 0) || (res == 1));
-      *o2ptr++ = c[res];
-    }
-  }
-# endif
-
-# if 1
+  c[1][2] = 0;*/
 
   Mat traits(Size(2,1),CV_32F);
   float *tptr = traits.ptr<float>();
@@ -188,28 +200,21 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
   {
     for(auto x = 0u; x < sx2; x++)
     {
-      tptr[0] = ((float) x * 2 * 3.1415926) / sx2;
+      //tptr[0] = ((float) x * 2 * 3.1415926) / sx2;
+      tptr[0] = (((float) x) - sx2/2) / (sx2 / 2);
       tptr[1] = (((float) y) - sy2/2) / (sy2 / 2);
       int res = svm->predict(traits);
+      assert((res < MAX_CLASSES) && (res >= 0));
       *o2ptr++ = c[res];
     }
   }
-# endif
   journal.verbose("Ok.");
-
-  //double minv, maxv;
-  //cv::minMaxLoc(O3, &minv, &maxv, nullptr, nullptr);
-  //journal.verbose("Min class = %f, max class = %f.", minv, maxv);
-  //cv::normalize(O3, O3, 0, 1, NORM_MINMAX);
 
   sortie.nout = 2;
   sortie.images[0] = O;
   sortie.names[0]  = "Entrainement";
   sortie.images[1] = O2;
   sortie.names[1]  = "Classication";
-  //sortie.images[2] = O2;
-  //sortie.names[2]  = "SVM (classication du plan)";
-
   return 0;
 }
 

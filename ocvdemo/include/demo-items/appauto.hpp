@@ -34,4 +34,12 @@ public:
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
+/*class DemoMultiClasses: public OCVDemoItem
+{
+public:
+  DemoMultiClasses();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};*/
+
+
 #endif
