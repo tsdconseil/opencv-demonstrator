@@ -90,7 +90,7 @@ int ImageMosaique::show_multiple_images(std::string title,
   mutex.lock();
   this->title = title;
   cv::Mat img;
-  unsigned int nArgs = lst.size();
+  unsigned int nimages = lst.size();
 
   int sizex, sizey;
   int i;
@@ -111,15 +111,9 @@ int ImageMosaique::show_multiple_images(std::string title,
 
   // If the number of arguments is lesser than 0 or greater than 12
   // return without displaying
-  if(nArgs <= 0)
+  if(nimages <= 0)
   {
     journal.anomaly("%s: Number of arguments too small.", __func__);
-    mutex.unlock();
-    return -1;
-  }
-  else if(nArgs > 20)
-  {
-    journal.anomaly("%s: Number of arguments too large.", __func__);
     mutex.unlock();
     return -1;
   }
@@ -134,57 +128,55 @@ int ImageMosaique::show_multiple_images(std::string title,
   // Determine the size of the image,
   // and the number of rows/cols
   // from number of arguments
-  if (nArgs == 1)
+  if (nimages == 1)
   {
     w = h = 1;
     sizex = lst[0].cols;
     sizey = lst[0].rows;
     show_deco = false;
   }
-  else if (nArgs == 2)
+  else if (nimages == 2)
   {
     w = 2; h = 1;
     sizex = 500;
     sizey = 500;
   }
-  else if (nArgs == 3)
+  else if (nimages == 3)
   {
     w = 3; h = 1;
     sizex = 640;//350;
     sizey = 480;//350;
   }
-  else if (nArgs == 4)
+  else if (nimages == 4)
   {
     w = 2; h = 2;
     sizex = sizey = 350;
   }
-  else if (nArgs == 5 || nArgs == 6)
+  else if (nimages == 5 || nimages == 6)
   {
     w = 3; h = 2;
     sizex = sizey = 250;
   }
-  else if (nArgs == 7 || nArgs == 8)
+  else if (nimages == 7 || nimages == 8)
   {
     w = 4; h = 2;
     sizex = sizey = 250;
   }
   else
   {
-    w = 4; h = 3;
-    sizex = sizey = 200;
+    w = (int) ceil(sqrt(nimages));
+    h = (int) ceil(((float) nimages) / w);
+    //w = 4; h = 3;
+    sizex = sizey = 100;
   }
 
-
-
-  if(nArgs > 1)
+  if(nimages > 1)
     sizey = (sizex * lst[0].rows) / lst[0].cols;
 
-
-
-  uint16_t W = 100 + sizex*w;
+  uint16_t W = /*100*/20 + (20+sizex)*w;
   uint16_t H = 20 + (sizey+30)*h;
 
-  if(nArgs == 1)
+  if(nimages == 1)
   {
     W = sizex;
     H = sizey;
@@ -199,7 +191,7 @@ int ImageMosaique::show_multiple_images(std::string title,
 
 
   // Loop for nArgs number of arguments
-  for (i = 0, m = 20, n = 20; i < (int) nArgs; i++, m += (20 + sizex))
+  for (i = 0, m = 20, n = 20; i < (int) nimages; i++, m += (20 + sizex))
   {
     // Get the Pointer to the IplImage
     img = lst[i];
@@ -212,26 +204,26 @@ int ImageMosaique::show_multiple_images(std::string title,
     scale = std::max(scalex,scaley);
 
     // Used to Align the images
-    if( i % w == 0 && m!= 20)
+    if(((i % w) == 0) && (m != 20))
     {
       m  = 20;
       n += 30 + sizey;
     }
 
-    if(nArgs == 1)
+    if(nimages == 1)
     {
       m = 0; n = 0;
       scale = 1;
       disp_img = img;
     }
 
-
-
     // Set the image ROI to display the current image
     cv::Rect rect(m, n, (int)(x/scale), (int)(y/scale));
+
+    journal.verbose("di: %d*%d, r:%d,%d,%d,%d.", disp_img.cols, disp_img.rows, rect.x, rect.y, rect.width, rect.height);
     cv::Mat roi(disp_img, rect);
 
-    if(nArgs > 1)
+    if(nimages > 1)
       // Resize the input image and copy the it to the Single Big Image
     {
       Mat im = img.clone();
@@ -271,7 +263,7 @@ int ImageMosaique::show_multiple_images(std::string title,
   // Create a new window, and show the Single Big Image
 
   journal.verbose("namedWindow...");
-  if(nArgs == 1)
+  if(nimages == 1)
   {
     cv::namedWindow(title.c_str(), CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL);
     cv::resizeWindow(title.c_str(), lst[0].cols, lst[0].rows);
