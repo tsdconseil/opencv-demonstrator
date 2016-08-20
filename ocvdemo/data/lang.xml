@@ -61,9 +61,13 @@
   <item name="ech-cam-d" fr="La caméra USB n'a pas été détectée. Veuillez vérifier si la caméra est bien connectée." en="The USB camera has not been detected. Please check the camera connexion."/>
 
   <item name="credit-image" fr="Crédit images" en="Image credits"/>  
-  <item name="credit-image-opencv" fr="Images d'exemples incluses dans OpenCV  (http://www.opencv.org)" en="Images included in OpenCV example files (http://www.opencv.org)"/>
-  <item name="credit-image-carte" fr="Carte à jouer (détection quadrilatère) : site web Automatic perspective correction for quadrilateral objects (http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects)"/>
-  <item name="credit-image-autre" fr="Autres photos : J.A." en="Other photos: J.A."/>
+  <item name="credit-image-opencv" 
+  fr="Images d'exemples incluses dans OpenCV  (http://www.opencv.org), images de visages (AT&T Laboratories, Cambridge)" 
+  en="Images included in OpenCV example files (http://www.opencv.org), face images (AT&T Laboratories, Cambridge)"/>
+  <item name="credit-image-carte" 
+  fr="Carte à jouer (détection quadrilatère) : site web Automatic perspective correction for quadrilateral objects (http://opencv-code.com/tutorials/automatic-perspective-correction-for-quadrilateral-objects)"/>
+  <item name="credit-image-autre" 
+  fr="Autres photos : J.A." en="Other photos: J.A."/>
   <item name = "rev" 
   	    fr   = "Révision %d.%d.%d, OpenCV %d.%d.%d, GTKMM 3.0" 
         en   = "Version %d.%d.%d, OpenCV %d.%d.%d, GTKMM 3.0"/>
