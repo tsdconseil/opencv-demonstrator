@@ -313,18 +313,20 @@ void OCVDemo::update()
   lst.push_back(Ia);
   unsigned int img_count = demo_en_cours->output.nout;
 
-// FIXME: if img_count is ever 0 the next line seg faults.
-// That is why several of the reco-demos have been failing.
-// I don't know what the correct thing to do here.
-
-if(demo_en_cours->output.images[img_count - 1 ].data == nullptr)
+  if(img_count && (demo_en_cours->output.images[img_count - 1 ].data == nullptr))
   {
-    img_count = 0;
     journal.warning("Img count = %d, et image de sortie non initialisée.", img_count);
+    img_count = 1;
+  }
+  else if(img_count == 0)
+  {
+    if(Ia.data != nullptr)
+      img_count = 1;
+    else
+      lst.clear();
   }
 
   std::vector<std::string> titres;
-
   for(auto j = 0u; j < img_count; j++)
   {
     if(j > 0)
@@ -336,10 +338,6 @@ if(demo_en_cours->output.images[img_count - 1 ].data == nullptr)
     char buf[50];
     sprintf(buf, "o[id=%d]", j);
     std::string s = "";
-    /*if((j + 1 == img_count) && (img_count > 1))
-      s = langue.get_item("img-sortie");
-    if((j == 0) && (img_count > 1))
-      s = langue.get_item("img-entree");*/
     if(modele_demo.has_child(std::string(buf)))
     {
       auto n = modele_demo.get_child(std::string(buf));
@@ -699,13 +697,13 @@ void OCVDemo::compute_Ia()
 {
   if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_roi))
   {
-    Ia = I0.clone();//demo_en_cours->sortie.O[0];//I1.clone();
+    Ia = I0.clone();
     cv::rectangle(Ia, rdi0, rdi1, Scalar(0,255,0), 3);
   }
   else if((demo_en_cours != nullptr) && (demo_en_cours->props.requiert_masque))
   {
     if((Ia.data == nullptr) || (Ia.size() != I1.size()))
-      Ia = demo_en_cours->output.images[0];//Ia = I1.clone();
+      Ia = demo_en_cours->output.images[0];
   }
   else if(demo_en_cours != nullptr)
     Ia = demo_en_cours->output.images[0];

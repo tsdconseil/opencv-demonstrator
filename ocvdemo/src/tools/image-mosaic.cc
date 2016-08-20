@@ -109,26 +109,26 @@ int ImageMosaique::show_multiple_images(std::string title,
   img_pos.clear();
   img_sizes.clear();
 
-  // If the number of arguments is lesser than 0 or greater than 12
-  // return without displaying
-  if(nimages <= 0)
+  /*if(nimages < 0)
   {
     journal.anomaly("%s: Number of arguments too small.", __func__);
     mutex.unlock();
     return -1;
-  }
+  }*/
 
-  if(lst[0].cols <= 0)
+  if((nimages > 0) && (lst[0].cols <= 0))
   {
     journal.anomaly("%s: First image empty.", __func__);
     mutex.unlock();
     return -1;
   }
 
-  // Determine the size of the image,
-  // and the number of rows/cols
-  // from number of arguments
-  if (nimages == 1)
+  if(nimages == 0)
+  {
+    w = h = 1;
+    sizex = sizey = 1;
+  }
+  else if (nimages == 1)
   {
     w = h = 1;
     sizex = lst[0].cols;
@@ -176,7 +176,7 @@ int ImageMosaique::show_multiple_images(std::string title,
   uint16_t W = /*100*/20 + (20+sizex)*w;
   uint16_t H = 20 + (sizey+30)*h;
 
-  if(nimages == 1)
+  if(nimages <= 1)
   {
     W = sizex;
     H = sizey;
@@ -220,7 +220,7 @@ int ImageMosaique::show_multiple_images(std::string title,
     // Set the image ROI to display the current image
     cv::Rect rect(m, n, (int)(x/scale), (int)(y/scale));
 
-    journal.verbose("di: %d*%d, r:%d,%d,%d,%d.", disp_img.cols, disp_img.rows, rect.x, rect.y, rect.width, rect.height);
+    //journal.verbose("di: %d*%d, r:%d,%d,%d,%d.", disp_img.cols, disp_img.rows, rect.x, rect.y, rect.width, rect.height);
     cv::Mat roi(disp_img, rect);
 
     if(nimages > 1)
