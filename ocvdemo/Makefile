@@ -81,7 +81,7 @@ ifeq ($(TARGET),LINUX)
 ADDITIONNAL_LOPT += ../ocvext/build/ocvext.lib -lopencv_core -lopencv_highgui -lopencv_objdetect -lopencv_features2d -lopencv_stitching -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio -lopencv_video -lopencv_calib3d -lopencv_photo -lopencv_ml
 else
 ADDITIONNAL_LOPT += ../ocvext/build/ocvext.lib -mwindows
-ADDITIONNAL_LOPT += -lopencv_core300 -lopencv_imgproc300 -lopencv_highgui300 -lopencv_video300 -lopencv_videoio300 -lopencv_features2d300 -lopencv_objdetect300 -lopencv_imgcodecs300 -lopencv_calib3d300 -lopencv_stitching300 -lopencv_photo300 -lopencv_ml300 -march=i486
+ADDITIONNAL_LOPT += -lopencv_core310 -lopencv_imgproc310 -lopencv_highgui310 -lopencv_video310 -lopencv_videoio310 -lopencv_features2d310 -lopencv_objdetect310 -lopencv_imgcodecs310 -lopencv_calib3d310 -lopencv_stitching310 -lopencv_photo310 -lopencv_ml310 -lopencv_face310 -march=i486
 #-lfftw3-3 -lfftw3f-3 
 endif
 

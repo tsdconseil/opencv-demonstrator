@@ -87,5 +87,12 @@ public:
 };
 
 
+class DemoFaceRecognizer: public OCVDemoItem
+{
+public:
+  DemoFaceRecognizer();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
+
 
 #endif /* MORPHO_DEMO_HPP_ */

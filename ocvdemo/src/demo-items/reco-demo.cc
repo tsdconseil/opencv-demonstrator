@@ -22,6 +22,8 @@
 
 #include "demo-items/reco-demo.hpp"
 
+#include "opencv2/face.hpp"
+
 #ifdef OCV240
 # include "opencv2/stitching/stitcher.hpp"
 #else
@@ -556,6 +558,140 @@ int DemoHog::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   O.convertTo(O, CV_8U);
   cvtColor(O, O, CV_GRAY2BGR);
   output.images[0] = O;
+
+  output.nout = 1;
+
+  if(input.model.get_attribute_as_boolean("detecte-personnes"))
+  {
+    auto img = O.clone();
+    auto coefs = HOGDescriptor::getDefaultPeopleDetector();
+    hog.setSVMDetector(coefs);
+    std::vector<cv::Rect> locs;
+    hog.detectMultiScale(img, locs);//, double hit_thres, Size winStride,
+    //    Size padding, double scale, double fthreshold, false);
+    for(auto &r: locs)
+      cv::rectangle(img, r, Scalar(0,0,255), 1, CV_AA);
+    output.nout = 2;
+    output.images[1] = img;
+  }
+
+
+
   return 0;
 }
+
+DemoFaceRecognizer::DemoFaceRecognizer()
+{
+  props.id = "face-recognizer";
+  props.input_min = 0;
+  props.input_max = 0;
+}
+
+
+
+int DemoFaceRecognizer::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+  uint16_t sx = 0, sy = 0;
+  unsigned int nclasses = 40;
+  unsigned int nex = 10;
+
+  output.nout = 0;
+
+  std::vector<cv::Mat> images[2];
+  std::vector<int> labels[2];
+
+  for(auto i = 0u; i < nclasses; i++)
+  {
+    for(auto j = 0u; j < nex; j++)
+    {
+      char buf[50];
+      sprintf(buf, "/img/att_faces/s%d/%d.pgm", i + 1, j + 1);
+      auto chemin = utils::get_fixed_data_path() + buf;
+      auto img = cv::imread(chemin, CV_LOAD_IMAGE_GRAYSCALE);
+      if(img.data == nullptr)
+      {
+        output.errmsg = "Image non trouvée : " + chemin;
+        return -1;
+      }
+      images[j / (nex / 2)].push_back(img);
+      labels[j / (nex / 2)].push_back(i);
+      sx = img.cols;
+      sy = img.rows;
+    }
+  }
+
+  journal.verbose("Sx = %d, sy = %d.", sx, sy);
+
+  int algo = input.model.get_attribute_as_int("algo");
+
+  if(algo <= 2)
+  {
+    unsigned int ncompos = 0;
+    Ptr<cv::face::FaceRecognizer> model;
+
+    if(algo == 0)
+    {
+      ncompos = input.model.get_attribute_as_int("eigenface/numcompo");
+      model = cv::face::createEigenFaceRecognizer(ncompos);
+    }
+    else if(algo == 1)
+    {
+      ncompos = input.model.get_attribute_as_int("fisherface/numcompo");
+      model = cv::face::createFisherFaceRecognizer(ncompos);
+    }
+    else if(algo == 2)
+    {
+      model = cv::face::createLBPHFaceRecognizer();//radius, neighbors, gx, gy);
+    }
+    model->train(images[0], labels[0]);
+
+    uint32_t ntests = images[1].size();
+
+    int nfaux = 0;
+
+    for(auto i = 0u; i < ntests; i++)
+    {
+      int label;
+      double confiance;
+      model->predict(images[1][i], label, confiance);
+      if(label != labels[1][i])
+        nfaux++;
+    }
+    float taux = ((float) (ntests - nfaux)) / ntests;
+    journal.trace("Ntests = %d, nfaux = %d, taux de réussite = %.2f %%.", ntests, nfaux, taux * 100);
+
+    output.nout = 0;
+
+    if(algo <= 1)
+    {
+      cv::face::BasicFaceRecognizer *model2 = (cv::face::BasicFaceRecognizer *) model.get();
+      Mat ev = model2->getEigenVectors();
+      journal.trace("Eigen vectors = %d * %d.", ev.cols, ev.rows);
+      // 80 * 10304 = numcompos * (nbdims total)
+
+      output.nout = ev.cols;//ncompos;
+      if(ncompos > DEMO_MAX_IMG_OUT)
+        output.nout = DEMO_MAX_IMG_OUT;
+      for(auto i = 0; i < output.nout; i++)
+      {
+        cv::Mat mat = ev.col(i).t();
+        mat = mat.reshape(1, sy);
+
+        //journal.verbose("nv taille = %d * %d.", mat.cols, mat.rows);
+        mat.convertTo(mat, CV_32F);
+        cv::normalize(mat, mat, 0, 1.0, NORM_MINMAX);
+        mat.convertTo(mat, CV_8U, 255);
+        output.images[i] = mat;
+      }
+    }
+  }
+  else
+  {
+    output.errmsg = "Algorithme non supporté.";
+    return -1;
+  }
+
+  return 0;
+}
+
 

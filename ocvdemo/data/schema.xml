@@ -857,6 +857,12 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
              min      = "1">
      <description lang="fr">Dimension (en nombre de cellules) de chaque bloc.</description>
   </attribute>
+  
+  <attribute name     = "detecte-personnes"
+             fr       = "Localiser les personnes"
+             en       = "Localize people"
+             type     = "boolean"
+             default  = "false"/>
 
 </node>
 
@@ -934,6 +940,45 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 </node>
 
 <node name="svm-lin">
+</node>
+
+<node name = "face-recognizer">
+
+<description lang="fr">Les algorithmes suivants sont supportés :
+- <b>Eigenfaces :</b> analyse en composantes principales (ACP) des images de tests, et recherche de l'image la plus proche dans la base des k composantes principales.
+- <b>Fisherfaces :</b> amélioration de l'ACP, en cherchant une base de représentation qui à la fois maximise la variance inter-classes et à la fois minimise la variance intra-classe (sur les mêmes visages).
+- <b>LBPH :</b> </description>
+
+  <attribute name = "algo"
+             fr   = "Algorithme"
+             en   = "Algorithm"
+             min  = "0"
+             max  = "2">
+    <match value = "0" fr = "Eigenface"  schema = "eigenface"/>
+    <match value = "1" fr = "Fisherface" schema = "fisherface"/>
+    <match value = "2" fr = "LBPH"       schema = "lbph-face"/>
+  </attribute>
+  <attribute name="seuil" fr="Seuil" en="Threshold" type="float" default="10000">
+    <description lang="fr">Distance maximale pour valider une identification.</description>
+    <description lang="en">Maximal distance to validate an identification.</description>
+  </attribute>
+  <sub min="1" max="1" type="eigenface">
+    <attribute name="numcompo" size="2" default="80" fr="Nombre de composantes" en="Componants count"/>    
+  </sub>
+  <sub min="1" max="1" type="fisherface">
+    <attribute name="numcompo" size="2" default="80" fr="Nombre de composantes" en="Componants count"/>
+  </sub>
+  <sub min="1" max="1" type="lbph-face">
+  </sub>
+</node>
+
+<node name="eigenface">
+  <attribute name="numcompo" size="2" default="20" fr="Nombre de composantes" en="Componants count"/>    
+</node>
+<node name="fisherface">
+  <attribute name="numcompo" size="2" default="20" fr="Nombre de composantes" en="Componants count"/>
+</node>
+<node name="lbph-face">
 </node>
 
 </schema>

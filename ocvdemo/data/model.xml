@@ -226,6 +226,7 @@
       <demo name = "hog"
             fr   = "Histrogramme de gradient orienté (HOG)"
             en   = "Histogram of oriented gradients (HOG)">
+        <img path = "data/img/7seau4.png"/>
       </demo>
 
 
@@ -244,6 +245,15 @@
        <img path="data/img/lac2.jpg"/>
     </demo>
     </cat>
+    
+    <demo name  = "face-recognizer"
+          fr    = "Reconnaissance de visage"
+          en    = "Face recognition">
+          
+          
+          
+    </demo>
+          
   </cat>
 
   <cat name = "video"
