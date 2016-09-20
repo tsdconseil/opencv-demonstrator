@@ -70,7 +70,7 @@ public:
   struct OCVDemoItemInput
   {
     /** Modèle (configuration du traitement) */
-    Node model;
+    utils::model::Node model;
 
     /** Si oui, rectangle définissant la ROI */
     cv::Rect roi;
