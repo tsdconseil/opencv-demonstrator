@@ -511,7 +511,7 @@ void OCVDemo::maj_entree()
 }
 
 
-void OCVDemo::setup_demo(const Node &sel)
+void OCVDemo::setup_demo(const utils::model::Node &sel)
 {
   auto id = sel.get_attribute_as_string("name");
   auto s = sel.get_localized_name();
@@ -757,7 +757,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   }
   else
   {
-    modele_global = Node::create_ram_node(fs_racine->get_schema("global-schema"), chemin_fichier_config);
+    modele_global = utils::model::Node::create_ram_node(fs_racine->get_schema("global-schema"), chemin_fichier_config);
     if(modele_global.is_nullptr())
     {
       modele_global = utils::model::Node::create_ram_node(fs_racine->get_schema("global-schema"));
