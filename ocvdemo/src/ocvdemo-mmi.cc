@@ -247,7 +247,7 @@ void OCVDemo::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context, int
 
      journal.trace("DnD: %s.", s.c_str());
 
-     Node new_model = Node::create_ram_node(modele_global.schema());
+     utils::model::Node new_model = utils::model::Node::create_ram_node(modele_global.schema());
      new_model.copy_from(modele_global);
      new_model.set_attribute("sel", 1);
      new_model.set_attribute("file-schema/path", s);

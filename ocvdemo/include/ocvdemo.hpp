@@ -121,7 +121,7 @@ private:
   void export_captures(utils::model::Node &cat);
   Mat  get_current_output();
   bool has_output();
-  void setup_demo(const Node &sel);
+  void setup_demo(const utils::model::Node &sel);
   void maj_bts();
   void maj_langue();
   void maj_langue_systeme();
