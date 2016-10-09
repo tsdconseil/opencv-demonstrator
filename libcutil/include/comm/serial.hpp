@@ -114,6 +114,7 @@ public:
   void disconnect();
   bool is_connected();
   virtual void discard_rx_buffer();
+  unsigned int nb_rx_available();
 private:
   
   void com_thread(void);

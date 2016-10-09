@@ -22,6 +22,7 @@
  **/
 
 #include "demo-items/morpho-demo.hpp"
+#include "demo-items/thinning.hpp"
 
 
 MorphoDemo::MorphoDemo()
@@ -69,44 +70,64 @@ int MorphoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 DemoSqueletisation::DemoSqueletisation()
 {
   props.id = "squeletisation";
-  output.nout = 2;
-  output.names[0] = "Binarisation";
-  output.names[1] = "Squelitisation";
 }
 
 int DemoSqueletisation::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  Mat A;
+  Mat A, squelette;
 
   cv::cvtColor(input.images[0], A, CV_BGR2GRAY);
 
-  cv::threshold(A, A, 128, 255, cv::THRESH_OTSU);
-  A = 255 - A;
+  //cv::threshold(A, A, 128, 255, cv::THRESH_OTSU);
+  //A = 255 - A;
 
-  output.images[0] = A.clone();
 
-  cv::Mat K = cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3, 3));
 
-  cv::Mat squelette(A.size(), CV_8UC1, cv::Scalar(0));
-  cv::Mat temp(A.size(), CV_8UC1);
+  int sel = input.model.get_attribute_as_int("sel");
 
+  // Gradient morphologique
   // Algorithme d'après page web
   // http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/
-  bool done;
-  do
+  if(sel == 0)
   {
-    cv::morphologyEx(A, temp, cv::MORPH_OPEN, K);
-    cv::bitwise_not(temp, temp);
-    cv::bitwise_and(A, temp, temp);
-    cv::bitwise_or(squelette, temp, squelette);
-    cv::erode(A, A, K);
+    thinning_morpho(A, squelette);
+  }
+  // Zhang-Suen
+  // D'après https://web.archive.org/web/20160322113207/http://opencv-code.com/quick-tips/implementation-of-thinning-algorithm-in-opencv/
+  else if(sel == 1)
+  {
+    thinning_Zhang_Suen(A, squelette);
+  }
+  // Guo-Hall
+  // D'après https://web.archive.org/web/20160314104646/http://opencv-code.com/quick-tips/implementation-of-guo-hall-thinning-algorithm/
+  else if(sel == 2)
+  {
+    thinning_Guo_Hall(A, squelette);
+  }
 
-    double max;
-    cv::minMaxLoc(A, 0, &max);
-    done = (max == 0);
-  } while (!done);
+  int aff = input.model.get_attribute_as_int("aff");
+  if(aff == 0)
+  {
+    output.nout = 1;
+    output.names[0] = "Squelitisation";
+    output.images[0] = squelette;
+  }
+  else if(aff == 1)
+  {
+    output.nout = 2;
+    output.names[0] = "Binarisation";
+    output.names[1] = "Squelitisation";
+    output.images[0] = A;
+    output.images[1] = squelette;
+  }
+  else if(aff == 2)
+  {
+    output.nout = 1;
+    output.names[0] = "Squelitisation";
+    output.images[0] = input.images[0].clone();
+    output.images[0].setTo(Scalar(0,0,255), squelette);
+  }
 
-  output.images[1] = squelette;
   return 0;
 }
 

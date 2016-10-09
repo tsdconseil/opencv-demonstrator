@@ -641,7 +641,13 @@ void OCVDemo::setup_demo(const Node &sel)
     }
   }
   if(demo_en_cours == nullptr)
-    journal.warning("Demo not found: %s", id.c_str());
+  {
+    journal.warning("Demo non trouvee : %s", id.c_str());
+    std::string s = "";
+    for(auto demo: items)
+      s += demo->props.id + " ";
+    journal.trace("Liste des demos disponibles :\n%s", s.c_str());
+  }
 
 
   this->wnd.present();
@@ -898,7 +904,10 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
     journal.trace_major("Toutes les captures ont été exportées.");
     on_b_exit();
   }
+}
 
+void OCVDemo::demarre_interface()
+{
   Gtk::Main::run(wnd);
 }
 
@@ -914,24 +923,4 @@ Mat OCVDemo::get_current_output()
 }
 
 
-
-
-
-//cv::cvt
-
-int main(int argc, char **argv)
-{
-  utils::CmdeLine cmdeline(argc, argv);
-  utils::init(cmdeline, "ocvdemo", "ocvdemo");
-  utils::TraceManager::set_global_min_level(TraceManager::TraceTarget::TRACE_TARGET_FILE, TraceLevel::AL_VERBOSE);
-  //utils::TraceManager::set_global_min_level(TraceManager::TraceTarget::TRACE_TARGET_STD, TraceLevel::AL_NONE);
-  std::string dts = utils::get_current_date_time();
-  utils::TraceManager::trace(utils::TraceLevel::AL_MAJOR, 0,
-      "\nFichier journal pour l'application OCVDEMO, version %d.%02d\nDate / heure lancement application : %s\n**************************************\n**************************************\n**************************************",
-      VMAJ, VMIN, dts.c_str());
-  langue.load("./data/lang.xml");
-  Gtk::Main kit(argc, argv);
-  OCVDemo demo(cmdeline);
-  return 0;
-}
 

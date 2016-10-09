@@ -536,10 +536,10 @@ This detector does not seem to work very well!</description>
     <attribute name="minsizey" fr="Taille minimale (y)" en="Minimum size (y)" default="200"/>
         <attribute name="maxsizex" fr="Taille maximale (x)" en="Maximum size (x)" default="1000" size="2"/>
     <attribute name="maxsizey" fr="Taille maximale (y)" en="Maximum size (y)" default="1000" size="2"/>
-    <attribute name="sel" fr="Type de cascade" en="Cascad type" min="0" max="1" default="1">
+    <!-- <attribute name="sel" fr="Type de cascade" en="Cascad type" min="0" max="1" default="1">
       <match value="0" name="0" fr="Haar" en="Haar"/>
       <match value="1" name="1" fr="HOG" en="HOG"/>
-    </attribute>
+    </attribute> -->
   </node>
   <node name = "casc-plate">
       <description lang="fr">Détection de plaques d'immatriculation, classifieur en cascade par défaut pour les plaques russes (fournit avec OpenCV).</description>
@@ -749,6 +749,7 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 <description lang="fr">Cette démonstration permet de tester la mise en correspondance de points d'intérêts sur 2 images. Cette démonstration est inspirée du tutorial OpenCV "Features2D + Homography to find a known object" (<a href="http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography">http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography</a>).</description>
 <description lang="en">This demonstration allows to test interest point matching from 2 images. This demonstration is freely inspired from the OpenCV tutorial "Features2D + Homography to find a known object" (<a href="http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography">http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography</a>).</description>
   <attribute name="seuil" fr="Distance maximale" en="Maximum distance" default="46"/>
+  <attribute name="seuil-ratio" fr="Seuil ratio" en="Ratio threshold" default="0.7" type="float"/>
 </node>
 
 <node name="hdr">
@@ -822,7 +823,18 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 
 <node name = "squeletisation">
 <description lang="fr">La squeletisation permet d'extraire la structure d'une forme. L'algorithme implémenté ici est basé sur le page <a href="http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/">OpenCV - Morphological Skeleton</a>.</description>
-<description lang="fr">The squeletization enables to extract the structure of a shape. The algorithm used here is based on the description made on the web page <a href="http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/">OpenCV - Morphological Skeleton</a>.</description>
+<description lang="en">The squeletization enables to extract the structure of a shape. The algorithm used here is based on the description made on the web page <a href="http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/">OpenCV - Morphological Skeleton</a>.</description>
+  <attribute type="int" min="0" max="2" default="1" name="sel" fr="Algorithme" en="Algorithm">
+    <match value="0" name="0" fr="Morphologique" en="Morphological"/>
+    <match value="1" name="1" fr="Zhang-Suen"/>
+    <match value="2" name="2" fr="Guo-Hall"/>
+  </attribute>
+  
+  <attribute min="0" max="2" name="aff" fr="Affichage" en="Display" default="2">
+    <match value="0" fr="Squelette uniquement" en="Squeleton only"/>
+    <match value="1" fr="Seuillage et squelette" en="Threshold and squeleton"/>
+    <match value="2" fr="Squelette surimposé" en="Squeleton surimposed"/>
+  </attribute>
 </node>
 
 <node name = "stereo-fmat">
@@ -944,7 +956,7 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 
 <node name = "face-recognizer">
 
-<description lang="fr">Les algorithmes suivants sont supportés :
+<description lang="fr">Cette démonstration permet de tester les algorithmes OpenCV du module face. Les algorithmes suivants sont supportés :
 - <b>Eigenfaces :</b> analyse en composantes principales (ACP) des images de tests, et recherche de l'image la plus proche dans la base des k composantes principales.
 - <b>Fisherfaces :</b> amélioration de l'ACP, en cherchant une base de représentation qui à la fois maximise la variance inter-classes et à la fois minimise la variance intra-classe (sur les mêmes visages).
 - <b>LBPH :</b> </description>

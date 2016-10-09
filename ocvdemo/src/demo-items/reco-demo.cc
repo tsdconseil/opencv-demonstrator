@@ -48,20 +48,19 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   {
     lock = true;
 
-    /*imgs.clear();
-    for(auto i: input.model.children("pano-img"))
-    {
-      auto s = i.get_attribute_as_string("path");
-      auto img = imread(s);
-      if(img.data == nullptr)
-      {
-        journal.warning("Impossible d'ouvrir l'image [%s].", s.c_str());
-        return -1;
-      }
-      imgs.push_back(img);
-    }*/
+
     imgs = input.images;
 
+    if(imgs[0].size() != imgs[1].size())
+    {
+      journal.warning("imgs[0].size() != imgs[1].size(): %d*%d, %d*%d",
+          imgs[0].cols, imgs[0].rows,
+          imgs[1].cols, imgs[1].rows);
+      output.nout = 0;
+      return 0;
+    }
+
+    output.nout = 1;
 
 
 #   ifdef OCV240
@@ -72,9 +71,6 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     std::vector<cv::KeyPoint> kpts[2];
     Mat desc[2];
-
-
-
 
 #   ifdef OCV240
     orb(imgs[0], Mat(), kpts[0], desc[0]);
@@ -91,7 +87,8 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     std::vector<DMatch> good_matches;
 
-#    define SEUIL_RATIO .5f
+    auto SEUIL_RATIO = input.model.get_attribute_as_float("seuil-ratio");
+//#    define SEUIL_RATIO .5f
     //0.65f
 
     for(auto &match: matches)
@@ -381,6 +378,7 @@ CascGenDemo::CascGenDemo(std::string id): rng(12345)
   else if(id == "casc-sil")
   {
     cnames.push_back("./data/cascades/haarcascade_fullbody.xml");
+    // Cascade HOG plus supportée à partir d'OpenCV 3.0
     //cnames.push_back("./data/cascades/hogcascade_pedestrians.xml");
   }
   else if(id == "casc-profile")
@@ -434,7 +432,7 @@ int CascGenDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   auto I = input.images[0];
 
-  std::vector<Rect> faces;
+  std::vector<Rect> rdi;
   Mat frame_gray;
   cvtColor(I, frame_gray, CV_BGR2GRAY);
   equalizeHist(frame_gray, frame_gray);
@@ -451,7 +449,7 @@ int CascGenDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   int minsizey = input.model.get_attribute_as_int("minsizey");
 
   //-- Detect faces
-  cascade[sel].detectMultiScale(frame_gray, faces,
+  cascade[sel].detectMultiScale(frame_gray, rdi,
                                 1.1, /* facteur d'échelle */
                                 2, /* min voisins ? */
                                 CV_HAAR_SCALE_IMAGE, /* ? */
@@ -460,11 +458,11 @@ int CascGenDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   output.images[0] = I.clone();
 
-  journal.trace("Détecté %d objets.", faces.size());
-  for(size_t i = 0; i < faces.size(); i++ )
+  journal.trace("Détecté %d objets.", rdi.size());
+  for(size_t i = 0; i < rdi.size(); i++ )
   {
-    Point center( faces[i].x + faces[i].width * 0.5, faces[i].y + faces[i].height * 0.5 );
-    cv::rectangle(output.images[0], faces[i],
+    Point center( rdi[i].x + rdi[i].width * 0.5, rdi[i].y + rdi[i].height * 0.5 );
+    cv::rectangle(output.images[0], rdi[i],
                   Scalar(0,255,0), 3);
   }
   return 0;
@@ -574,8 +572,6 @@ int DemoHog::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     output.nout = 2;
     output.images[1] = img;
   }
-
-
 
   return 0;
 }

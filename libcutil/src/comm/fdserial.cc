@@ -36,7 +36,8 @@
 #include <sys/types.h>
 #include <malloc.h>
 
-#define DBG(aaa) 
+#define DBG(aaa)
+//aaa
 
 namespace utils
 {
@@ -87,6 +88,11 @@ void FDSerial::putc(char c)
     ::ResetEvent(hevt_tx_done);
   }
   }*/
+
+unsigned int FDSerial::nb_rx_available()
+{
+  return input_buffer_size;
+}
 
 void FDSerial::discard_rx_buffer()
 {

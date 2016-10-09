@@ -221,6 +221,12 @@
          <img path = "data/img/plaque-immat-russe.png"/>
       </demo>
       
+      <demo name = "casc-sil"
+            fr   = "Piétons"
+            en   = "Pedestrian">
+         <img path = "data/img/7seau4.png"/>
+      </demo>
+      
     </cat>
     
       <demo name = "hog"
@@ -241,6 +247,8 @@
     <demo name  = "corner-match"
           fr    = "Mise en correspondance"
           en    = "Matching">
+         <!-- <img path = "0"/>
+         <img path = "1"/> -->
        <img path="data/img/lac1.jpg"/>
        <img path="data/img/lac2.jpg"/>
     </demo>

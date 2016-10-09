@@ -6,7 +6,7 @@ vpath %.cc   src test
 
 SRC := gl.cc hough.cc
 OBJ := $(patsubst %.cc,build/%.o,$(SRC))
-LIB := ./build/ocvext.lib
+LIB := ./build/libocvext.a
 COPT = -std=c++0x -g -O1 -Wall -Iinclude
 
 ifeq ($(TARGET),LINUX)
@@ -38,7 +38,8 @@ build/%.exe:  ./build/tests.o $(LIB)
 	g++ -g $^ -o $@ $(LOPT)
 
 $(LIB): $(OBJ)
-	ld -r $(OBJ) -o $(LIB)
+	@ar rvs $@ $(OBJ) >> /dev/null
+#	ld -r $(OBJ) -o $(LIB)
 
 clean:
 	rm build/*

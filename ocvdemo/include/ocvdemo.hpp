@@ -88,6 +88,9 @@ public:
   /** Constructeur (devrait être privé !) */
   OCVDemo(utils::CmdeLine &cmdeline);
 
+  /** Démarrage interface graphique */
+  void demarre_interface();
+
   /** Singleton */
   static OCVDemo *get_instance();
 
@@ -98,6 +101,8 @@ public:
   void export_captures();
 
   FileSchema *get_fileschema(){return this->fs_racine;}
+
+  void add_demo(OCVDemoItem *demo);
 
 private:
   void thread_calcul();
@@ -123,7 +128,6 @@ private:
   std::string export_demos(utils::model::Node &cat, Localized::Language lg);
   void maj_entree();
   void add_demos();
-  void add_demo(OCVDemoItem *demo);
   void on_menu_entree();
   void on_menu_quitter();
   void setup_menu();

@@ -27,7 +27,7 @@ RPATH = ..
 
 # Definition of individual files to compiled
 # Yes, this is the right place to add your new demonstration source file name.
-SOURCES_BASE= image-selecteur photographie image-mosaic filtrage morpho-demo gradient-demo reco-demo histo seuillage video-demo espaces-de-couleurs 3d boutils-image demos-registration gestion-souris ocvdemo-mmi ocvdemo-export demo-skeleton misc segmentation appauto
+SOURCES_BASE= image-selecteur photographie image-mosaic filtrage morpho-demo gradient-demo reco-demo histo seuillage video-demo espaces-de-couleurs 3d boutils-image demos-registration gestion-souris ocvdemo-mmi ocvdemo-export demo-skeleton misc segmentation appauto thinning ocvdemo-misc
 
 # (Optionnal) Sources requiring a graphic toolkit -> will not be included in the reduced library
 SOURCES_IHM=
@@ -78,9 +78,9 @@ ADDITIONNAL_TARGETS =
 FIRST_TARGETS =
 
 ifeq ($(TARGET),LINUX)
-ADDITIONNAL_LOPT += ../ocvext/build/ocvext.lib -lopencv_core -lopencv_highgui -lopencv_objdetect -lopencv_features2d -lopencv_stitching -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio -lopencv_video -lopencv_calib3d -lopencv_photo -lopencv_ml
+ADDITIONNAL_LOPT += ../ocvext/build/libocvext.a -lopencv_core -lopencv_highgui -lopencv_objdetect -lopencv_features2d -lopencv_stitching -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio -lopencv_video -lopencv_calib3d -lopencv_photo -lopencv_ml
 else
-ADDITIONNAL_LOPT += ../ocvext/build/ocvext.lib -mwindows
+ADDITIONNAL_LOPT += ../ocvext/build/libocvext.a -mwindows
 ADDITIONNAL_LOPT += -lopencv_core310 -lopencv_imgproc310 -lopencv_highgui310 -lopencv_video310 -lopencv_videoio310 -lopencv_features2d310 -lopencv_objdetect310 -lopencv_imgcodecs310 -lopencv_calib3d310 -lopencv_stitching310 -lopencv_photo310 -lopencv_ml310 -lopencv_face310 -march=i486
 #-lfftw3-3 -lfftw3f-3 
 endif
