@@ -51,14 +51,14 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     imgs = input.images;
 
-    if(imgs[0].size() != imgs[1].size())
+    /*if(imgs[0].size() != imgs[1].size())
     {
       journal.warning("imgs[0].size() != imgs[1].size(): %d*%d, %d*%d",
           imgs[0].cols, imgs[0].rows,
           imgs[1].cols, imgs[1].rows);
       output.nout = 0;
       return 0;
-    }
+    }*/
 
     output.nout = 1;
 
