@@ -266,7 +266,7 @@ int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     output.nout = 2;
     vector<Vec2f> lines;
     HoughLines(bw, lines, 1, CV_PI/180, seuil, 0, 0);
-    printf("Détecté %zd lignes.\n", lines.size());
+    journal.trace("Détecté %d lignes.\n", (int) lines.size());
     for(size_t i = 0; i < lines.size(); i++ )
     {
       float rho = lines[i][0], theta = lines[i][1];
@@ -305,7 +305,7 @@ int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     output.images[0] = I.clone();
     vector<Vec2f> lines;
     HoughLinesWithGradientDir(I, lines, 1, CV_PI/180);
-    printf("Détecté %zd lignes.\n", lines.size());
+    journal.trace("Détecté %d lignes.\n", (int) lines.size());
     for(size_t i = 0; i < lines.size(); i++ )
     {
       float rho = lines[i][0], theta = lines[i][1];
@@ -347,7 +347,7 @@ int HoughCDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
       seuil,
       rmin,
       rmax);
-  printf("Détecté %zd cercles.\n", cercles.size());
+  journal.trace("Détecté %d cercles.\n", (int) cercles.size());
   for(size_t i = 0; i < cercles.size(); i++ )
   {
     float xc = cercles[i][0], yc = cercles[i][1], r = cercles[i][2];
