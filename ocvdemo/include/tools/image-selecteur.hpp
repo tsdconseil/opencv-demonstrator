@@ -112,6 +112,7 @@ private:
   std::deque<Image> images;
   int csel;
   bool has_a_video;
+  friend class OCVDemo;
 };
 
 

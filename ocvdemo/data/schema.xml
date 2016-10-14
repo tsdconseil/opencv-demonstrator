@@ -22,6 +22,11 @@
       <match value="3" name="Russian" fr="Russe" en="Russian"/>
     </attribute>
     
+        <attribute name="afficher-sources" type="boolean" hidden="true" default="true"/>
+<attribute name="force-taille-sortie" type="boolean" hidden="true" default="false"/>
+<attribute name="sortie-sx" type="int" size="2" default="300"/>
+<attribute name="sortie-sy" type="int" size="2" default="200"/>    
+    
   </node>
   
   <node name="media-schema" fr="Sélection d'un média" en="Media selection">
@@ -750,6 +755,7 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 <description lang="en">This demonstration allows to test interest point matching from 2 images. This demonstration is freely inspired from the OpenCV tutorial "Features2D + Homography to find a known object" (<a href="http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography">http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography</a>).</description>
   <attribute name="seuil" fr="Distance maximale" en="Maximum distance" default="46"/>
   <attribute name="seuil-ratio" fr="Seuil ratio" en="Ratio threshold" default="0.7" type="float"/>
+  <attribute name="npts" fr="Nombre de points" default="500" size="2"/>
 </node>
 
 <node name="hdr">
@@ -991,6 +997,9 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
   <attribute name="numcompo" size="2" default="20" fr="Nombre de composantes" en="Componants count"/>
 </node>
 <node name="lbph-face">
+</node>
+
+<node name="superpixels">
 </node>
 
 </schema>

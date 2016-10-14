@@ -66,7 +66,7 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 #   ifdef OCV240
     auto orb = cv::ORB(500*4); // OCV 2.4
 #   else
-    auto orb = cv::ORB::create(500*4); // OCV 3.0
+    auto orb = cv::ORB::create(input.model.get_attribute_as_int("npts")); // OCV 3.0
 #   endif
 
     std::vector<cv::KeyPoint> kpts[2];

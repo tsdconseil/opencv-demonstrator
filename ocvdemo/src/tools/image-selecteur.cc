@@ -241,6 +241,7 @@ ImageSelecteur::ImageSelecteur()
   maj_actif();
 
 
+  if(if(this->modele_global.get_attribute_as_boolean("afficher-sources")))
   show_all_children(true);
 
   evt_box.set_can_focus(true);

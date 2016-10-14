@@ -167,6 +167,10 @@
             en   = "Mahalanobis distance">
          <img path="./data/img/jouets.jpg"/>
       </demo>
+      
+      <demo name = "superpixels" fr="Superpixels">
+        <img path="./data/img/jouets.jpg"/>
+      </demo>
 
 
     </cat>
@@ -247,10 +251,10 @@
     <demo name  = "corner-match"
           fr    = "Mise en correspondance"
           en    = "Matching">
-         <!-- <img path = "0"/>
-         <img path = "1"/> -->
-       <img path="data/img/lac1.jpg"/>
-       <img path="data/img/lac2.jpg"/>
+         <img path = "0"/>
+         <img path = "1"/>
+       <!-- <img path="data/img/lac1.jpg"/>
+       <img path="data/img/lac2.jpg"/> -->
     </demo>
     </cat>
     
@@ -480,6 +484,7 @@
           <img path="1"/>
     </demo>
   </cat>        
+  
   
   
   <!--  The bone yard

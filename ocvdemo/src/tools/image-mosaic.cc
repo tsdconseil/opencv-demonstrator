@@ -23,6 +23,7 @@
 
 #include "tools/image-mosaique.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include "ocvdemo.hpp"
 
 using namespace cv;
 
@@ -263,13 +264,28 @@ int ImageMosaique::show_multiple_images(std::string title,
   // Create a new window, and show the Single Big Image
 
   journal.verbose("namedWindow...");
-  if(nimages == 1)
+
+  auto model = OCVDemo::get_instance()->get_modele_global();
+
+  if(model.get_attribute_as_boolean("force-taille-sortie"))
   {
+    journal.verbose("Forçage taille...");
     cv::namedWindow(title.c_str(), CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL);
-    cv::resizeWindow(title.c_str(), lst[0].cols, lst[0].rows);
+    cv::resizeWindow(title.c_str(),
+                     model.get_attribute_as_int("sortie-sx"),
+                     model.get_attribute_as_int("sortie-sy"));
   }
   else
-    cv::namedWindow(title.c_str(), 1);
+  {
+    journal.verbose("Taille auto...");
+    if(nimages == 1)
+    {
+      cv::namedWindow(title.c_str(), CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL);
+      cv::resizeWindow(title.c_str(), lst[0].cols, lst[0].rows);
+    }
+    else
+      cv::namedWindow(title.c_str(), 1);
+  }
 
   journal.verbose("imwrite");
   //cv::imwrite("./essai.jpg", disp_img); // OK

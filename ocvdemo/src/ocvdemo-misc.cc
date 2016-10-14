@@ -620,7 +620,8 @@ void OCVDemo::setup_demo(const utils::model::Node &sel)
       else
         barre_outil_dessin.cache();
 
-      img_selecteur.show();
+      if(this->modele_global.get_attribute_as_boolean("afficher-sources"))
+        img_selecteur.show();
       //img_selecteur.present();
       ignore_refresh = true;
       img_selecteur.raz();

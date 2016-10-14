@@ -234,6 +234,10 @@ void OCVDemo::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context, int
 {
  if ((selection_data.get_length() >= 0) && (selection_data.get_format() == 8))
  {
+
+   img_selecteur.on_dropped_file(context, x, y, selection_data, info, time);
+
+#   if 0
    std::vector<Glib::ustring> file_list;
 
    file_list = selection_data.get_uris();
@@ -256,8 +260,10 @@ void OCVDemo::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context, int
      context->drag_finish(true, false, time);
      return;
    }
+#   endif
  }
- context->drag_finish(false, false, time);
+ else
+   context->drag_finish(false, false, time);
 }
 
 void OCVDemo::on_b_exit()

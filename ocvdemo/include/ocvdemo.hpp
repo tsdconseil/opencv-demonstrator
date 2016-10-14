@@ -65,6 +65,13 @@ namespace utils
 }
 
 
+
+/*struct OCVDemoParam
+{
+  bool forcer_taille_fenetre_sortie;
+  uint16_t fenetre_sortie_sx, fenetre_sortie_sy;
+};*/
+
 ////////////////////////////////////////////////////////////////////////////
 /** @brief Classe principale pour le démonstrateur OpenCV */
 class OCVDemo:
@@ -103,6 +110,8 @@ public:
   FileSchema *get_fileschema(){return this->fs_racine;}
 
   void add_demo(OCVDemoItem *demo);
+
+  utils::model::Node get_modele_global() {return this->modele_global;}
 
 private:
   void thread_calcul();
