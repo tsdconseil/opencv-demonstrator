@@ -1,5 +1,31 @@
 #include "demo-items/segmentation.hpp"
 #include <iostream>
+#include "opencv2/ximgproc.hpp"
+
+
+DemoSuperpixels::DemoSuperpixels()
+{
+  props.id = "superpixels";
+}
+
+int DemoSuperpixels::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+  auto slic = cv::ximgproc::createSuperpixelSLIC(
+      input.images[0], cv::ximgproc::SLICO,
+      input.model.get_attribute_as_int("taille"),
+      input.model.get_attribute_as_int("reglage"));
+  slic->iterate();
+  Mat masque;
+  slic->getLabelContourMask(masque);//);
+
+
+  Mat O = input.images[0].clone();
+  O /= 2;
+  O.setTo(Scalar(0,0,0), masque);
+
+  output.images[0] = O;
+  return 0;
+}
 
 DemoMahalanobis::DemoMahalanobis()
 {

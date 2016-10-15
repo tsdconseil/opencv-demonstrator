@@ -40,6 +40,7 @@
 
 void OCVDemo::add_demos()
 {
+  add_demo(new DemoSuperpixels());
   add_demo(new DemoFaceRecognizer());
   add_demo(new DemoAppAuto());
   add_demo(new DemoHog());

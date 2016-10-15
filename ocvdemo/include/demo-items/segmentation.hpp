@@ -51,4 +51,12 @@ public:
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
+/** @brief Démonstration réparation d'image */
+class DemoSuperpixels: public OCVDemoItem
+{
+public:
+  DemoSuperpixels();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
+
 #endif
