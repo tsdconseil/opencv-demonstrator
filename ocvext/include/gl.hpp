@@ -14,7 +14,7 @@
  *  @param O output image (filtered)
  *  @param gamma Filtering coefficient between 0 and 1.
  *  0 means no filtering, 1 means maximum filtering. */
-extern int DericheBlur(const cv::Mat &I,
+extern int Deriche_blur(const cv::Mat &I,
                        cv::Mat &O,
                        float gamma);
 
@@ -24,7 +24,7 @@ extern int DericheBlur(const cv::Mat &I,
  *  @param gx, gy Output gradient (along x and y axis)
  *  @param gamma Filtering coefficient between 0 and 1.
  *  0 means no filtering, 1 means maximum filtering. */
-extern int DericheGradient(const cv::Mat &I,
+extern int Deriche_gradient(const cv::Mat &I,
                            cv::Mat &gx,
                            cv::Mat &gy,
                            float gamma);
@@ -34,7 +34,7 @@ extern int DericheGradient(const cv::Mat &I,
  *  @param O Output gradient norm (normalized between 0 and 255)
  *  @param gamma Filtering coefficient between 0 and 1.
  *  0 means no filtering, 1 means maximum filtering. */
-extern int DericheGradient(const cv::Mat &I,
+extern int Deriche_gradient(const cv::Mat &I,
                            cv::Mat &O,
                            float gamma);
 

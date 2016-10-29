@@ -120,7 +120,7 @@ void HoughWithGradientDir(const cv::Mat &g_abs,
   }
 }
 
-void HoughWithGradientDir(const cv::Mat &img,
+void Hough_with_gradient_dir(const cv::Mat &img,
                           cv::Mat &res,
                           float rho_res,
                           float theta_res,
@@ -129,13 +129,13 @@ void HoughWithGradientDir(const cv::Mat &img,
   cv::Mat gris = img, gx, gy, mag, angle;
   if(img.channels() != 1)
     cv::cvtColor(img, gris, CV_BGR2GRAY);
-  DericheGradient(gris, gx, gy, gamma);
+  Deriche_gradient(gris, gx, gy, gamma);
   cv::cartToPolar(gx, gy, mag, angle);
   cv::normalize(mag, mag, 0, 1.0, cv::NORM_MINMAX);
   HoughWithGradientDir(mag, angle, res, rho_res, theta_res);
 }
 
-void HoughWithoutGradientDir(const cv::Mat &img,
+void Hough_without_gradient_dir(const cv::Mat &img,
                              cv::Mat &res,
                              float rho_res,
                              float theta_res,
@@ -145,7 +145,7 @@ void HoughWithoutGradientDir(const cv::Mat &img,
   if(img.channels() != 1)
     cv::cvtColor(img, gris, CV_BGR2GRAY);
   printf("deriche...\n"); fflush(0);
-  DericheGradient(gris, gx, gy, gamma);
+  Deriche_gradient(gris, gx, gy, gamma);
   cv::cartToPolar(gx, gy, mag, angle);
   cv::normalize(mag, mag, 0, 1.0, cv::NORM_MINMAX);
   printf("template...\n"); fflush(0);
@@ -159,8 +159,8 @@ static void my_top_hat(const cv::Mat &I, cv::Mat &O,
                        float g1, float g2)
 {
   cv::Mat If1, If2;
-  DericheBlur(I, If1, g1);
-  DericheBlur(I, If2, g2);
+  Deriche_blur(I, If1, g1);
+  Deriche_blur(I, If2, g2);
   O = cv::abs(If1 - If2); // Passe bas (haute fréq) - Passe bas (basse fréq)
 }
 
@@ -174,20 +174,25 @@ static void my_top_hat(const cv::Mat &I, cv::Mat &O,
 }*/
 
 
-void HoughLinesWithGradientDir(const cv::Mat &img,
+void Hough_lines_with_gradient_dir(const cv::Mat &img,
                                std::vector<cv::Vec2f> &lines,
+                               cv::Mat &debug,
                                float rho_res,
                                float theta_res,
-                               float gamma)
+                               float gamma,
+                               float seuil)
 {
   cv::Mat prm, mask, mask2, mask3;
-  dbgsave("build/0-entree.png", img);
-  HoughWithGradientDir(img, prm, rho_res, theta_res, gamma);
-  dbgsave("build/1-hough.png", prm);
+  //dbgsave("build/0-entree.png", img);
+  Hough_with_gradient_dir(img, prm, rho_res, theta_res, gamma);
+
+  debug = prm.clone();
+
+  //dbgsave("build/1-hough.png", prm);
   my_top_hat(prm, prm, 0.2, 0.6);
   cv::normalize(prm, prm, 0, 1.0, cv::NORM_MINMAX);
-  dbgsave("build/2-tophat.png", prm);
-  cv::threshold(prm, prm, 0.4, 0, cv::THRESH_TOZERO);
+  //dbgsave("build/2-tophat.png", prm);
+  cv::threshold(prm, prm, seuil, 0, cv::THRESH_TOZERO);
   dbgsave("build/3-seuil.png", prm);
   cv::Mat K = cv::getStructuringElement(cv::MORPH_RECT,
                                         cv::Size(7, 7),
@@ -214,6 +219,14 @@ void HoughLinesWithGradientDir(const cv::Mat &img,
     float rho = ri;
     cv::Vec2f line(rho, theta);
     lines.push_back(line);
+  }
+
+  debug.convertTo(debug, CV_8U);
+  cvtColor(debug, debug, CV_GRAY2BGR);
+  for(auto i = 0u; i < locations.total(); i++)
+  {
+    cv::Point p = locations.at<cv::Point>(i);
+    cv::circle(debug, p, 5, cv::Scalar(0,0,255), 1, CV_AA);
   }
 }
 

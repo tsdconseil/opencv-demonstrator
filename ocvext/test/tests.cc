@@ -112,7 +112,7 @@ int tests_gradient(const cv::Mat &img)
   //////////////////////////////////
   // Pré-lissage Deriche        ////
   //////////////////////////////////
-  DericheGradient(img, gx, gy, 0.5);
+  Deriche_gradient(img, gx, gy, 0.5);
   test_grad(gx, gy, "deriche");
 
   //////////////////////////////////
@@ -141,7 +141,8 @@ int tests_hough(const cv::Mat &img)
   // Hough avec gradient        ////
   //////////////////////////////////
   std::vector<cv::Vec2f> lines;
-  HoughLinesWithGradientDir(img, lines);
+  cv::Mat deb;
+  Hough_lines_with_gradient_dir(img, lines, deb);
   printf("Détecté %d lignes.\n", lines.size());
   printf("sx = %d, sy = %d.\n", img.cols, img.rows);
   cv::Mat img2, img3;
@@ -197,12 +198,13 @@ int main(int argc, const char **argv)
 
   std::vector<cv::Vec2f> lines;
   img = cv::imread("data/card.jpg");
-  HoughLinesWithGradientDir(img, lines);
+  cv::Mat deb;
+  Hough_lines_with_gradient_dir(img, lines, deb);
   cv::Mat img2 = img.clone();
   plot_lines(img2, lines, cv::Scalar(0,255,0));
 
   cv::Mat hough;
-  HoughWithGradientDir(img, hough);
+  Hough_with_gradient_dir(img, hough);
   hough.convertTo(hough, CV_8U);
   cv::applyColorMap(hough, hough, cv::COLORMAP_JET);
   cv::imwrite("./build/card-lines.jpg", img2);

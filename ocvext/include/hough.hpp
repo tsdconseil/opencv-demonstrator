@@ -25,7 +25,7 @@
  *  @param gamma   Filtering factor between 0 (no filtering) and 1 (maximum filtering) for the Deriche gradient.
  *  @note Rho dimension is automatically computed from input image dimension and
  *        set such that the resolution is one pixel. */
-extern void HoughWithGradientDir(const cv::Mat &img,
+extern void Hough_with_gradient_dir(const cv::Mat &img,
                                  cv::Mat &res,
                                  float rho   = 1.0, // 1 pixel
                                  float theta = 2 * 3.1415926 / 360, // 1 degree
@@ -39,7 +39,7 @@ extern void HoughWithGradientDir(const cv::Mat &img,
  *  @param gamma   Filtering factor between 0 (no filtering) and 1 (maximum filtering) for the Deriche gradient.
  *  @note Rho dimension is automatically computed from input image dimension and
  *        set such that the resolution is one pixel. */
-extern void HoughWithoutGradientDir(const cv::Mat &img,
+extern void Hough_without_gradient_dir(const cv::Mat &img,
                                     cv::Mat &res,
                                     float rho   = 1.0, // 1 pixel
                                     float theta = 2 * 3.1415926 / 360, // 1 degree
@@ -53,11 +53,13 @@ extern void HoughWithoutGradientDir(const cv::Mat &img,
  *  This function has the same first 4 parameters as
  *  the OpenCV native function "HoughLines".
  *  But it does not needs any threshold to be set. */
-extern void HoughLinesWithGradientDir(const cv::Mat &img,
+extern void Hough_lines_with_gradient_dir(const cv::Mat &img,
                                       std::vector<cv::Vec2f> &lines,
+                                      cv::Mat &debug,
                                       float rho = 1.0,
                                       float theta = 2 * 3.1415926 / 360,
-                                      float gamma = 0.6);
+                                      float gamma = 0.6,
+                                      float seuil = 0.4);
 
 
 #endif

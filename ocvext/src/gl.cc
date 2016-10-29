@@ -102,7 +102,7 @@ template<typename T>
   }
 }
 
-int DericheBlur(const cv::Mat &I, cv::Mat &O, float gamma)
+int Deriche_blur(const cv::Mat &I, cv::Mat &O, float gamma)
 {
   switch(I.depth())
   {
@@ -122,13 +122,13 @@ int DericheBlur(const cv::Mat &I, cv::Mat &O, float gamma)
   return 0;
 }
 
-int DericheGradient(const cv::Mat &I,
+int Deriche_gradient(const cv::Mat &I,
                     cv::Mat &gx,
                     cv::Mat &gy,
                     float gamma)
 {
   cv::Mat lissee;  
-  if(DericheBlur(I, lissee, gamma))
+  if(Deriche_blur(I, lissee, gamma))
     return -1;
   // Noyau simple, sans lissage : [-1 0 1]
   cv::Sobel(lissee, gx, CV_32F, 1, 0, 1);
@@ -136,12 +136,12 @@ int DericheGradient(const cv::Mat &I,
   return 0;
 }
 
-int DericheGradient(const cv::Mat &I,
+int Deriche_gradient(const cv::Mat &I,
                     cv::Mat &O,
                     float gamma)
 {
   cv::Mat gx, gy;
-  if(DericheGradient(I, gx, gy, gamma))
+  if(Deriche_gradient(I, gx, gy, gamma))
     return -1;
   cv::Mat agx, agy;
   convertScaleAbs(gx,agx); // Conversion 8 bits non signé
