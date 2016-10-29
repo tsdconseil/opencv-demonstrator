@@ -78,9 +78,11 @@ int DemoSqueletisation::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outp
 
   cv::cvtColor(input.images[0], A, CV_BGR2GRAY);
 
-  //cv::threshold(A, A, 128, 255, cv::THRESH_OTSU);
-  //A = 255 - A;
+  if(input.model.get_attribute_as_boolean("binariser"))
+    cv::threshold(A, A, 128, 255, cv::THRESH_OTSU);
 
+  if(input.model.get_attribute_as_boolean("inverser"))
+    A = 255 - A;
 
 
   int sel = input.model.get_attribute_as_int("sel");
