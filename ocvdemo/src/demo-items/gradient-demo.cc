@@ -161,7 +161,7 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
       GaussianBlur(I,tmp, Size(0,0),sigma);
     else
     {
-      DericheBlur(I, tmp, gamma);
+      Deriche_blur(I, tmp, gamma);
     }
   }
   else
@@ -248,6 +248,7 @@ HoughDemo::HoughDemo()
 int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   float seuil = input.model.get_attribute_as_float("seuil");
+  float seuilg = input.model.get_attribute_as_float("seuilg");
   float seuil_canny = input.model.get_attribute_as_float("seuil-canny");
   Mat dst, bw;
   int ratio = 3;
@@ -301,10 +302,24 @@ int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   }
   else if(sel == 2)
   {
-    output.nout = 1;
+    output.nout = 2;
     output.images[0] = I.clone();
+
+    /*cv::Mat hg;
+    Hough_with_gradient_dir(I,
+                            hg,
+                            1.0, // 1 pixel
+                            2 * 3.1415926 / 360, // 1 degree
+                            0.6);
+
+    hg.convertTo(hg, CV_8U);*/
+
+
     vector<Vec2f> lines;
-    HoughLinesWithGradientDir(I, lines, 1, CV_PI/180);
+    cv::Mat deb;
+    Hough_lines_with_gradient_dir(I, lines, deb, 1, CV_PI/180, 0.6, seuilg);
+    output.images[1] = deb;
+    output.names[1] = "Espace parametrique";
     journal.trace("Détecté %d lignes.\n", (int) lines.size());
     for(size_t i = 0; i < lines.size(); i++ )
     {
