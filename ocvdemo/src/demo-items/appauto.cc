@@ -34,6 +34,57 @@ using namespace cv;
 using namespace cv::ml;
 
 
+Ptr<StatModel> creation_classifieur_svm(utils::model::Node &model)
+{
+  float gamma = model.get_attribute_as_float("svm/svm-rbf/gamma");
+  if(gamma == 0)
+    gamma = 1.0e-10;
+  float C = model.get_attribute_as_float("svm/C");
+  if  (C <= 0)
+    C = 1.0e-10;
+
+  int kernel = model.get_attribute_as_int("svm/kernel");
+  int degre = model.get_attribute_as_int("svm/svm-poly/degre");
+
+  //journal.verbose("Gamma = %f, C = %f, kernel = %d.", gamma, C, kernel);
+
+  // A FAIRE : créer un classifieur SVM avec noyau RBF
+  Ptr<SVM> svm = SVM::create();
+  svm->setTermCriteria(TermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 1000, 1e-3));
+  svm->setGamma(gamma);
+  svm->setKernel((SVM::KernelTypes) kernel);//SVM::RBF);
+  svm->setNu(0.5);
+  svm->setP(0.1);
+  svm->setC(C);
+  svm->setType(SVM::C_SVC); // ou NU_SVC
+  svm->setDegree(degre);
+  return svm;
+}
+
+
+Ptr<StatModel> creation_classifieur_knn(utils::model::Node &model)
+{
+  Ptr<KNearest> knearest = KNearest::create();
+  knearest->setDefaultK(model.get_attribute_as_int("kppv/K"));
+  knearest->setIsClassifier(true);
+  //knearest->setAlgorithmType(KNearest::COMPRESSED_INPUT);//KDTREE);//:BRUTE_FORCE);
+  knearest->setAlgorithmType(KNearest::BRUTE_FORCE);
+  //knearest->setMaxCategories(model.get_attribute_as_int("nclasses"));
+  return knearest;
+}
+
+Ptr<StatModel> creation_classifieur_adaboost(utils::model::Node &model)
+{
+  // A FAIRE : créer un classifieur Adaboost
+  Ptr<Boost> res = Boost::create();
+  res->setMaxCategories(model.get_attribute_as_int("nclasses"));
+  res->setMaxDepth(1);
+  return res;
+}
+
+
+
+
 DemoAppAuto::DemoAppAuto()
 {
   props.id = "2d-2classes";
@@ -125,7 +176,7 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
 
   // (2) Entrainement SVM
 
-  float gamma = input.model.get_attribute_as_float("svm/svm-rbf/gamma");
+  /*float gamma = input.model.get_attribute_as_float("svm/svm-rbf/gamma");
   if(gamma == 0)
     gamma = 1.0e-10;
   float C = input.model.get_attribute_as_float("svm/C");
@@ -145,10 +196,20 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
   svm->setP(0.1);
   svm->setC(C);//0.01);
   svm->setType(SVM::C_SVC);
-  svm->setDegree(degre);
+  svm->setDegree(degre);*/
+
+  Ptr<StatModel> smodel;
+
+  auto sel = input.model.get_attribute_as_int("sel");
+  if(sel == 0)
+    smodel = creation_classifieur_svm(input.model);
+  else if(sel == 1)
+    smodel = creation_classifieur_knn(input.model);
+  else
+    smodel = creation_classifieur_adaboost(input.model);
 
   journal.verbose("Entrainement...");
-  svm->train(mat_entrainement, ROW_SAMPLE, labels);
+  smodel->train(mat_entrainement, ROW_SAMPLE, labels);
   journal.verbose("Ok.");
 
   journal.verbose("Echantillonnage du plan...");
@@ -166,7 +227,7 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
     {
       tptr[0] = (((float) x) - sx2/2) / (sx2 / 2);
       tptr[1] = (((float) y) - sy2/2) / (sy2 / 2);
-      int res = svm->predict(traits);
+      int res = smodel->predict(traits);
       assert((res < MAX_CLASSES) && (res >= 0));
       *o2ptr++ = c[res];
     }
