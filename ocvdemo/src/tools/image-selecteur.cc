@@ -101,6 +101,13 @@ void ImageSelecteur::maj_selection()
 
 void ImageSelecteur::maj_mosaique()
 { 
+  if(OCVDemo::get_instance() == nullptr)
+    return;
+
+  if(!OCVDemo::get_instance()->get_modele_global().get_attribute_as_boolean("afficher-sources"))
+    return;
+
+
   journal.trace("maj_mosaique");
   int width, height;
   width = gtk_image.get_allocated_width();
