@@ -169,7 +169,7 @@
       </demo>
       
       <demo name = "superpixels" fr="Superpixels">
-        <img path="./data/img/jouets.jpg"/>
+        <img path="./data/img/dog.png"/>
       </demo>
 
 

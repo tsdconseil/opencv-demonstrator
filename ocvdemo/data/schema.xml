@@ -253,9 +253,21 @@ This demonstration enables you to compute the gradient, with different possible 
 <span fgcolor="red"><b>Attention :</b></span> the equalization of composants other than luminance (example: RGB equalization) can make artificial colors (not present in the original image) appear.</description>
     <attribute type="int" name="sel" fr="Mode" en="Mode" default="0" min="0" max="1">
       <match value="0" name="0" fr="Egalisation luminance" en="Luminance equalisation"/>
-      <match value="1" name="1" fr="Egalisation RVB" en="RGB equalisation"/>
-      <!--<description lang="fr"></description>-->
+      <match value="1" name="1" fr="Egalisation indép." en="Indiv. equalisation"/>
+      <!-- <description lang="fr"></description>-->
     </attribute>
+    
+    <attribute name = "espace" 
+               fr   = "Espace de couleur" 
+               en   = "Color space"
+               min  = "0" max = "4">
+       <match value="0" name="0" fr="YUV"/>
+       <match value="1" name="1" fr="Lab"/>
+       <match value="2" name="2" fr="HSV"/>
+       <match value="3" name="3" fr="HLS"/>
+       <match value="4" name="4" fr="RVB"/>
+    </attribute>
+    
   </node>
   
   <node name = "hist-calc">
@@ -331,7 +343,7 @@ This demonstration allows you to test lines detection with OpenCV, with the stan
       <attribute name="sel" fr="Méthode" en="Method" min="0" max="2">
         <match value="0" name="0" fr="Standard" en="Standard"/>
         <match value="1" name="1" fr="Probabiliste" en="Probabilist"/>
-        <match value="2" name="2" fr="Fondée sur le gradient" en="Gradient based"/>
+        <match value="2" name="2" fr="Basée sur le gradient" en="Gradient based"/>
         <description lang="fr">La méthode standard détecte des lignes (longueur infinie), alors que la méthode probabiliste permet de détecter les segments.</description>
         <description lang="en">Different methods are made available:
 - The <b>standard method</b> can detect lines (of infinite length),
@@ -348,6 +360,8 @@ This demonstration allows you to test lines detection with OpenCV, with the stan
         <description lang="fr">Seuil pour la validation des lignes.</description>
         <description lang="en">Threshold for the validation of detected lines.</description>
       </attribute>
+      <attribute type="float" name="seuilg" fr="Seuil transformée de Hough (gradient)" default="0.4"  require="sel=2"/>
+      
   </node>
   
   <node name = "houghc">
@@ -558,6 +572,10 @@ This detector does not seem to work very well!</description>
   <node name = "camshift">
 <description lang="fr">L'algorithme <b>camshift</b> permet de suivre un objet en mouvement. La détection est fondée sur la projection arrière d'histogramme.</description>
 <description lang="en">The <b>camshift</b> algorithm allows you to track a moving object. The detection is based on histogram backprojection.</description>
+
+  <attribute type="boolean" name="suivi-taille" fr="Taille de cible variable" en="Variable size of target" default="true"/>
+  <attribute type="boolean" name="affiche-pa" fr="Afficher la projection arrière d'histogramme" en="Display histogram back-projection" default="false"/>
+
   </node>
   
   <node name = "watershed">
@@ -830,6 +848,10 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 <node name = "squeletisation">
 <description lang="fr">La squeletisation permet d'extraire la structure d'une forme. L'algorithme implémenté ici est basé sur le page <a href="http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/">OpenCV - Morphological Skeleton</a>.</description>
 <description lang="en">The squeletization enables to extract the structure of a shape. The algorithm used here is based on the description made on the web page <a href="http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/">OpenCV - Morphological Skeleton</a>.</description>
+
+  <attribute type="boolean" name="binariser" fr="Pré-binarisation (Otsu)" en="Pre-binarization (Otsu)" default="true"/>  
+  <attribute type="boolean" name="inverser" fr="Pré-inverser l'image d'entrée" en="Pre-inverse the input image" default="true"/>
+
   <attribute type="int" min="0" max="2" default="1" name="sel" fr="Algorithme" en="Algorithm">
     <match value="0" name="0" fr="Morphologique" en="Morphological"/>
     <match value="1" name="1" fr="Zhang-Suen"/>
@@ -841,6 +863,7 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
     <match value="1" fr="Seuillage et squelette" en="Threshold and squeleton"/>
     <match value="2" fr="Squelette surimposé" en="Squeleton surimposed"/>
   </attribute>
+
 </node>
 
 <node name = "stereo-fmat">
@@ -916,12 +939,14 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
              fr   = "Algorithme"
              en   = "Algo"
              min  = "0"
-             max  = "1">
+             max  = "2">
      <match value="0" fr="Machine à vecteurs de support" schema="svm"/>
      <match value="1" fr="K plus proches voisins" schema="kppv"/>
+     <match value="2" fr="Adaboost" schema="adaboost"/>
   </attribute>
   <sub min="1" max="1" type="svm"/>
   <sub min="1" max="1" type="kppv"/>
+  <sub min="1" max="1" type="adaboost"/>
 </node>
 
 <node name="svm" fr = "Machine à vecteurs de support">
@@ -947,6 +972,10 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 </node>
 
 <node name="kppv" fr="K plus proches voisins">
+  <attribute name="K" fr="K" en="K" type="int" min="1" max="32767" size="2" default="3"/>
+</node>
+
+<node name="adaboost" fr="Adaboost">
 </node>
 
 <node name="svm-rbf">
