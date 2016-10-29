@@ -69,7 +69,20 @@ int CamShiftDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     cv::MatND backproj;
     calc_bp(I, hist, backproj);
 
-    output.images[0] = I;
+    bool suivi_taille = input.model.get_attribute_as_boolean("suivi-taille");
+    bool affiche_pa = input.model.get_attribute_as_boolean("affiche-pa");
+
+    if(affiche_pa)
+    {
+      output.nout = 2;
+      output.images[0] = backproj;
+      output.images[1] = I.clone();
+    }
+    else
+    {
+      output.nout = 1;
+      output.images[0] = I;
+    }
     cvtColor(backproj, output.images[1], CV_GRAY2BGR);
 
     journal.verbose("camshift, %d...", trackwindow.width);
@@ -77,14 +90,17 @@ int CamShiftDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     tw3.width = trackwindow.width;
     tw3.height = trackwindow.height;
     RotatedRect trackbox = CamShift(backproj, trackwindow,
-        TermCriteria( TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
+        TermCriteria(TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
     journal.verbose("camshift ok, %d.", trackwindow.width);
     auto tw2 = trackbox.boundingRect();
 
     // Meme centre que tw2, mais meme largeur que tw1
-    tw3.x = tw2.x + tw2.width / 2 - tw3.width / 2;
-    tw3.y = tw2.y + tw2.height / 2 - tw3.height / 2;
-    trackwindow = tw3;
+    if(!suivi_taille)
+    {
+      tw3.x = tw2.x + tw2.width / 2 - tw3.width / 2;
+      tw3.y = tw2.y + tw2.height / 2 - tw3.height / 2;
+      trackwindow = tw3;
+    }
     if(trackwindow.width * trackwindow.height > 0)
     {
       cv::rectangle(I, trackwindow, Scalar(255,255,0), 3);
@@ -132,22 +148,13 @@ int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &out
   auto I = input.images[0];
 
   output.images[0] = I;
-
   resize(I,tmp,Size(0,0),0.25,0.25);
-
-
-
   algo->apply(tmp, mask);
-
   algo->getBackgroundImage(output.images[2]);
-
 
   resize(mask,output.images[1],Size(0,0),4,4);
 
-
-
   nframes++;
-
   if(nframes < 5)
   {
     output.images[1] = I.clone();
