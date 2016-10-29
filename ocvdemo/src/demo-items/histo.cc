@@ -237,28 +237,57 @@ HistoEgalisationDemo::HistoEgalisationDemo()
 int HistoEgalisationDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   int sel = input.model.get_attribute_as_int("sel");
+  int esp = input.model.get_attribute_as_int("espace");
+
+  int code[2] = {0};
+  int index_L = 0;
+  if(esp == 0)
+  {
+    code[0] = CV_BGR2YUV;
+    code[1] = CV_YUV2BGR;
+  }
+  else if(esp == 1)
+  {
+    code[0] = CV_BGR2Lab;
+    code[1] = CV_Lab2BGR;
+  }
+  else if(esp == 2)
+  {
+    code[0] = CV_BGR2HSV;
+    code[1] = CV_HSV2BGR;
+    index_L = 2;
+  }
+  else if(esp == 3)
+  {
+    code[0] = CV_BGR2HLS;
+    code[1] = CV_HLS2BGR;
+    index_L = 1;
+  }
+
+  Mat tmp;
+  if(esp == 4)
+    tmp = input.images[0].clone();
+  else
+    cvtColor(input.images[0], tmp, code[0]);
+  Mat chns[3];
+  split(tmp, chns);
 
   // Egalisation luminance
   if(sel == 0)
   {
-    Mat tmp;
-    cvtColor(input.images[0], tmp, CV_BGR2YUV);
-    Mat chns[3];
-    split(tmp, chns);
-    equalizeHist(chns[0], chns[0]);
-    merge(chns, 3, tmp);
-    cvtColor(tmp, output.images[0], CV_YUV2BGR);
+    cv::equalizeHist(chns[index_L], chns[index_L]);
   }
   // Egalisation 3 canaux RGB (pour voir les artefacts couleurs)
   else if(sel == 1)
   {
-    Mat chns[3];
-    split(input.images[0], chns);
-
     for(auto i = 0u; i < 3; i++)
       equalizeHist(chns[i], chns[i]);
-    merge(chns, 3, output.images[0]);
   }
+  merge(chns, 3, tmp);
+  if(esp == 4)
+    output.images[0] = tmp;
+  else
+    cvtColor(tmp, output.images[0], code[1]);
 
   return 0;
 }
