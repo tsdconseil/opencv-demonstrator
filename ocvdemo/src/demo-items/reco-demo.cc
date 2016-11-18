@@ -44,7 +44,7 @@ MatchDemo::MatchDemo()
 
 int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-  if(!lock)
+  //if(!lock)
   {
     lock = true;
 
@@ -62,31 +62,34 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     output.nout = 1;
 
+    Ptr<cv::Feature2D> detecteur;
 
-#   ifdef OCV240
-    auto orb = cv::ORB(500*4); // OCV 2.4
-#   else
-    auto orb = cv::ORB::create(input.model.get_attribute_as_int("npts")); // OCV 3.0
-#   endif
+    int sel = input.model.get_attribute_as_int("sel");
+    if(sel == 0)
+      detecteur = cv::ORB::create(input.model.get_attribute_as_int("npts")); // OCV 3.0
+    else
+      detecteur = cv::BRISK::create();
 
     std::vector<cv::KeyPoint> kpts[2];
     Mat desc[2];
 
-#   ifdef OCV240
-    orb(imgs[0], Mat(), kpts[0], desc[0]);
-    orb(imgs[1], Mat(), kpts[1], desc[1]);
-#   else
-    // OCV 3.0
-    orb->detectAndCompute(imgs[0], Mat(), kpts[0], desc[0]);
-    orb->detectAndCompute(imgs[1], Mat(), kpts[1], desc[1]);
-#   endif
 
-    cv::BFMatcher matcher(NORM_HAMMING);
+    // OCV 3.0
+    detecteur->detectAndCompute(imgs[0], Mat(), kpts[0], desc[0]);
+    detecteur->detectAndCompute(imgs[1], Mat(), kpts[1], desc[1]);
+
+    if((kpts[0].size() == 0) || (kpts[1].size() == 0))
+    {
+      output.nout = 1;
+      output.images[0] = input.images[0].clone();
+      return 0;
+    }
+
+    bool cross_check = input.model.get_attribute_as_boolean("cross-check");
+    cv::BFMatcher matcher(NORM_HAMMING, cross_check);
     std::vector<std::vector<DMatch>> matches;
     matcher.knnMatch(desc[0], desc[1], matches, 2);
-
     std::vector<DMatch> good_matches;
-
     auto SEUIL_RATIO = input.model.get_attribute_as_float("seuil-ratio");
 //#    define SEUIL_RATIO .5f
     //0.65f
@@ -132,12 +135,13 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     output.images[0] = Mat::zeros(Size(640*2,480*2), CV_8UC3);
 
-    cv::drawMatches(imgs[0], kpts[0], imgs[1], kpts[1], good_matches, output.images[0]);
+    if(good_matches.size() > 0)
+      cv::drawMatches(imgs[0], kpts[0], imgs[1], kpts[1], good_matches, output.images[0]);
 
     journal.trace("draw match ok: %d assoc, %d ok.",
         matches.size(), good_matches.size());
 
-
+#   if 0
     if(good_matches.size() > 8)
     {
     //-- Localize the object
@@ -182,6 +186,7 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
                         Scalar( 0, 255, 0), 4 );
 #   endif
     }
+#   endif
 
     output.names[0] = "Correspondances";
     lock = false;
