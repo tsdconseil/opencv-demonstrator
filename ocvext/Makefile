@@ -13,7 +13,7 @@ ifeq ($(TARGET),LINUX)
 LOPT = -lopencv_core -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs
 else
 COPT += -march=i486
-LOPT =  -march=i486 -lopencv_core300 -lopencv_imgproc300 -lopencv_highgui300 -lopencv_imgcodecs300
+LOPT =  -march=i486 -lopencv_core310 -lopencv_imgproc310 -lopencv_highgui310 -lopencv_imgcodecs310
 endif
 
 ifeq ($(OCVIPATH),)

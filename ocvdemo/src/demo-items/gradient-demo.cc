@@ -237,7 +237,8 @@ int CannyDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   calcule_canny(input.images[0], output.images[0], input.model);
   output.names[0] = "Contours";
   return 0;
-} 
+}
+
 
 HoughDemo::HoughDemo()
 {
@@ -245,13 +246,35 @@ HoughDemo::HoughDemo()
 }
 
 
+static void dessine_ligne(cv::Mat &I, float rho, float theta)
+{
+  Point pt1, pt2;
+  double a = cos(theta), b = sin(theta);
+  double x0 = a * rho, y0 = b * rho;
+  pt1.x = cvRound(x0 + 1000 * (-b));
+  pt1.y = cvRound(y0 + 1000 * (a));
+  pt2.x = cvRound(x0 - 1000 * (-b));
+  pt2.y = cvRound(y0 - 1000 * (a));
+  line(I, pt1, pt2, Scalar(0,0,255), 3, CV_AA);
+}
+
+
 int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
+  float reso_rho = input.model.get_attribute_as_float("reso-rho");
+  float reso_theta = input.model.get_attribute_as_float("reso-theta") * CV_PI / 180.0;
   float seuil = input.model.get_attribute_as_float("seuil");
   float seuilg = input.model.get_attribute_as_float("seuilg");
   float seuil_canny = input.model.get_attribute_as_float("seuil-canny");
   Mat dst, bw;
   int ratio = 3;
+
+  if((reso_theta <= 0) || (reso_rho <= 0))
+  {
+    output.nout = 0;
+    output.errmsg = "Les resolutions en rho et theta doivent etre positives.";
+    return -1;
+  }
 
   auto I = input.images[0];
   cv::cvtColor(I, bw, CV_BGR2GRAY);
@@ -265,28 +288,18 @@ int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   {
     output.images[1] = I.clone();
     output.nout = 2;
-    vector<Vec2f> lines;
-    HoughLines(bw, lines, 1, CV_PI/180, seuil, 0, 0);
-    journal.trace("Détecté %d lignes.\n", (int) lines.size());
-    for(size_t i = 0; i < lines.size(); i++ )
-    {
-      float rho = lines[i][0], theta = lines[i][1];
-      Point pt1, pt2;
-      double a = cos(theta), b = sin(theta);
-      double x0 = a * rho, y0 = b * rho;
-      pt1.x = cvRound(x0 + 1000 * (-b));
-      pt1.y = cvRound(y0 + 1000 * (a));
-      pt2.x = cvRound(x0 - 1000 * (-b));
-      pt2.y = cvRound(y0 - 1000 * (a));
-      line(output.images[1], pt1, pt2, Scalar(0,0,255), 3, CV_AA);
-    }
+    vector<Vec2f> lignes;
+    HoughLines(bw, lignes, reso_rho, reso_theta, seuil, 0, 0);
+    journal.trace("Détecté %d lignes.\n", (int) lignes.size());
+    for(const auto &l: lignes)
+      dessine_ligne(output.images[1], l[0], l[1]);
   }
   else if(sel == 1)
   {
     output.images[1] = I.clone();
     output.nout = 2;
     std::vector<cv::Vec4i> lines;
-    cv::HoughLinesP(bw, lines, 1, CV_PI/180, seuil,
+    cv::HoughLinesP(bw, lines, reso_rho, reso_theta, seuil,
           30, // min line length
           10); // max line gap
     for(size_t i = 0; i < lines.size(); i++ )
@@ -305,34 +318,14 @@ int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     output.nout = 2;
     output.images[0] = I.clone();
 
-    /*cv::Mat hg;
-    Hough_with_gradient_dir(I,
-                            hg,
-                            1.0, // 1 pixel
-                            2 * 3.1415926 / 360, // 1 degree
-                            0.6);
-
-    hg.convertTo(hg, CV_8U);*/
-
-
-    vector<Vec2f> lines;
+    vector<Vec2f> lignes;
     cv::Mat deb;
-    Hough_lines_with_gradient_dir(I, lines, deb, 1, CV_PI/180, 0.6, seuilg);
+    Hough_lines_with_gradient_dir(I, lignes, deb, reso_rho, reso_theta, 0.6, seuilg);
     output.images[1] = deb;
     output.names[1] = "Espace parametrique";
-    journal.trace("Détecté %d lignes.\n", (int) lines.size());
-    for(size_t i = 0; i < lines.size(); i++ )
-    {
-      float rho = lines[i][0], theta = lines[i][1];
-      Point pt1, pt2;
-      double a = cos(theta), b = sin(theta);
-      double x0 = a * rho, y0 = b * rho;
-      pt1.x = cvRound(x0 + 1000 * (-b));
-      pt1.y = cvRound(y0 + 1000 * (a));
-      pt2.x = cvRound(x0 - 1000 * (-b));
-      pt2.y = cvRound(y0 - 1000 * (a));
-      line(output.images[0], pt1, pt2, Scalar(0,0,255), 3, CV_AA);
-    }
+    journal.trace("Détecté %d lignes.\n", (int) lignes.size());
+    for(const auto &l: lignes)
+      dessine_ligne(output.images[1], l[0], l[1]);
   }
 
   return 0;

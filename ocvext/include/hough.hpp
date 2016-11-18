@@ -29,7 +29,8 @@ extern void Hough_with_gradient_dir(const cv::Mat &img,
                                  cv::Mat &res,
                                  float rho   = 1.0, // 1 pixel
                                  float theta = 2 * 3.1415926 / 360, // 1 degree
-                                 float gamma = 0.6);
+                                 float gamma = 0.6,
+                                 bool use_deriche = false);
 
 /** @brief Gradient magnitude only based Hough transform
  *  @param img     Input image (can be BGR, graylevels, etc.)

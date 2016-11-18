@@ -11,21 +11,53 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-#ifndef M_PI
-# define M_PI 3.1415926
-#endif
+///** Hough transform using gradient matrix */
+//template<typename Tin>
+//void hough_gradient_template(const cv::Mat &g_abs,
+//                    const cv::Mat &g_angle,
+//                    cv::Mat &res,
+//                    float rho_res, float theta_res)
+//{
+//  int ntheta = (int) ceil(2 * CV_PI / theta_res);
+//  uint16_t sx = g_abs.cols, sy = g_abs.rows;
+//  int rmax = (int) std::ceil(std::sqrt(sx*sx+sy*sy) / rho_res);
+//  cv::Mat acc = cv::Mat::zeros(ntheta, rmax, CV_32F);
+//
+//  for(int y = 0; y < sy; y++)
+//  {
+//    for(int x = 0; x < sx; x++)
+//    {
+//      float gnorm = (float) g_abs.at<Tin>(y,x);
+//      float theta = (float) g_angle.at<Tin>(y,x);
+//
+//      int rho = (int) std::round((x * std::cos(theta) + y * std::sin(theta)) / rho_res);
+//      if(rho < 0)
+//      {
+//        rho = -rho;
+//        theta = theta + CV_PI;
+//        if(theta > 2 * CV_PI)
+//          theta -= 2 * CV_PI;
+//      }
+//      if(rho >= rmax)
+//        rho = rmax - 1;
+//
+//      int ti = std::floor((ntheta * theta) / (2 * CV_PI));
+//      acc.at<float>(ti, rho) += (float) gnorm;
+//    } // i
+//  } //j
+//  cv::normalize(acc, res, 0, 255.0, cv::NORM_MINMAX);
+//}
 
-/** Hough transform using gradient matrix */
 template<typename Tin>
 void hough_gradient_template(const cv::Mat &g_abs,
                     const cv::Mat &g_angle,
                     cv::Mat &res,
                     float rho_res, float theta_res)
 {
-  int ntheta = (int) ceil(2 * M_PI / theta_res);
+  int ntheta = (int) ceil(CV_PI / theta_res);
   uint16_t sx = g_abs.cols, sy = g_abs.rows;
   int rmax = (int) std::ceil(std::sqrt(sx*sx+sy*sy) / rho_res);
-  cv::Mat acc = cv::Mat::zeros(ntheta, rmax, CV_32F);
+  cv::Mat acc = cv::Mat::zeros(ntheta, 2*rmax+1, CV_32F);
 
   for(int y = 0; y < sy; y++)
   {
@@ -34,19 +66,19 @@ void hough_gradient_template(const cv::Mat &g_abs,
       float gnorm = (float) g_abs.at<Tin>(y,x);
       float theta = (float) g_angle.at<Tin>(y,x);
 
-      int rho = (int) std::round((x * std::cos(theta) + y * std::sin(theta)) / rho_res);
-      if(rho < 0)
-      {
-        rho = -rho;
-        theta = theta + M_PI;
-        if(theta > 2 * M_PI)
-          theta -= 2 * M_PI;
-      }
-      if(rho >= rmax)
-        rho = rmax - 1;
+      if(theta < 0)
+        theta += 2 * CV_PI;
+      if(theta >= CV_PI)
+        theta -= CV_PI;
+      assert(theta >= 0);
+      assert(theta < CV_PI);
 
-      int ti = std::floor((ntheta * theta) / (2 * M_PI));
-      acc.at<float>(ti, rho) += (float) gnorm;
+      int rho = (int) std::round((x * std::cos(theta) + y * std::sin(theta)) / rho_res);
+      assert(rho >= -rmax);
+      assert(rho <= rmax);
+
+      int ti = std::floor((ntheta * theta) / CV_PI);
+      acc.at<float>(ti, rho + rmax) += (float) gnorm;
     } // i
   } //j
   cv::normalize(acc, res, 0, 255.0, cv::NORM_MINMAX);
@@ -59,7 +91,7 @@ void hough_no_gradient_template(const cv::Mat &gradient_abs,
                        cv::Mat &res,
                        float rho_res, float theta_res)
 {
-  unsigned int ntheta = (int) ceil(M_PI / theta_res);
+  unsigned int ntheta = (int) ceil(CV_PI / theta_res);
   uint16_t sx = gradient_abs.cols, sy = gradient_abs.rows;
   int i, j;
   // CEIL
@@ -83,7 +115,7 @@ void hough_no_gradient_template(const cv::Mat &gradient_abs,
       float gnorm = *gptr++;//gradient_abs.at<Tin>(i,j);
       for(auto k = 0u; k < (unsigned int) ntheta; k++)
       {
-        float theta = (k * M_PI) / ntheta;
+        float theta = (k * CV_PI) / ntheta;
         rho = (int) std::round((x * std::cos(theta) + y * std::sin(theta)) / rho_res);
         int ri = (rmax / rho_res) + rho;
         if(ri >= (int) nrho)
@@ -124,14 +156,29 @@ void Hough_with_gradient_dir(const cv::Mat &img,
                           cv::Mat &res,
                           float rho_res,
                           float theta_res,
-                          float gamma)
+                          float gamma,
+                          bool  use_deriche)
 {
   cv::Mat gris = img, gx, gy, mag, angle;
+
   if(img.channels() != 1)
     cv::cvtColor(img, gris, CV_BGR2GRAY);
-  Deriche_gradient(gris, gx, gy, gamma);
+
+  if(use_deriche)
+  {
+    Deriche_gradient(gris, gx, gy, gamma);
+  }
+  else
+  {
+    //cv::GaussianBlur(I, lissee, cv::Size(7,7), 2, 2);
+    cv::Sobel(gris, gx, CV_32F, 1, 0, 3);
+    cv::Sobel(gris, gy, CV_32F, 0, 1, 3);
+  }
+
   cv::cartToPolar(gx, gy, mag, angle);
+
   cv::normalize(mag, mag, 0, 1.0, cv::NORM_MINMAX);
+
   HoughWithGradientDir(mag, angle, res, rho_res, theta_res);
 }
 
@@ -195,8 +242,8 @@ void Hough_lines_with_gradient_dir(const cv::Mat &img,
   cv::threshold(prm, prm, seuil, 0, cv::THRESH_TOZERO);
   dbgsave("build/3-seuil.png", prm);
   cv::Mat K = cv::getStructuringElement(cv::MORPH_RECT,
-                                        cv::Size(7, 7),
-                                        cv::Point(1, 1));
+                                        cv::Size(7, 7)/*
+                                        cv::Point(1, 1)*/);
 
   cv::Mat mask_max, mask_min;
   cv::dilate(prm, mask_max, K);
@@ -211,12 +258,14 @@ void Hough_lines_with_gradient_dir(const cv::Mat &img,
   cv::Mat locations;   // output, locations of non-zero pixels
   cv::findNonZero(mask2, locations);
 
+  unsigned int sx = img.cols, sy = img.rows;
+  int rmax = (int) std::ceil(std::sqrt(sx*sx+sy*sy) / rho_res);
   for(auto i = 0u; i < locations.total(); i++)
   {
     int ri = locations.at<cv::Point>(i).x;
     int ti = locations.at<cv::Point>(i).y;
     float theta = ti * theta_res;
-    float rho = ri;
+    float rho = ri - rmax;
     cv::Vec2f line(rho, theta);
     lines.push_back(line);
   }

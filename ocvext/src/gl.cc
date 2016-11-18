@@ -130,6 +130,9 @@ int Deriche_gradient(const cv::Mat &I,
   cv::Mat lissee;  
   if(Deriche_blur(I, lissee, gamma))
     return -1;
+
+  //cv::GaussianBlur(I, lissee, cv::Size(7,7), 2, 2);
+
   // Noyau simple, sans lissage : [-1 0 1]
   cv::Sobel(lissee, gx, CV_32F, 1, 0, 1);
   cv::Sobel(lissee, gy, CV_32F, 0, 1, 1);
