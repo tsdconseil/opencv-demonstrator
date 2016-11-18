@@ -809,7 +809,8 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   vbox.pack_start(barre_outils, Gtk::PACK_SHRINK);
   barre_outils.add(b_entree);
   barre_outils.add(b_save);
-  //barre_outils.add(b_open);
+  if(!modele_global.get_attribute_as_boolean("afficher-sources"))
+    barre_outils.add(b_open);
   barre_outils.add(b_infos);
   barre_outils.add(b_exit);
 

@@ -481,7 +481,7 @@
           en   = "Camera capture"
           export = "false">
           <img path="0"/>
-          <img path="1"/>
+          <!-- <img path="1"/> -->
     </demo>
   </cat>        
   

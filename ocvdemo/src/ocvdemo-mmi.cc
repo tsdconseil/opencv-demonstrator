@@ -101,28 +101,38 @@ void OCVDemo::on_b_infos()
   ad.set_name(langue.get_item("main-title") + "\n");
   ad.set_program_name(langue.get_item("main-title"));
 
-  char buf[500];
-  std::string s = langue.get_item("rev");
-  sprintf(buf, s.c_str(), VMAJ, VMIN, VPATCH, OCV_VMAJ, OCV_VMIN, OCV_VPATCH);
 
-  ad.set_version(buf);
-  ad.set_copyright("(C) 2015 - 2016 TSD Conseil / J.A. and contributors");
-  ad.set_license("LGPL");
-  ad.set_license_type(Gtk::LICENSE_LGPL_3_0);
-  ad.set_website("http://www.tsdconseil.fr/log/opencv/demo/index-en.html");
-  ad.set_website_label("http://www.tsdconseil.fr/index-en.html");
-  std::vector<Glib::ustring> v;
-  v.push_back("J.A. / TSD Conseil");
-  ad.set_authors(v);
 
-  std::string cmts;
 
-  cmts += langue.get_item("credit-image") + "\n";
-  cmts += langue.get_item("credit-image-opencv") + "\n";
-  cmts += langue.get_item("credit-image-carte") + "\n";
-  cmts += langue.get_item("credit-image-autre");
+  if(modele_global.get_attribute_as_boolean("mode-appli-ext"))
+  {
+    ad.set_copyright("(C) 2015 - 2016 TSD Conseil");
+  }
+  else
+  {
+    char buf[500];
+    std::string s = langue.get_item("rev");
+    sprintf(buf, s.c_str(), VMAJ, VMIN, VPATCH, OCV_VMAJ, OCV_VMIN, OCV_VPATCH);
+    ad.set_version(buf);
+    ad.set_copyright("(C) 2015 - 2016 TSD Conseil / J.A. and contributors");
+    ad.set_license("LGPL");
+    ad.set_license_type(Gtk::LICENSE_LGPL_3_0);
+    ad.set_website("http://www.tsdconseil.fr/log/opencv/demo/index-en.html");
+    ad.set_website_label("http://www.tsdconseil.fr/index-en.html");
+    std::vector<Glib::ustring> v;
+    v.push_back("J.A. / TSD Conseil");
+    ad.set_authors(v);
+    std::string cmts;
 
-  ad.set_comments(cmts);
+    cmts += langue.get_item("credit-image") + "\n";
+    cmts += langue.get_item("credit-image-opencv") + "\n";
+    cmts += langue.get_item("credit-image-carte") + "\n";
+    cmts += langue.get_item("credit-image-autre");
+
+    ad.set_comments(cmts);
+  }
+
+
   ad.set_wrap_license(true);
 
   ad.set_position(Gtk::WIN_POS_CENTER);
@@ -137,12 +147,7 @@ void OCVDemo::maj_bts()
 
 void OCVDemo::on_b_open()
 {
-
-//just for fun
-  img_selecteur.raz(); 
-  img_selecteur.show();
-
-
+  img_selecteur.on_b_open();
 }
 
 void OCVDemo::on_b_save()
@@ -305,7 +310,7 @@ void OCVDemo::maj_langue()
   b_infos.set_label(langue.get_item("apropos"));
   b_infos.set_tooltip_markup(langue.get_item("apropos-tt"));
   b_entree.set_label(langue.get_item("entree"));
-  b_open.set_label(langue.get_item("menu-entree"));
+  b_open.set_label(langue.get_item("b-ouvrir"));
   b_entree.set_tooltip_markup(langue.get_item("entree-tt"));
   b_open.set_tooltip_markup(langue.get_item("entree-tt"));
   // Apparently OpenCV windows support only ISO-8859-1

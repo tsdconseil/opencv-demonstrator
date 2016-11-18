@@ -499,7 +499,7 @@ std::string ImageSelecteur::media_open_dialog(utils::model::Node mod)
 
 void ImageSelecteur::on_b_add()
 {
-  journal.verbose("on b open...");
+  journal.verbose("on b add...");
   auto mod = create_default_model();
   ajoute_fichier(media_open_dialog(mod));
   maj_actif();
@@ -508,8 +508,13 @@ void ImageSelecteur::on_b_add()
 void ImageSelecteur::on_b_open()
 {
   journal.verbose("on b open...");
-  set_fichier(this->csel, media_open_dialog(images[csel].modele));
-  maj_actif();
+  if(this->csel != -1)
+  {
+    set_fichier(this->csel, media_open_dialog(images[csel].modele));
+    maj_actif();
+  }
+  else
+    on_b_add();
 }
 
 void ImageSelecteur::on_b_del()

@@ -22,10 +22,11 @@
       <match value="3" name="Russian" fr="Russe" en="Russian"/>
     </attribute>
     
-        <attribute name="afficher-sources" type="boolean" hidden="true" default="true"/>
+<attribute name="afficher-sources" type="boolean" hidden="true" default="true"/>
 <attribute name="force-taille-sortie" type="boolean" hidden="true" default="false"/>
-<attribute name="sortie-sx" type="int" size="2" default="300"/>
-<attribute name="sortie-sy" type="int" size="2" default="200"/>    
+<attribute name="sortie-sx" type="int" size="2" default="300"  hidden="true"/>
+<attribute name="sortie-sy" type="int" size="2" default="200" hidden="true"/>    
+<attribute name="mode-appli-ext" type="boolean" hidden="true" default="false"/>
     
   </node>
   
@@ -350,17 +351,20 @@ This demonstration allows you to test lines detection with OpenCV, with the stan
 - The <b>probabilist method</b> can detect segments,
 - The <b>gradient method</b> is similar to the standard method, but does not require any threshold (Canny contour are not used).</description>
       </attribute> 
-      <attribute type="int" name="seuil-canny" fr="Seuil détection contour (Canny)" en="Canny threshold" 
+      <attribute type="int" name="seuil-canny" fr="Seuil contour (Canny)" en="Canny threshold" 
                 min="1" size="2" default="170" require="sel=0|1">
         <description lang="fr">Seuil pour la validation des pixels de contour.</description>
         <description lang="en">Threshold for the validation of the contour pixels.</description>
       </attribute>
-      <attribute type="int" name="seuil" fr="Seuil transformée de Hough" 
+      <attribute type="int" name="seuil" fr="Seuil Hough" 
       en="Hough threshold" min="1" size="2" default="100"  require="sel=0|1">
         <description lang="fr">Seuil pour la validation des lignes.</description>
         <description lang="en">Threshold for the validation of detected lines.</description>
       </attribute>
-      <attribute type="float" name="seuilg" fr="Seuil transformée de Hough (gradient)" default="0.4"  require="sel=2"/>
+      <attribute type="float" name="seuilg" fr="Seuil transformée de Hough (gradient)" default="0.3"  require="sel=2"/>
+     
+     <attribute name="reso-rho" fr="Résolution (rho)" en="Resolution (rho)" type="float" default="1.0" unit="pixels"/>
+     <attribute name="reso-theta" fr="Résolution (theta)" en="Resolution (theta)" type="float" default="1.0" unit="degrés"/>
       
   </node>
   
@@ -771,9 +775,14 @@ This demonstration is based on the sample calibration.cpp included in OpenCV, an
 <node name="corner-match">
 <description lang="fr">Cette démonstration permet de tester la mise en correspondance de points d'intérêts sur 2 images. Cette démonstration est inspirée du tutorial OpenCV "Features2D + Homography to find a known object" (<a href="http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography">http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography</a>).</description>
 <description lang="en">This demonstration allows to test interest point matching from 2 images. This demonstration is freely inspired from the OpenCV tutorial "Features2D + Homography to find a known object" (<a href="http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography">http://docs.opencv.org/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography</a>).</description>
+  <attribute name="sel" fr="Algorithme" min="0" max="1">
+    <match value="0" name="0" fr="ORB"/>
+    <match value="1" name="1" fr="BRISK"/>
+  </attribute>
   <attribute name="seuil" fr="Distance maximale" en="Maximum distance" default="46"/>
   <attribute name="seuil-ratio" fr="Seuil ratio" en="Ratio threshold" default="0.7" type="float"/>
   <attribute name="npts" fr="Nombre de points" default="500" size="2"/>
+  <attribute name="cross-check" fr="Vérification symétrie" en="Symetry check" type="boolean" default="false"/>
 </node>
 
 <node name="hdr">
