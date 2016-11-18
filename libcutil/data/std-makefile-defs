@@ -70,7 +70,8 @@ GTK_DIR= `pkg-config --cflags gtkmm-$(GTKREV)`
 GTK_LIB= `pkg-config --libs gtkmm-$(GTKREV)` -lgthread-2.0
 
 
-LOPTADD := -lws2_32 -lwinmm  -lpng -LC:/GnuWin32/lib
+LOPTADD := -lws2_32 -lwinmm  -LC:/GnuWin32/lib
+# -lpng 
 
 ifeq ($(RMODE),debug)
 else
