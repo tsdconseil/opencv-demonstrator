@@ -109,12 +109,15 @@ public:
   virtual int getc(int timeout = 0);
   //virtual int read(uint8_t *buffer, uint32_t length, int timeout);
     /** @returns 0 si ok, sinon code d'erreur */
-  int  connect(std::string port_name = "COM2", int baudrate = 115200, 
-	       serial_parity_t parity = PAR_NONE);
+  int  connect(std::string port_name = "COM2",
+               int baudrate = 115200,
+               serial_parity_t parity = PAR_NONE,
+               bool flow_control = false);
   void disconnect();
   bool is_connected();
   virtual void discard_rx_buffer();
   unsigned int nb_rx_available();
+  void flush();
 private:
   
   void com_thread(void);
@@ -123,7 +126,7 @@ private:
   hal::Signal hevt_stop;
   hal::Signal hevt_write, hevt_tx_done;
   hal::Signal hevt_rx_available;
-  hal::Signal hevt_tx_available, hevt_start, hevt_stopped, hevt_connection;
+  hal::Signal hevt_tx_available, hevt_tx_space_available, hevt_start, hevt_stopped, hevt_connection;
 # ifdef WIN
   OVERLAPPED ov;
   HANDLE hfile;

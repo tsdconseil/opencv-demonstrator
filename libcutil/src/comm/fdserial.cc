@@ -66,6 +66,10 @@ void FDSerial::putc(char c)
     log.anomaly("putc while not connected.");
     return;
   }
+
+  while(output_buffer_size >= FD_BUFFER_SIZE-1)
+    hevt_tx_done.wait();
+
   mutex_output.lock();
   output_buffer[(output_buffer_offset+output_buffer_size)%FD_BUFFER_SIZE] = c;
   output_buffer_size++;
@@ -73,21 +77,25 @@ void FDSerial::putc(char c)
   hevt_tx_available.raise();
 }
 
-/*void FDSerial::flush()
+void FDSerial::flush()
 {
   for(;;)
   {
-    ::EnterCriticalSection(&mutex_output);
+    mutex_output.lock();
     if(output_buffer_size == 0)
     {
-      ::LeaveCriticalSection(&mutex_output);
+      printf("Flush : obs = 0.\n");
+      mutex_output.unlock();
       return;
     }
-    ::LeaveCriticalSection(&mutex_output);
-    ::WaitEvent(hevt_tx_done);
-    ::ResetEvent(hevt_tx_done);
+    mutex_output.unlock();
+    printf("flush / tx size = %d.\n", output_buffer_size);
+    hevt_tx_done.wait();
+    hevt_tx_done.clear();
   }
-  }*/
+  //fflush(hfile);
+  //FlushFileBuffers(hfile);
+}
 
 unsigned int FDSerial::nb_rx_available()
 {
@@ -184,15 +192,18 @@ int FDSerial::getc(int timeout)
 // return 0xff;
 //}
 
-int  FDSerial::connect(std::string port_name, int baudrate, 
-    serial_parity_t parity)
+int  FDSerial::connect(std::string port_name,
+                       int baudrate,
+                       serial_parity_t parity,
+                       bool flow_control)
 {
 # ifdef LINUX
   return -1;
 # else
   try
   {
-    log.trace("Connection to %s @ %d...", port_name.c_str(), baudrate);
+    log.trace("Connection %s @ %d bauds, ctrl de flux = %s...",
+              port_name.c_str(), baudrate, flow_control ? "oui" : "non");
 
     char port[50];
 
@@ -280,7 +291,7 @@ int  FDSerial::connect(std::string port_name, int baudrate,
 
     dcb.fOutxCtsFlow    = 0;
     dcb.fOutxDsrFlow    = 0;
-    dcb.fDtrControl     = DTR_CONTROL_DISABLE;
+    dcb.fDtrControl     = flow_control ? DTR_CONTROL_HANDSHAKE : DTR_CONTROL_DISABLE;
     dcb.fDsrSensitivity = 0;
     dcb.fRtsControl     = RTS_CONTROL_ENABLE;
     dcb.fOutX           = 0;
@@ -347,6 +358,7 @@ void FDSerial::disconnect()
     hevt_stopped.wait();
 #   ifdef LINUX
 #   else
+    ::FlushFileBuffers(hfile);
     CloseHandle(hfile);
 #   endif
     serial_is_connected = false;
@@ -467,6 +479,7 @@ void FDSerial::com_thread(void)
           }
           else
           {
+            hevt_tx_done.raise();
             //::SetEvent(hevt_tx_done);
           }
         }
@@ -477,6 +490,7 @@ void FDSerial::com_thread(void)
     case WAIT_OBJECT_0+1:
   {
     log.trace("Received Stop\n");
+    ::FlushFileBuffers(hfile);
     hevt_stop.clear();
     ::PurgeComm(hfile, PURGE_RXABORT | PURGE_RXCLEAR | PURGE_TXABORT | PURGE_TXCLEAR);
     assert(CancelIo(hfile));
@@ -549,14 +563,19 @@ void FDSerial::com_thread(void)
         output_buffer_offset = (output_buffer_offset + lg) % FD_BUFFER_SIZE;
         output_buffer_size -= lg;
         mutex_output.unlock();
+
+        if(output_buffer_size == 0)
+          hevt_tx_done.raise();
+
         goto wait_event;
       }
       else
       {
         output_buffer_offset = (output_buffer_offset + lg) % FD_BUFFER_SIZE;
         output_buffer_size -= lg;
-        //if(output_buffer_size == 0)
-        //::SetEvent(hevt_tx_done);
+        if(output_buffer_size == 0)
+          hevt_tx_done.raise();
+         //::SetEvent(hevt_tx_done);
         mutex_output.unlock();
         DBG(printf("Write finished immediatly.\n"));
         DBG(fflush(stdout));
