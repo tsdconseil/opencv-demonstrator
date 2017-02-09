@@ -275,7 +275,7 @@ void Hough_lines_with_gradient_dir(const cv::Mat &img,
   for(auto i = 0u; i < locations.total(); i++)
   {
     cv::Point p = locations.at<cv::Point>(i);
-    cv::circle(debug, p, 5, cv::Scalar(0,0,255), 1, CV_AA);
+    cv::circle(debug, p, 5, cv::Scalar(100,255,100), 1, CV_AA);
   }
 }
 
