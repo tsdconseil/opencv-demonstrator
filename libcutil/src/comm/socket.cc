@@ -508,6 +508,11 @@ int Socket::read(uint8_t *buffer, uint32_t length, int timeout)
   return res;
 }
 
+int Socket::get_nb_rx_available()
+{
+  return rx_fifo.size();
+}
+
 
 
 int Socket::getc(int timeout)

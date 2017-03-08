@@ -64,6 +64,7 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     Ptr<cv::Feature2D> detecteur;
 
+
     int sel = input.model.get_attribute_as_int("sel");
     if(sel == 0)
       detecteur = cv::ORB::create(input.model.get_attribute_as_int("npts")); // OCV 3.0
@@ -72,7 +73,6 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     std::vector<cv::KeyPoint> kpts[2];
     Mat desc[2];
-
 
     // OCV 3.0
     detecteur->detectAndCompute(imgs[0], Mat(), kpts[0], desc[0]);
@@ -237,6 +237,34 @@ int PanoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 }
 
 
+ScoreShiTomasi::ScoreShiTomasi()
+{
+  props.id = "score-harris";
+}
+
+int ScoreShiTomasi::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+  cv::Mat I, O;
+  cv::cvtColor(input.images[0], I, CV_BGR2GRAY);
+  I.convertTo(I, CV_32F);
+  int sel = input.model.get_attribute_as_int("sel");
+  int tbloc = input.model.get_attribute_as_int("tbloc");
+  int ksize = input.model.get_attribute_as_int("ksize");
+  float k = input.model.get_attribute_as_float("k");
+  if((ksize & 1) == 0)
+    ksize++;
+
+  O = Mat::zeros(I.size(), CV_32F);
+
+  if(sel == 0)
+    cv::cornerHarris(I, O, tbloc, ksize, k);
+  else
+    cv::cornerMinEigenVal(I, O, tbloc, ksize);
+  cv::normalize(O, O, 0, 255, cv::NORM_MINMAX);
+  O.convertTo(O, CV_8U);
+  output.images[0] = O;
+  return 0;
+}
 
 CornerDemo::CornerDemo()
 {
@@ -252,38 +280,22 @@ int CornerDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   // Shi-Tomasi
   if(sel == 0)
   {
-#   ifdef OCV240
-    detector = new GoodFeaturesToTrackDetector(1000, 0.01, 10, 3, false);
-#   else
     detector = GFTTDetector::create(max_pts, 0.01, 10, 3, false);
-#   endif
   }
   // Harris
   else if(sel == 1)
   {
-#   ifdef OCV240
-    detector = new GoodFeaturesToTrackDetector(1000, 0.01, 10, 3, true);
-#   else
     detector = GFTTDetector::create(max_pts, 0.01, 10, 3, true);
-#   endif
   }
   // FAST
   else if(sel == 2)
   {
-#   ifdef OCV240
-    detector = FeatureDetector::create("FAST");
-#   else
     detector = FastFeatureDetector::create();
-#   endif
   }
   // SURF
   else if(sel == 3)
   {
-#   ifdef OCV240
-    detector = FeatureDetector::create("ORB");
-#   else
     detector = ORB::create(max_pts);
-#   endif
   }
 
   Mat gris;

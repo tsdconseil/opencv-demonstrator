@@ -539,6 +539,11 @@ uint32_t RawFifo::read(void *data_, uint32_t size, uint32_t timeout)
   return size + N;
 }
 
+int RawFifo::size()
+{
+  return fifo_size;
+}
+
 bool RawFifo::full()
 {
   bool res;

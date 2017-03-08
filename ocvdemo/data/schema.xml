@@ -198,6 +198,11 @@ Cette démonstration vous permet de calculer le gradient, avec différents masqu
 
 This demonstration enables you to compute the gradient, with different possible masks and pre-filtering levels.</description>
   
+    <attribute name="preconv" fr="Pré-conversion en niveaux de gris" en="Preconversion in gray levels" type="boolean" default="false"/>
+    <attribute name="couleur" fr="Gradient couleur" en="Color gradient" type="boolean" default="true" require="preconv=false"/>
+    
+    <attribute name="taille-noyau" fr="Taille du noyau" en="Kernel size" default="3" min="3" max="11"/>
+    
     <attribute name="sel" min="0" max="1" fr="Calcul du gradient" en="Gradient computing">
       <match value="0" name="0" fr="En valeur absolue" en="In absolute value"/>
       <match value="1" name="1" fr="Suivant les 2 directions" en="Along the 2 directions"/>
@@ -226,10 +231,27 @@ This demonstration enables you to compute the gradient, with different possible 
       <attribute name="gamma" fr="Coefficient de filtrage" en="Filtering coefficient" type="float" default="0.2"/>
   </node>
   
+  <node name="det-flou">
+  
+     <attribute name="taille-noyau" fr="Taille noyau" en="Kernel size" default="3" min="3" max="21"/>
+     <attribute name="taille-bloc" fr="Taille bloc" en="Block size" default="8" min="2" max="256" size="2"/>
+  
+  </node>
+  
   <node name = "laplace" fr="laplace">
 <description lang="fr">Le laplacien est la somme des dérivées secondes d'une image suivant x et y. C'est un opérateur qui a beaucoup d'applications. Par exemple, au niveau des contours d'une image, le laplacien s'annule.</description>
 <description lang="en">The laplacian is the sum of the second derivative along x and y axis. This operator finds a lot of applications. For instance, at the contours point of an image, the laplacian cancels.</description>
-    <attribute name="sigma" fr="Ecart-type préfiltrage" en="Gaussian prefiltering standard deviation" type="float" default="2">
+
+
+    <attribute name="aff" fr="Affichage" en="Display" type="int" min="0" max="1" default="0">
+      <match value="0" name="0" fr="Valeur absolue" en="Absolute value"/>
+      <match value="1" name="1" fr="Valeur signée" en="Signed value"/>
+    </attribute>
+    
+    <attribute name="taille-noyau" fr="Taille noyau" en="Kernel size" default="3" min="3" max="21"/>
+
+    <attribute name="prefiltrer" fr="Activation du préfiltrage" en="Enable pre-filtering" type="boolean" default="false"/>
+    <attribute name="sigma" fr="Ecart-type préfiltrage" en="Gaussian prefiltering standard deviation" type="float" default="2" require="prefiltrer=true">
       <description lang="fr">Le préfiltrage gaussien permet de limiter le bruit de calcul (la dérivation a tendance à amplifier les hautes fréquences, donc le bruit).</description>
       <description lang="en">Gaussian prefiltering enables to reduce the computing noise (the derivation operation amplify somehow the high frequencies, hence the noise).</description>
     </attribute>
@@ -328,7 +350,7 @@ It can be helpful to locate similar (of the same hue) objects on an image, or to
     <attribute name="seuil" fr="Seuil" en="Threshold" type="int" default="50"/>
   </node>
   <node name = "seuillage-adaptatif">
-    <attribute name="seuil" fr="Seuil" en="Threshold" type="int" default="20"/>
+    <attribute name="seuil" fr="Seuil" en="Threshold" type="float" default="20"/>
     <attribute name="taille-bloc" fr="Taille de bloc" en="Block size" type="int" size="2" default="50" min="3" max="1000"/>
   </node>
   
@@ -432,6 +454,26 @@ Interest points have a lot of applications: they are used especially to find cor
     <attribute type="int" name="max-pts" size="2" en="Maximum number of interest points" fr="Nombre maximal de points d'intérêts" default="500" min="1"/>
     
   </node>
+  
+<node name = "score-harris">
+  <description lang="fr">
+    Cette démonstration permet d'afficher le score de Shi-Tomasi (ou son approximation par Harris)
+    pour chaque pixel d'une image. Ce score est proportionnel à la probabilité d'avoir affaire à un coin.
+  </description>
+  <description lang="fr">
+    This demonstration displays the Shi-Tomasi score (or its approximation by Harris)
+    for every pixel of an image. This score is proportional to the probability to be on an object corner.
+  </description>
+  <attribute  name        = "sel" 
+              constraints = "0|1"
+              default     = "1">
+     <match value="0" name="0" fr="Score de Harris" en="Harris score"/>
+     <match value="1" name="1" fr="Score de Shi-Tomasi" en="Shi-Tomasi score"/>
+  </attribute>
+  <attribute name="ksize" fr="Taille de noyau" en="Kernel size" default="3" min="1" max="31"/>
+  <attribute name="tbloc" fr="Taille de bloc" en="Block size" default="3" min="1"/>
+  <attribute name="k" fr="Paramètre k" en="k parameter" default="0.5" require="sel=0"/>
+</node>
   
   <node name = "flux-optique">
     <description lang="fr">Le flux optique consiste à estimer la vitesse (direction et valeur absolue) des objets à partir d'un flux vidéo. On peut distinguer deux catégories d'algorithmes :
@@ -605,6 +647,10 @@ The principle is to localize the initial seeds positions for the watershed algor
     </description>
       <description lang="en">This demonstration of the DFT (Discret Fourier Transform) is based on the sample discrete_fourier_transform.cpp included in OpenCV.
     </description>
+    
+    <attribute name="angle" type="float" fr="Rotation" en="Rotation" unit="degres"/>
+    
+    
   </node>
   
   <node name="disp-map">  
@@ -1047,6 +1093,28 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
               size    = "2"
               default = "10.0"
               type    = "float"/>
+</node>
+
+<node name="sous-spect">
+  <!--<attribute name="gris" type="boolean" default="false" fr="Conversion en niveau de gris" en="Grayscale conversion"/>-->
+  <attribute name="seuil" type="float" default="2.0"/>
+</node>
+
+<node name = "ocr">
+</node>
+
+<node name = "redim">
+  <attribute name="type" fr="Type" en="Type" type="int" constraints="0|1">
+    <match value="0" fr="Agrandissement"/>
+    <match value="1" fr="Retrécissement"/>
+  </attribute>
+  <attribute name="qt" fr="Facteur (puissance de 2)" en="Factor (power of 2)" type="int" default="1">
+  </attribute>
+  <attribute name="algo" fr="Algorithme" en="Algorithm" type="int" constraints="0|1">
+    <match value="0" fr="Pyrdown / pyrup"/>
+    <match value="1" fr="resize"/>
+  </attribute>
+  
 </node>
 
 </schema>

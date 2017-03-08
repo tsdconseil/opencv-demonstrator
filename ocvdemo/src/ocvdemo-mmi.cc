@@ -94,7 +94,7 @@ void OCVDemo::on_b_infos()
 {
   journal.trace("on_b_infos ocvdemo-mmi");
   Gtk::AboutDialog ad;
-  ad.set_copyright("(C) 2015 TSD Conseil / J.A.");
+  ad.set_copyright("(C) 2015 - 2017 TSD Conseil / J.A.");
   Glib::RefPtr<Gdk::Pixbuf>  pix = Gdk::Pixbuf::create_from_file(utils::get_img_path() + "/logo.png");
   ad.set_logo(pix);
   //ad.set_logo_icon_name("OpenCV demonstrator");
@@ -106,7 +106,7 @@ void OCVDemo::on_b_infos()
 
   if(modele_global.get_attribute_as_boolean("mode-appli-ext"))
   {
-    ad.set_copyright("(C) 2015 - 2016 TSD Conseil");
+    ad.set_copyright("(C) 2015 - 2017 TSD Conseil");
   }
   else
   {

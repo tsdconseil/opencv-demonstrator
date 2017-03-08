@@ -152,7 +152,10 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   int sel = model.get_attribute_as_int("sel");
   int sel2 = model.get_attribute_as_int("sel2");
   int sel3 = model.get_attribute_as_int("sel3");
+  int tnoyau = model.get_attribute_as_int("taille-noyau");
 
+  if((tnoyau & 1) == 0)
+    tnoyau++;
 
   //GaussianBlur(I,tmp, Size(3,3),0);
   if(sigma > 0)
@@ -166,21 +169,41 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   }
   else
     tmp = I.clone();
-  cvtColor(tmp,tmp,CV_BGR2GRAY);
+
+
+  bool preconv = input.model.get_attribute_as_boolean("preconv");
+  bool gradient_couleur = input.model.get_attribute_as_boolean("couleur");
+
+  if(preconv)
+    cvtColor(tmp,tmp,CV_BGR2GRAY);
+
   if(sel2 == 0)
   {
-    Sobel(tmp,gx,CV_32F,1,0,3,1,0);
-    Sobel(tmp,gy,CV_32F,0,1,3,1,0);
+    Sobel(tmp,gx,CV_32F,1,0,tnoyau,1,0);
+    Sobel(tmp,gy,CV_32F,0,1,tnoyau,1,0);
   }
   else
   {
     Scharr(tmp,gx,CV_32F,1,0);
     Scharr(tmp,gy,CV_32F,0,1);
   }
+
+  if(!preconv && !gradient_couleur)
+  {
+    journal.trace("Gradient couleur -> abs...");
+    gx = cv::abs(gx);
+    gy = cv::abs(gy);
+    gx = gx / 255;
+    gy = gy / 255;
+    cvtColor(gx,gx,CV_BGR2GRAY);
+    cvtColor(gy,gy,CV_BGR2GRAY);
+  }
+
   if(sel == 0)
   {
     output.nout = 1;
     cv::Mat mag, angle;
+
     cv::cartToPolar(gx, gy, mag, angle);
     //addWeighted(agx, .5, agy, .5, 0, output.images[0]);
     cv::normalize(mag, output.images[0], 0, 255, cv::NORM_MINMAX);
@@ -199,6 +222,62 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   return 0;
 }
 
+DetFlouDemo::DetFlouDemo()
+{
+  props.id = "det-flou";
+}
+
+
+int DetFlouDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+  int taille_noyau = input.model.get_attribute_as_int("taille-noyau");
+  int BS = input.model.get_attribute_as_int("taille-bloc");
+
+  if((taille_noyau & 1) == 0)
+    taille_noyau++;
+
+  Mat tmp, lap;
+  cv::cvtColor(input.images[0], tmp, CV_BGR2GRAY);
+
+  cv::Laplacian(tmp, lap, CV_32F, taille_noyau, 1, 0);
+
+  //lap = cv::abs(lap);
+
+  cv::Scalar m, d;
+  cv::meanStdDev(lap, m, d);
+  //float score_global = d[0];
+
+  cv::Mat res = cv::Mat::zeros(lap.rows / BS, lap.cols / BS, CV_32F);
+
+  unsigned int yo = 0;
+  for(auto y = 0u; y + BS < (unsigned int) lap.rows; y += BS)
+  {
+    unsigned int xo = 0;
+    for(auto x = 0u; x + BS < (unsigned int) lap.cols; x += BS)
+    {
+      cv::meanStdDev(lap(cv::Rect(x,y,BS,BS)), m, d);
+      res.at<float>(yo,xo) = d[0];
+      xo++;
+    }
+    yo++;
+  }
+
+  cv::normalize(res, res, 0, 255, cv::NORM_MINMAX);
+
+  /*while()
+  {
+    cv::pyrUp(res, res);
+  }*/
+  cv::resize(res, res, cv::Size(lap.cols, lap.rows));
+
+  output.images[0] = res;
+
+  //cv::normalize(lap, output.images[0], 0, 255, NORM_MINMAX);
+  //convertScaleAbs(lap, output.images[0]); // Conversion vers CV_8U
+  output.names[0] = "Laplacien";
+  return 0;
+}
+
 LaplaceDemo::LaplaceDemo()
 {
   props.id = "laplace";
@@ -207,21 +286,28 @@ LaplaceDemo::LaplaceDemo()
 
 int LaplaceDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
+  bool pref = input.model.get_attribute_as_boolean("prefiltrer");
   float sigma = input.model.get_attribute_as_float("sigma");
+  int aff = input.model.get_attribute_as_int("aff");
+  int taille_noyau = input.model.get_attribute_as_int("taille-noyau");
 
-  Mat tmp,tmpg,tmp2;
+  if((taille_noyau & 1) == 0)
+    taille_noyau++;
 
-  if(sigma > 0)
-    GaussianBlur(input.images[0],tmp, Size(0,0),sigma);
-  else
-    return -1;
+  Mat tmp, lap;
+  cv::cvtColor(input.images[0], tmp, CV_BGR2GRAY);
 
+  if(pref && (sigma > 0))
+    GaussianBlur(tmp, tmp, Size(0,0), sigma);
+
+  cv::Laplacian(tmp, lap, CV_32F, taille_noyau, 1, 0);
+
+  if(aff == 0)
+    lap = cv::abs(lap);
+
+  cv::normalize(lap, output.images[0], 0, 255, NORM_MINMAX);
+  //convertScaleAbs(lap, output.images[0]); // Conversion vers CV_8U
   output.names[0] = "Laplacien";
-
-  cvtColor(tmp,tmpg,CV_BGR2GRAY);
-  Laplacian(tmpg, tmp2, CV_16S, 3, 1, 0);
-  normalize(tmp2,tmp2,0,255,NORM_MINMAX);
-  convertScaleAbs(tmp2, output.images[0]); // Conversion vers CV_8U
   return 0;
 }
 
@@ -315,17 +401,19 @@ int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   }
   else if(sel == 2)
   {
-    output.nout = 2;
+    output.nout = 3;
     output.images[0] = I.clone();
 
     vector<Vec2f> lignes;
     cv::Mat deb;
     Hough_lines_with_gradient_dir(I, lignes, deb, reso_rho, reso_theta, 0.6, seuilg);
-    output.images[1] = deb;
+    cv::pyrUp(deb, deb);
+    output.images[1] = deb.t();
     output.names[1] = "Espace parametrique";
     journal.trace("Détecté %d lignes.\n", (int) lignes.size());
+    output.images[2] = I.clone();
     for(const auto &l: lignes)
-      dessine_ligne(output.images[1], l[0], l[1]);
+      dessine_ligne(output.images[2], l[0], l[1]);
   }
 
   return 0;

@@ -78,10 +78,24 @@ private:
   int proceed(const DemoFiltrageConfig &conf, cv::Mat &I, OCVDemoItemOutput &output);
 };
 
+class DemoRedim: public OCVDemoItem
+{
+public:
+  DemoRedim();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
+
 class DemoFiltreGabor: public OCVDemoItem
 {
 public:
   DemoFiltreGabor();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
+
+class DemoSousSpectrale: public OCVDemoItem
+{
+public:
+  DemoSousSpectrale();
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 

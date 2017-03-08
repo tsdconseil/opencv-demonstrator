@@ -36,10 +36,16 @@
 #include "demo-items/segmentation.hpp"
 #include "demo-items/appauto.hpp"
 #include "demo-items/demo-skeleton.hpp"
+#include "demo-items/ocr.hpp"
 //add a line to include your new demo header file patterned just as "demo-skeleton.hpp"
 
 void OCVDemo::add_demos()
 {
+  add_demo(new DetFlouDemo());
+  add_demo(new ScoreShiTomasi());
+  add_demo(new DemoRedim());
+  add_demo(new DemoOCR());
+  add_demo(new DemoSousSpectrale());
   add_demo(new DemoSuperpixels());
   add_demo(new DemoFaceRecognizer());
   add_demo(new DemoAppAuto());

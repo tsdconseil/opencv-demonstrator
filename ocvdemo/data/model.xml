@@ -21,7 +21,16 @@
           img-count = "3">
         <o id="1" fr="Image bruitee" en="Image with noise"/>
     </demo>
-
+    
+    <demo name = "redim"
+          fr   = "Redimensionnement d'image"
+          en   = "Image resizing"/>
+    
+    <demo name  = "sous-spect"
+          fr    = "Soustraction spectrale"
+          en    = "Spectral substraction">
+       <img path="data/img/Axode-Test256-4.png"/>
+    </demo>
 
     
 
@@ -35,7 +44,7 @@
       <demo name = "gradient"
             fr   = "Calcul de gradient"
             en   = "Gradient computing">
-            <img path="data/img/gradtest.jpg"/>
+            <img path="data/img/wbc.jpg"/>
             <o id="1" fr="GX" en="GX"/>
             <o id="2" fr="GY" en="GY"/>
       </demo>
@@ -43,6 +52,10 @@
       <demo name = "laplace"
             fr   = "Calcul de laplacien"
             en   = "Laplacian computing"/>
+            
+      <demo name = "det-flou"
+            fr   = "Détection de niveau de netteté"
+            en   = "Blur level detection"/>
 
       <demo name = "net"
             fr   = "Amélioration de la netteté d'une image"
@@ -195,8 +208,12 @@
     <demo name = "dft"
           fr   = "Transformée de Fourier"
           en   = "Fourier transform">
-
-
+    </demo>
+    
+    <demo name = "ocr"
+          fr   = "Reconnaissance de caractères (OCR)"
+          en   = "Optical caracter recognition (OCR)">
+          <img path="./data/img/logo2.png"/>
     </demo>
 
   </cat>
@@ -247,14 +264,20 @@
           en    = "Corner / interest point detection">
       <img path = "data/img/sequence.mpg"/>
     </demo>
+    
+    <demo name = "score-harris"
+          fr   = "Score de Harris"
+          en   = "Harris score">
+          <img path = "data/img/gradtest.jpg"/>
+    </demo>
 
     <demo name  = "corner-match"
           fr    = "Mise en correspondance"
           en    = "Matching">
          <img path = "0"/>
-         <img path = "1"/>
-       <!-- <img path="data/img/lac1.jpg"/>
-       <img path="data/img/lac2.jpg"/> -->
+         <img path = "2"/>
+        <!-- <img path="data/img/lac1.jpg"/>
+       <img path="data/img/lac2.jpg"/>-->
     </demo>
     </cat>
     

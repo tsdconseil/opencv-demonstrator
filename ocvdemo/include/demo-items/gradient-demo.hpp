@@ -46,6 +46,12 @@ public:
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
+class DetFlouDemo: public OCVDemoItem
+{
+public:
+  DetFlouDemo();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
 
 class CannyDemo: public OCVDemoItem
 {

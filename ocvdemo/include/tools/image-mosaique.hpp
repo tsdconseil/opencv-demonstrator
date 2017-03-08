@@ -67,6 +67,8 @@ public:
   /** Retourne l'image globale */
   cv::Mat get_global_img(){return disp_img;}
 
+  bool preserve_ratio_aspet;
+
 private:
   /** Image globale */
   cv::Mat disp_img;

@@ -66,5 +66,12 @@ private:
   bool bp_init_ok;
 };
 
+class DemoVideoStab: public OCVDemoItem
+{
+public:
+  DemoVideoStab();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+};
+
 
 #endif

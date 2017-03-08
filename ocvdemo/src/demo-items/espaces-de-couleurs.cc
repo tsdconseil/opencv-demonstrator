@@ -34,7 +34,24 @@ int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   Mat Ig, padded;                            //expand input image to optimal size
 
+  float angle = 10 * input.model.get_attribute_as_float("angle");
+
   cvtColor(input.images[0], Ig, CV_BGR2GRAY);
+
+  uint16_t idx = 0;
+
+  if(angle != 0)
+  {
+    cv::Size sz = Ig.size() / 2;
+    cv::Point centre;
+    centre.x = sz.width;
+    centre.y = sz.height;
+    uint16_t sx = sz.width, sy = sz.height;
+    cv::Mat R = cv::getRotationMatrix2D(centre, angle, 1.0);
+    cv::warpAffine(Ig, Ig, R, Ig.size());
+    Ig = Ig(Rect(sx/4,sy/4,sx/2,sy/2));
+    output.images[idx++] = Ig;
+  }
 
   int m = getOptimalDFTSize( Ig.rows );
   int n = getOptimalDFTSize( Ig.cols ); // on the border add zero values
@@ -78,7 +95,8 @@ int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   normalize(magI, magI, 0, 255, NORM_MINMAX); // Transform the matrix with float values into a
                                           // viewable image form (float between values 0 and 1).
-  output.images[0] = magI;
+  output.images[idx++] = magI;
+  output.nout = idx;
 
   return 0;
 }

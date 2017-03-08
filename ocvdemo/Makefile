@@ -1,6 +1,6 @@
 # Makefile for ocvdemo
 #
-#   Copyright 2015 J.A. / http://www.tsdconseil.fr
+#   Copyright 2015 - 2017 J.A. / http://www.tsdconseil.fr
 #
 #   Project web page: http://www.tsdconseil.fr/log/opencv/demo/index-en.html
 #
@@ -27,7 +27,7 @@ RPATH = ..
 
 # Definition of individual files to compiled
 # Yes, this is the right place to add your new demonstration source file name.
-SOURCES_BASE= image-selecteur photographie image-mosaic filtrage morpho-demo gradient-demo reco-demo histo seuillage video-demo espaces-de-couleurs 3d boutils-image demos-registration gestion-souris ocvdemo-mmi ocvdemo-export demo-skeleton misc segmentation appauto thinning ocvdemo-misc
+SOURCES_BASE= ocr image-selecteur photographie image-mosaic filtrage morpho-demo gradient-demo reco-demo histo seuillage video-demo espaces-de-couleurs 3d boutils-image demos-registration gestion-souris ocvdemo-mmi ocvdemo-export demo-skeleton misc segmentation appauto thinning ocvdemo-misc
 
 # (Optionnal) Sources requiring a graphic toolkit -> will not be included in the reduced library
 SOURCES_IHM=
@@ -81,7 +81,7 @@ ifeq ($(TARGET),LINUX)
 ADDITIONNAL_LOPT += ../ocvext/build/libocvext.a -lopencv_core -lopencv_highgui -lopencv_objdetect -lopencv_features2d -lopencv_stitching -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio -lopencv_video -lopencv_calib3d -lopencv_photo -lopencv_ml -lopencv_face -lopencv_ximgproc
 else
 ADDITIONNAL_LOPT += ../ocvext/build/libocvext.a -mwindows
-ADDITIONNAL_LOPT += -lopencv_core310 -lopencv_imgproc310 -lopencv_highgui310 -lopencv_video310 -lopencv_videoio310 -lopencv_features2d310 -lopencv_objdetect310 -lopencv_imgcodecs310 -lopencv_calib3d310 -lopencv_stitching310 -lopencv_photo310 -lopencv_ml310 -lopencv_face310 -lopencv_ximgproc310 -march=i486
+ADDITIONNAL_LOPT += -lopencv_core310 -lopencv_imgproc310 -lopencv_highgui310 -lopencv_video310 -lopencv_videoio310 -lopencv_features2d310 -lopencv_objdetect310 -lopencv_imgcodecs310 -lopencv_calib3d310 -lopencv_stitching310 -lopencv_photo310 -lopencv_ml310 -lopencv_face310 -lopencv_ximgproc310 -lopencv_text310 -march=i486
 #-lfftw3-3 -lfftw3f-3 
 endif
 

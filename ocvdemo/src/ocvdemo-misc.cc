@@ -40,6 +40,7 @@ OCVDemoItem::OCVDemoItem()
   output.nout = 1;
   props.requiert_roi = false;
   props.requiert_masque = false;
+  props.preserve_ratio_aspet = false;
 
   // Default demo item requires only 1 input image / video
   props.input_min = 1;
@@ -354,6 +355,7 @@ void OCVDemo::update()
 
   }
 
+  mosaique.preserve_ratio_aspet = demo_en_cours->props.preserve_ratio_aspet;
   mosaique.show_multiple_images(titre_principal, lst, titres);
 
   maj_bts();

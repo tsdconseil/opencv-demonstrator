@@ -31,6 +31,7 @@ using namespace cv;
 
 ImageMosaique::ImageMosaique()
 {
+  preserve_ratio_aspet = false;
   callback_init_ok = false;
   journal.setup("ocvdemo", "image-mosaic");
 }
@@ -280,11 +281,15 @@ int ImageMosaique::show_multiple_images(std::string title,
     journal.verbose("Taille auto...");
     if(nimages == 1)
     {
+      journal.trace_major("KEEP RATIO");
       cv::namedWindow(title.c_str(), CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL);
       cv::resizeWindow(title.c_str(), lst[0].cols, lst[0].rows);
     }
     else
       cv::namedWindow(title.c_str(), 1);
+
+
+    //cv::moveWindow(title.c_str(), 0,0);
   }
 
   journal.verbose("imwrite");

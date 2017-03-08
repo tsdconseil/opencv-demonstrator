@@ -64,6 +64,8 @@ public:
     /** Maximum number of input images for this demo.
      *  -1 means "not specified" (e.g. accept arbitrary number of images). */
     int input_max;
+
+    bool preserve_ratio_aspet;
   };
 
   /** Réglages d'une démonstration OpenCV */

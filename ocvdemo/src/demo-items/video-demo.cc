@@ -22,7 +22,19 @@
 
 #include "demo-items/video-demo.hpp"
 #include "demo-items/histo.hpp"
-#include "opencv2/video/video.hpp"
+#include "opencv2/video.hpp"
+#include "opencv2/videostab.hpp"
+
+
+DemoVideoStab::DemoVideoStab()
+{
+  props.id = "videostab";
+}
+
+int DemoVideoStab::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+
+}
 
 
 CamShiftDemo::CamShiftDemo()
@@ -155,18 +167,23 @@ int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &out
   //resize(mask,output.images[1],Size(0,0),4,4);
   //mask = mask > 128;
 
-  cv::Mat masque2;
+  /*cv::Mat masque2;
   mask.convertTo(masque2, CV_32F);
   cv::Mat O = I.clone();
   cvtColor(I, O, CV_BGR2GRAY);
   O.convertTo(O, CV_32F);
   cv::pyrUp(masque2, masque2);
-  cv::pyrUp(masque2, masque2);
-  //I.copyTo(output.images[1], masque2);
-  output.images[1] = Mat::zeros(O.size(), CV_32F);
-  output.images[1] += O.mul(masque2 / 255);
+  cv::pyrUp(masque2, masque2);*/
 
-  output.images[1].convertTo(output.images[1], CV_8U);
+  output.images[1] = mask;
+
+  //I.copyTo(output.images[1], masque2);
+  //output.images[1] = Mat::zeros(O.size(), CV_32F);
+  //output.images[1] += O.mul(masque2 / 255);
+  //output.images[1].convertTo(output.images[1], CV_8U);
+
+
+
   nframes++;
   if(nframes < 5)
   {

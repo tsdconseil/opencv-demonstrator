@@ -194,6 +194,7 @@ public:
   bool empty();
   void clear();
   void deblock();
+  int size();
 private:
   Mutex mutex;
   uint32_t capacity;

@@ -24,6 +24,68 @@
 #include "demo-items/filtrage.hpp"
 #include <random>
 
+
+DemoSousSpectrale::DemoSousSpectrale()
+{
+  props.id = "sous-spect";
+}
+
+static void sousstraction_spectrale_gs(cv::Mat &I, cv::Mat &O, cv::Mat &mag, cv::Mat &masque, float seuil)
+{
+  cv::Mat F, plans[2];
+  cv::dft(I, F, DFT_COMPLEX_OUTPUT, I.rows);
+
+  //journal.trace("F: cols=%d, rows=%d, type=%d, nchn=%d", F.cols, F.rows, F.type(), F.channels());
+
+  cv::split(F, plans);
+  cv::magnitude(plans[0], plans[1], mag);
+
+  float moy = cv::mean(mag)[0];
+  masque = mag > (seuil * moy);
+
+  F.setTo(0.0, masque);
+
+  cv::dft(F, O, cv::DFT_INVERSE + cv::DFT_SCALE + DFT_REAL_OUTPUT, I.rows);// + K_spatial[i].rows / 2);
+
+  cv::normalize(O,O,0,255,cv::NORM_MINMAX);
+}
+
+static void sousstraction_spectrale(cv::Mat &I, cv::Mat &O, float seuil)
+{
+  cv::Mat compos[3], compos_sortie[3];
+  cv::split(I, compos);
+  for(auto i = 0u; i < 3; i++)
+  {
+    cv::Mat mag, masque;
+    sousstraction_spectrale_gs(compos[i], compos_sortie[i], mag, masque, seuil);
+  }
+  cv::merge(compos_sortie, 3, O);
+}
+
+int DemoSousSpectrale::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+  cv::Mat O, I = input.images[0], If;
+  I.convertTo(If, CV_32F);
+
+  sousstraction_spectrale(If, O, input.model.get_attribute_as_float("seuil"));
+
+  O.convertTo(O, CV_8U);
+
+  output.nout = 1;
+  //mag += Scalar::all(1);                    // switch to logarithmic scale
+  //cv::log(mag, mag);
+  //cv::normalize(mag, mag, 0, 255, cv::NORM_MINMAX);
+  //output.images[0] = mag.clone();
+  //output.names[0] = "Magnitude DFT";
+  //mag.setTo(0.0, masque);
+  //output.images[1] = mag;
+  //output.names[1] = "Soustraction spectrale";
+  output.images[0] = O;
+  output.names[0] = "Resultat";
+  return 0;
+}
+
+
 DemoFiltreGabor::DemoFiltreGabor()
 {
   props.id = "gabor";
@@ -50,6 +112,52 @@ int DemoFiltreGabor::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   return 0;
 }
 
+DemoRedim::DemoRedim()
+{
+  props.id = "redim";
+}
+
+int DemoRedim::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
+{
+  auto tp = input.model.get_attribute_as_int("type");
+  auto qt = input.model.get_attribute_as_int("qt");
+  auto algo = input.model.get_attribute_as_int("algo");
+
+  cv::Mat I = input.images[0];
+  cv::Mat O = I.clone();
+
+  cv::Size osize = I.size();
+  if(tp == 0)
+  {
+    for(auto i = 0; i < qt; i++)
+      osize *= 2;
+  }
+  else
+  {
+    for(auto i = 0; i < qt; i++)
+      osize /= 2;
+  }
+
+  if(algo == 0) // pyrdown
+  {
+    for(auto i = 0; i < qt; i++)
+    {
+      if(tp == 0) // Agrandissement
+        cv::pyrUp(O, O);
+      else
+        cv::pyrDown(O, O);
+    }
+  }
+  else
+  {
+    cv::resize(O, O, osize);
+  }
+
+  output.images[0] = O;
+
+  return 0;
+}
+
 DemoFiltrage::DemoFiltrage()
 {
   props.id = "filtrage";
@@ -68,6 +176,13 @@ int DemoFiltrage::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   config.ma.taille_noyau = model.get_attribute_as_int("ma/taille-noyau");
   config.gaussien.taille_noyau = model.get_attribute_as_int("gaussian/taille-noyau");
+
+  if((config.gaussien.taille_noyau % 2) == 0)
+  {
+    config.gaussien.taille_noyau++;
+    model.set_attribute("gaussian/taille-noyau", config.gaussien.taille_noyau);
+  }
+
   config.gaussien.sigma = model.get_attribute_as_int("gaussian/sigma");
   config.median.taille_noyau = model.get_attribute_as_int("median/taille-noyau");
   if((config.median.taille_noyau % 2) == 0)

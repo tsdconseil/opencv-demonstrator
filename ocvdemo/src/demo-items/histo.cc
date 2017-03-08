@@ -165,6 +165,10 @@ int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   // 3 : histogramme 2D HS
   int sel = input.model.get_attribute_as_int("sel");
   int nbins = input.model.get_attribute_as_int("nbins");
+
+  if(nbins < 1)
+    nbins = 1;
+
   MatND hist;
   Mat I = input.images[0];
 

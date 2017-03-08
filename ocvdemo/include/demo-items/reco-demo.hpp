@@ -56,6 +56,14 @@ public:
 private:
 };
 
+class ScoreShiTomasi: public OCVDemoItem
+{
+public:
+  ScoreShiTomasi();
+  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
+private:
+};
+
 class VisageDemo: public OCVDemoItem
 {
 public:

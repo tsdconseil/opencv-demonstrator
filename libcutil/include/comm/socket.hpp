@@ -99,6 +99,7 @@ public:
   
   void write(const uint8_t *buffer, uint32_t len);
   int read(uint8_t *buffer, uint32_t length, int timeout);
+  int get_nb_rx_available();
   int getc(int timeout = 0);
   void putc(char c);
   void flush();

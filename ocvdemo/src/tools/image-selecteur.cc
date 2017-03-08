@@ -307,7 +307,10 @@ void ImageSelecteur::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& conte
      }
      else
      {
-       set_fichier(0, s);
+       if(csel == -1)
+         set_fichier(0, s);
+       else
+         set_fichier(csel, s);
      }
    }
    context->drag_finish(true, false, time);
