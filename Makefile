@@ -34,10 +34,10 @@ endif
 
 all:
 	cd libcutil; export TARGET=$(T); make
-	cd ocvext; export TARGET=$(T); make
+	cd libocvext; export TARGET=$(T); make
 	cd ocvdemo; export TARGET=$(T); make
 
 clean:
 	rm -rf libcutil/build
-	rm -rf ocvext/build
+	rm -rf libocvext/build
 	rm -rf ocvdemo/build
