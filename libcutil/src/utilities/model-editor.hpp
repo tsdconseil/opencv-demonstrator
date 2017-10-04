@@ -7,6 +7,7 @@
 using namespace utils;
 using namespace utils::model;
 using namespace utils::mmi;
+using namespace std;
 
 class ModelEditor: public Gtk::Window,
                    private CListener<ChangeEvent>,
@@ -56,8 +57,7 @@ private:
   std::string model_path, schema_path;
 
   std::string last_schema_dir;
-  
-  Logable log;
+
 
   void on_b_open();
   void on_b_save();

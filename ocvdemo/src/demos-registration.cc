@@ -37,10 +37,15 @@
 #include "demo-items/appauto.hpp"
 #include "demo-items/demo-skeleton.hpp"
 #include "demo-items/ocr.hpp"
+#include "demo-items/fourier-demo.hpp"
 //add a line to include your new demo header file patterned just as "demo-skeleton.hpp"
 
 void OCVDemo::add_demos()
 {
+  add_demo(new IFTDemo());
+  add_demo(new DemoDetectionPeriode());
+  add_demo(new DemoDetectionTranslation());
+  add_demo(new DemoDetectionRotation());
   add_demo(new DetFlouDemo());
   add_demo(new ScoreShiTomasi());
   add_demo(new DemoRedim());

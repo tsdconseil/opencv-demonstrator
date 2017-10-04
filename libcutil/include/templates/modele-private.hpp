@@ -24,13 +24,13 @@ public:
   ///////////////////////////////////////////////////////////
   //// METHODES VIRTUELLES PURES A IMPLEMENTER (PATRON)  ////
   ///////////////////////////////////////////////////////////
-  virtual void add_vector(string name, void *data, uint32_t n);
-  virtual void get_vector(string name, uint32_t index, void *data, uint32_t n);
+  virtual void add_vector(std::string name, void *data, uint32_t n);
+  virtual void get_vector(std::string name, uint32_t index, void *data, uint32_t n);
 
   // GET CHILDREN, TYPE PRECISE
-  virtual unsigned long     get_children_count(const string &type) const = 0;
-  virtual Node           get_child_at(const string &type, unsigned int i) = 0;
-  virtual const Node     get_child_at(const string &type, unsigned int i) const = 0;
+  virtual unsigned long     get_children_count(const std::string &type) const = 0;
+  virtual Node           get_child_at(const std::string &type, unsigned int i) = 0;
+  virtual const Node     get_child_at(const std::string &type, unsigned int i) const = 0;
 
   virtual unsigned long     get_children_count(int type) const = 0;
   virtual Node           get_child_at(int type, unsigned int i) = 0;
@@ -42,20 +42,21 @@ public:
   virtual const Attribute  *get_attribute_at(unsigned int i) const = 0;
 
   // MODIFY
-  virtual Node              add_child(const string &sub_name) = 0;
+  virtual Node              add_child(const std::string sub_name) = 0;
+  virtual void              add_children(const std::string &type, const std::vector<const MXml *> &lst) = 0;
   virtual void              remove_child(Node child) = 0;
 
   // REFERENCES
   virtual unsigned int      get_reference_count() const = 0;
-  virtual void              set_reference(const string &name, Node e) = 0;
-  virtual void              set_reference(const string &name, const XPath &path) = 0;
-  virtual XPath             get_reference_path(const string &name) = 0;
-  virtual const Node        get_reference_at(unsigned int i, string &name) const = 0;
+  virtual void              set_reference(const std::string &name, Node e) = 0;
+  virtual void              set_reference(const std::string &name, const XPath &path) = 0;
+  virtual XPath             get_reference_path(const std::string &name) = 0;
+  virtual const Node        get_reference_at(unsigned int i, std::string &name) const = 0;
 
 
   virtual Node              get_parent() = 0;
 
-  virtual string            class_name() const;
+  virtual std::string            class_name() const;
 
   void                      reference();
   void                      dereference();
@@ -64,12 +65,15 @@ public:
   void                      lock();
   void                      unlock();
 
+
+
+
   int nb_references;
 
   NodeSchema *schema;
-  string    type;
+  std::string    type;
 
-  static Logable log;
+  static journal::Logable log;
 
 protected:
   bool ignore;
@@ -93,9 +97,9 @@ class Reference
 public:
   void set_reference(Node elt);
   Node get_reference();
-  string get_name();
+  std::string get_name();
 
-  string name;
+  std::string name;
   XPath path;
   Node ptr;
 };
@@ -111,11 +115,13 @@ public:
 
   Node              get_parent();
 
+  void              add_children(const std::string &type, const std::vector<const MXml *> &lst);
+
   unsigned int      get_reference_count() const;
-  const Node        get_reference_at(unsigned int i, string &name) const;
-  void              set_reference(const string &name, Node e);
-  void              set_reference(const string &name, const XPath &path);
-  XPath             get_reference_path(const string &name);
+  const Node        get_reference_at(unsigned int i, std::string &name) const;
+  void              set_reference(const std::string &name, Node e);
+  void              set_reference(const std::string &name, const XPath &path);
+  XPath             get_reference_path(const std::string &name);
 
   ///////////////////////////////////////////////////////////
   ///// Not const getter                                /////
@@ -125,16 +131,16 @@ public:
   const Attribute  *get_attribute_at(unsigned int i) const;
 
   // GET CHILD, TYPE PRECISE
-  unsigned long     get_children_count(const string &type) const;
-  Node              get_child_at(const string &type, unsigned int i);
-  const Node        get_child_at(const string &type, unsigned int i) const;
+  unsigned long     get_children_count(const std::string &type) const;
+  Node              get_child_at(const std::string &type, unsigned int i);
+  const Node        get_child_at(const std::string &type, unsigned int i) const;
 
   unsigned long     get_children_count(int type) const;
   Node              get_child_at(int type, unsigned int i);
   const Node        get_child_at(int type, unsigned int i) const;
 
   // MODIFY
-  Node              add_child(const string &sub_name);
+  Node              add_child(const std::string sub_name);
   void              remove_child(Node child);
 
 
@@ -158,22 +164,22 @@ private:
   class NodeCol
   {
   public:
-    string type;
-    deque<Node> nodes;
+    std::string type;
+    std::deque<Node> nodes;
   };
 
-  //deque<Node>     children;
-  deque<NodeCol> children;
+  //std::deque<Node>     children;
+  std::deque<NodeCol> children;
 
   // Obsolete
-  deque<Reference>   references;
-  deque<Attribute>   attributes;
+  std::deque<Reference>   references;
+  std::deque<Attribute>   attributes;
   RamNode *parent;
 
 
 
   /** To distinguish between the child of the same types */
-  string sub_type;
+  std::string sub_type;
 
   friend class Node;
 

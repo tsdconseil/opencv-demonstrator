@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include "opencv2/imgproc/imgproc.hpp" // for cv::Sobel function
 
+namespace ocvext
+{
 
 template<typename T>
   static void lexp_forward(T *x, uint16_t n, float gamma);
@@ -286,4 +288,5 @@ void garciaLorcaBlur(const cv::Mat &I,
 }
 #endif
 
+}
 

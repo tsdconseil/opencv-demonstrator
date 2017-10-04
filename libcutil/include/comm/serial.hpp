@@ -21,11 +21,12 @@
 #define SERIAL_H
 
 #include "comm/iostreams.hpp"
-#include "trace.hpp"
 #include "cutil.hpp"
 
 #include <stdint.h>
 #include <stdio.h>
+
+#include "../journal.hpp"
 #ifdef WIN
 #include <windows.h>
 #endif
@@ -118,12 +119,13 @@ public:
   virtual void discard_rx_buffer();
   unsigned int nb_rx_available();
   void flush();
+  void debloquer_reception();
 private:
   
   void com_thread(void);
 
   hal::Mutex mutex_input, mutex_output;
-  hal::Signal hevt_stop;
+  hal::Signal hevt_stop, signal_debloquer_reception;
   hal::Signal hevt_write, hevt_tx_done;
   hal::Signal hevt_rx_available;
   hal::Signal hevt_tx_available, hevt_tx_space_available, hevt_start, hevt_stopped, hevt_connection;
@@ -137,7 +139,6 @@ private:
   uint32_t output_buffer_offset, output_buffer_size;
   bool serial_is_connected;
   uint32_t nb_bytes_waited;
-  Logable log;
 };
 
 

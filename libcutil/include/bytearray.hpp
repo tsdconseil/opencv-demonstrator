@@ -1,10 +1,11 @@
 #ifndef BYTE_ARRAY_H
 #define BYTE_ARRAY_H
 
-#include "trace.hpp"
 #include <string>
 #include <deque>
 #include <stdint.h>
+#include <stdio.h>
+#include "journal.hpp"
 
 #ifdef putc
 #undef putc
@@ -19,6 +20,10 @@ namespace model
 class ByteArray
 {
  public:
+
+  void lis_fichier(FILE *fi, uint32_t lon);
+  void ecris_fichier(FILE *fo);
+
   ByteArray(int len);
   ByteArray();
   ByteArray(const unsigned char *buffer, unsigned int len, bool bigendian = false);
@@ -42,6 +47,7 @@ class ByteArray
   void        putL(uint64_t val);
   void        put(const unsigned char *buffer, unsigned int len);
   /** Put nullptr terminated string */
+  void        puts_zt(std::string s);
   void        puts(std::string s);
   void        putf(float f);
 
@@ -55,15 +61,12 @@ class ByteArray
   void        pop_data(uint8_t *buffer, uint32_t len);
   void        pop(ByteArray &ba, uint32_t len);
 
-  std::string to_string() const;
+  std::string to_string(bool hexa = false) const;
 
   void insert(uint8_t c);
 
   std::deque<unsigned char> data;
   bool bigendian;
-
- private:
-  static utils::Logable log;
 };
 
 }

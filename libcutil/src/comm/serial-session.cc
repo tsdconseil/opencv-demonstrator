@@ -54,9 +54,9 @@ namespace comm
 
 //static void session_thread_entry(void *prm);
 
-Logable Transport::log("comm");
-Logable DataLink::log("comm");
-Logable Session::log("comm");
+journal::Logable Transport::log("comm");
+journal::Logable DataLink::log("comm");
+journal::Logable Session::log("comm");
 
 Packet::Packet()
 {
@@ -198,7 +198,7 @@ int DataLink::start()
 DataLink::DataLink(IOStream *s, uint32_t max_packet_length)
 : cstream(s), packets(8)
 {
-  log.setup("comm", "datalink");
+  log.setup("datalink");
   do_terminate = false;
   stream = s;
   started = false;
@@ -207,14 +207,14 @@ DataLink::DataLink(IOStream *s, uint32_t max_packet_length)
   buffer = (uint8_t*) malloc(max_packet_length);
   if(buffer == nullptr)
   {
-    log.anomaly("Malloc failed (%d).", max_packet_length);
+    erreur("Malloc failed (%d).", max_packet_length);
   }
 
 }
 
 DataLink::~DataLink()
 {
-  log.trace("delete.");
+  infos("delete.");
 
   if(started)
   {
@@ -231,7 +231,7 @@ DataLink::~DataLink()
 
     /* Wait until first thread is finished. */
     if(signal_terminated1.wait(500))
-      log.anomaly("Unable to terminate thread 1.");
+      erreur("Unable to terminate thread 1.");
 
     /* Push some data in the rx queue to unblock the second thread */
     for(unsigned int i = 0; i < 1000; i++)
@@ -239,9 +239,9 @@ DataLink::~DataLink()
 
     /* Wait until second thread is finished. */
     if(signal_terminated2.wait(500))
-      log.anomaly("Unable to terminate thread 2.");
+      erreur("Unable to terminate thread 2.");
 
-    log.trace("Threads killed.");
+    infos("Threads killed.");
   }
   free(buffer);
 }
@@ -252,7 +252,7 @@ int DataLink::wait_ack(uint16_t packet_number, uint16_t timeout)
   for(;;)
   {
     // Attente réception acquittement
-    //trace("Waiting ack %d timeout = %d ms.", packet_number, timeout);
+    //infos("Waiting ack %d timeout = %d ms.", packet_number, timeout);
     if(signal_ack.wait(timeout) != 0)
     {
       return -1;
@@ -273,7 +273,7 @@ int DataLink::wait_ack(uint16_t packet_number, uint16_t timeout)
     {
       //::LeaveCriticalSection(&mutex_ack);
       mutex_ack.unlock();
-      log.anomaly("Bad packet number for ack %d != %d.", ack_packet_number, packet_number);
+      erreur("Bad packet number for ack %d != %d.", ack_packet_number, packet_number);
       //continue;
       return 0;
     }
@@ -293,13 +293,13 @@ int DataLink::put_packet(const Packet &p, uint16_t timeout)
   signal_ack.clear();
   mutex_put.lock();
 
-  //trace("put_packet(flags = 0x%x, len = %d, timeout = %d).", p.flags, p.length, timeout);
+  //infos("put_packet(flags = 0x%x, len = %d, timeout = %d).", p.flags, p.length, timeout);
 
   do
   {
     if(p.flags & FLAG_ACK)
     {
-      log.anomaly("Acq bit already set.");
+      erreur("Acq bit already set.");
       mutex_put.unlock();
       return -1;
     }
@@ -315,7 +315,7 @@ int DataLink::put_packet(const Packet &p, uint16_t timeout)
 
     if(n > max_packet_length)
     {
-      log.anomaly("Packet too long: %d > %d.", n, max_packet_length);
+      erreur("Packet too long: %d > %d.", n, max_packet_length);
       n = max_packet_length;
     }
 
@@ -342,10 +342,10 @@ int DataLink::put_packet(const Packet &p, uint16_t timeout)
 
     if(status != 0)
     {
-      log.anomaly("Failed to get ACK (%d).", nb_tries);
-      log.trace("failed packet length = %d.", p.length);
-      log.trace("sent crc = %x.", tcrc);
-      //trace("failed tx packet:\n%s\n", p.to_string().c_str());
+      erreur("Failed to get ACK (%d).", nb_tries);
+      infos("failed packet length = %d.", p.length);
+      infos("sent crc = %x.", tcrc);
+      //infos("failed tx packet:\n%s\n", p.to_string().c_str());
 
       /*FILE *tmp = fopen("./tx_fail.txt", "wt");
       fprintf(tmp, "%s", p.to_string().c_str());
@@ -355,7 +355,7 @@ int DataLink::put_packet(const Packet &p, uint16_t timeout)
 
       if(nb_tries > 2)
       {
-        log.anomaly("Aborting request.");
+        erreur("Aborting request.");
         break;
       }
     }
@@ -372,24 +372,24 @@ void DataLink::client_thread()
 {
   for(;;)
   {
-    //trace("waiting new packet for client..");
+    //infos("waiting new packet for client..");
     Packet p = packets.pop();
 
     if(do_terminate)
     {
       signal_terminated1.raise();
-      log.trace("client thread terminated.");
+      infos("client thread terminated.");
       return;
     }
 
-    //trace("new packet >> higher layer.");
+    //infos("new packet >> higher layer.");
     CProvider<Packet>::dispatch(p);
   }
 }
 
 void DataLink::com_thread()
 {
-  //trace("Com thread started.");
+  //infos("Com thread started.");
   for(;;)
   {
     uint8_t flags;
@@ -398,13 +398,13 @@ void DataLink::com_thread()
     // Reset CRC
     cstream.start_rx();
 
-    //log.verbose("Ready...");
+    //trace_verbeuse("Ready...");
 
     retcode = cstream.getc(0);
 
     if(do_terminate)
     {
-      log.trace("com thread terminated.");
+      infos("com thread terminated.");
       signal_terminated2.raise();
       return;
     }
@@ -412,7 +412,7 @@ void DataLink::com_thread()
     if(retcode == -1)
     {
       // (can occur during disconnection)
-      log.trace("Timeout from lower layer");
+      infos("Timeout from lower layer");
       signal_terminated2.raise();
       return;
     }
@@ -420,17 +420,17 @@ void DataLink::com_thread()
 
     flags = (uint8_t) (retcode & 0xff);
 
-    //trace("Got flags = %x.", flags);
+    //infos("Got flags = %x.", flags);
     retcode = cstream.getc(200);
     if(retcode == -1)
     {
-      log.anomaly("cnt timeout");
+      erreur("cnt timeout");
       continue;
     }
 
     if(do_terminate)
     {
-      log.trace("com thread terminated.");
+      infos("com thread terminated.");
       signal_terminated2.raise();
       return;
     }
@@ -438,12 +438,12 @@ void DataLink::com_thread()
     uint8_t pack_cnt = (uint8_t) (retcode & 0xff);
 
 #   if 0
-    //trace("Got cnt = %x.", pack_cnt);
+    //infos("Got cnt = %x.", pack_cnt);
     {
       retcode = cstream.getc(50);
       if(retcode == -1)
       {
-        log.anomaly("len timeout 1");
+        erreur("len timeout 1");
         continue;
       }
       r2 = cstream.getc(50);
@@ -463,7 +463,7 @@ void DataLink::com_thread()
 
     if(cstream.read(tb_len, 4, 50) != 4)
     {
-      log.anomaly("len timeout");
+      erreur("len timeout");
       continue;
     }
 
@@ -474,13 +474,13 @@ void DataLink::com_thread()
     {
       if(do_terminate)
       {
-        log.trace("com thread terminated.");
+        infos("com thread terminated.");
         signal_terminated2.raise();
         return;
       }
       else
       {
-        log.warning("Length too long: %d (= 0x%x), doterm = %d",
+        avertissement("Length too long: %d (= 0x%x), doterm = %d",
                 len, len, do_terminate);
         stream->discard_rx_buffer();
 	utils::hal::sleep(20);
@@ -496,14 +496,14 @@ void DataLink::com_thread()
       // Check CRC
       if(cstream.check_crc() == 0)
       {
-        //trace("ACK received.");
+        //infos("ACK received.");
         //::EnterCriticalSection(&mutex_ack);
         ack_packet_number = pack_cnt;
         signal_ack.raise();
-        //trace("rx ack %d", ack_packet_number);
+        //infos("rx ack %d", ack_packet_number);
       }
       else
-        log.anomaly("Bad ACK CRC.");
+        erreur("Bad ACK CRC.");
     }
     else
     {
@@ -521,15 +521,15 @@ void DataLink::com_thread()
 
       if(rlen != len)
       {
-        log.anomaly("data timeout (%d ms, %d bytes), rlen = %d.", timout, len, rlen);
+        erreur("data timeout (%d ms, %d bytes), rlen = %d.", timout, len, rlen);
         stream->discard_rx_buffer();
         goto start;
       }
 
-      //trace("check CRC..");
+      //infos("check CRC..");
       if(cstream.check_crc() == 0)
       {
-        //trace("tx ack.");
+        //infos("tx ack.");
         // Send ACK
         mutex_tx.lock();
         cstream.start_tx();
@@ -545,14 +545,14 @@ void DataLink::com_thread()
         mutex_tx.unlock();
         // Dispatch to higher layer
         if(packets.full())
-          log.warning("Output fifo is full.");
+          avertissement("Output fifo is full.");
         //verbose("Packet to fifo..");
         packets.push(p);
       }
       else
       {
-        log.anomaly("Bad data crc, len = %d.", len);
-        //trace("Damaged packet:\n%s\n", p.to_string().c_str());
+        erreur("Bad data crc, len = %d.", len);
+        //infos("Damaged packet:\n%s\n", p.to_string().c_str());
         FILE *tmp = fopen("./rx_fail.txt", "wt");
         fprintf(tmp, "%s", p.to_string().c_str());
         fclose(tmp);
@@ -569,14 +569,14 @@ void DataLink::com_thread()
 
 void Transport::on_event(const ComError &ce)
 {
-  log.trace("event(ComError)");
+  infos("event(ComError)");
   CProvider<ComError>::dispatch(ce);
 }
 
 
 Transport::Transport(DataLink *stream, uint32_t tx_segmentation, uint32_t max_packet_length)
 {
-  log.setup("comm", "transport");
+  log.setup("transport");
   rx_buffer_offset = 0;
   this->max_packet_length = max_packet_length;
   this->tx_segmentation = tx_segmentation;
@@ -584,7 +584,7 @@ Transport::Transport(DataLink *stream, uint32_t tx_segmentation, uint32_t max_pa
   buffer = (uint8_t *) malloc(max_packet_length);
   if(buffer == nullptr)
   {
-    log.anomaly("Failed to allocate transport rx buffer (%d kbytes).", max_packet_length / 1024);
+    erreur("Failed to allocate transport rx buffer (%d kbytes).", max_packet_length / 1024);
   }
   stream->CProvider<Packet>::add_listener(this);
   stream->CProvider<ComError>::add_listener(this);
@@ -592,7 +592,7 @@ Transport::Transport(DataLink *stream, uint32_t tx_segmentation, uint32_t max_pa
 
 Transport::~Transport()
 {
-  log.trace("Delete..");
+  infos("Delete..");
   stream->CProvider<Packet>::remove_listener(this);
   stream->CProvider<ComError>::remove_listener(this);
   free(buffer);
@@ -637,7 +637,7 @@ int Transport::put_packet(const Packet &pin, void (*notification)(float percent)
     status = stream->put_packet(p);
     if(status != 0)
     {
-      log.anomaly("put_packet() failed: status = %d.\n", status);
+      erreur("put_packet() failed: status = %d.\n", status);
       mutex.unlock();
       return status;
     }
@@ -648,7 +648,7 @@ int Transport::put_packet(const Packet &pin, void (*notification)(float percent)
       notification(percent);
   }
   mutex.unlock();
-  //trace("put_packet() successfully done\n");
+  //infos("put_packet() successfully done\n");
   return status;
 }
 
@@ -657,7 +657,7 @@ void Transport::on_event(const Packet &p)
   uint32_t i;
   uint32_t offset;
 
-  //log.verbose("got packet.");
+  //trace_verbeuse("got packet.");
 
   offset =
       ((((uint32_t) p.data[0]) << 16) & 0x00ff0000)
@@ -666,24 +666,24 @@ void Transport::on_event(const Packet &p)
 
   if(offset < rx_buffer_offset)
   {
-    log.anomaly("offset < rx_buffer_offset (%d < %d).", offset, rx_buffer_offset);
+    erreur("offset < rx_buffer_offset (%d < %d).", offset, rx_buffer_offset);
     rx_buffer_offset = offset;
   }
   else if(offset > rx_buffer_offset)
   {
-    log.anomaly("offset > rx_buffer_offset (%d > %d).", offset, rx_buffer_offset);
+    erreur("offset > rx_buffer_offset (%d > %d).", offset, rx_buffer_offset);
     return;
   }
   else
   {
-    //trace("Got offset = %d.", offset);
+    //infos("Got offset = %d.", offset);
   }
 
   if(((rx_buffer_offset + p.length) - 3) > max_packet_length)
   {
-    log.anomaly("Received packet too big for receive window (mpl = %d bytes, o = %d.)",
+    erreur("Received packet too big for receive window (mpl = %d bytes, o = %d.)",
             max_packet_length, (rx_buffer_offset + p.length) - 3);
-    log.warning("Aborting reception of the packet.");
+    avertissement("Aborting reception of the packet.");
     rx_buffer_offset = 0;
     return;
   }
@@ -697,7 +697,7 @@ void Transport::on_event(const Packet &p)
   {
     Packet pout(p.flags & ~FLAG_LF, rx_buffer_offset);
     memcpy(pout.data, buffer, rx_buffer_offset);
-    //trace("Got last frame. size = %d bytes.", rx_buffer_offset);
+    //infos("Got last frame. size = %d bytes.", rx_buffer_offset);
     CProvider<Packet>::dispatch(pout);
     rx_buffer_offset = 0;
   }
@@ -708,7 +708,7 @@ void Transport::on_event(const Packet &p)
 Session::Session(Transport *device, uint32_t max_buffer_size):
     client_packets(8)
 {
-  log.setup("comm", "session");
+  log.setup("session");
   do_terminate = false;
   this->max_buffer_size = max_buffer_size;
   service_waited = 0xff;
@@ -729,7 +729,7 @@ void Session::set_transport(Transport *device)
 
 Session::~Session()
 {
-  log.trace("Delete..");
+  infos("Delete..");
   tp->CProvider<Packet>::remove_listener(this);
   signal_terminated.clear();
   do_terminate = true;
@@ -737,7 +737,7 @@ Session::~Session()
   Packet p;
   client_packets.push(p);
   signal_terminated.wait();
-  log.trace("Thread killed.");
+  infos("Thread killed.");
 }
 
 void Session::client_thread()
@@ -746,12 +746,12 @@ void Session::client_thread()
   uint8_t service, cmde;
   for(;;)
   {
-    //trace("client::pop...");
+    //infos("client::pop...");
     Packet p  = client_packets.pop();
 
     if(do_terminate)
     {
-      log.trace("client thread: terminate.");
+      infos("client thread: terminate.");
       signal_terminated.raise();
       /* kill thread */
       return;
@@ -760,7 +760,7 @@ void Session::client_thread()
     service   = p.data[0];
     cmde      = p.data[1];
 
-    //log.verbose("client::pop ok.");
+    //trace_verbeuse("client::pop ok.");
 
     for(i = 0; i < cmde_handlers.size(); i++)
     {
@@ -777,9 +777,9 @@ void Session::client_thread()
         if(in.size() > 0)
         {
           if(retcode == 0)
-            log.anomaly("Not all data handled by higher layer (%d bytes remaining).", in.size());
+            erreur("Not all data handled by higher layer (%d bytes remaining).", in.size());
           else
-            log.warning("Not all data handled by higher layer (%d bytes remaining).", in.size());
+            avertissement("Not all data handled by higher layer (%d bytes remaining).", in.size());
         }
 
         /* Send response */
@@ -802,7 +802,7 @@ void Session::client_thread()
 
         if(res != 0)
         {
-          log.anomaly("Error 0x%x while putting response.", res);
+          erreur("Error 0x%x while putting response.", res);
           break;
         }
         break;
@@ -812,7 +812,7 @@ void Session::client_thread()
       continue;
     else
     {
-      log.anomaly("Got unwaited data (service %x, cmde %x). Dispatching to higher layer..", service, cmde);
+      erreur("Got unwaited data (service %x, cmde %x). Dispatching to higher layer..", service, cmde);
       dispatch(p);
     }
   } // for(;;)
@@ -820,7 +820,7 @@ void Session::client_thread()
 
 void Session::on_event(const ComError &ce)
 {
-  log.trace("event(ComError)");
+  infos("event(ComError)");
   /*if(service_waited != 0xff)
   {
   EnterCriticalSection(&response_lock);
@@ -836,7 +836,7 @@ void Session::on_event(const Packet &p)
 
   if(p.length < 2)
   {
-    log.anomaly("Invalid packet size received: %d.", p.length);
+    erreur("Invalid packet size received: %d.", p.length);
     return;
   }
 
@@ -844,14 +844,14 @@ void Session::on_event(const Packet &p)
   //service = p.data[0];
   //cmde    = p.data[1];
 
-  //trace("Rx packet: flags=0x%x, service=%x, cmde=%x, len=%d...", p.flags, service, cmde, p.length - 2);
+  //infos("Rx packet: flags=0x%x, service=%x, cmde=%x, len=%d...", p.flags, service, cmde, p.length - 2);
 
   // Handle answers
   if(p.flags & FLAG_RSP)
   {
     if(p.length < 2 + 4)
     {
-      log.anomaly("Invalid packet size (missing result code).");
+      erreur("Invalid packet size (missing result code).");
       return;
     }
 
@@ -863,19 +863,19 @@ void Session::on_event(const Packet &p)
       response = p;
       response.flags &= 0x0f;
       signal_answer.raise();
-      //trace("Got answer.");
+      //infos("Got answer.");
     }
     else
     {
-      log.anomaly("Unwaited answer: %d bytes.", p.length);
-      //trace("%s", p.to_string().c_str());
+      erreur("Unwaited answer: %d bytes.", p.length);
+      //infos("%s", p.to_string().c_str());
     }
   }
   else
   {
-    //trace(">> To client FIFO.");
+    //infos(">> To client FIFO.");
     if(client_packets.full())
-      log.warning("client fifo is full.");
+      avertissement("client fifo is full.");
     client_packets.push(p);
   }
 }
@@ -895,7 +895,7 @@ int Session::request(uint8_t service, uint8_t cmde,
     data_out = ByteArray(p2.data, p2.length);
   else
   {
-    log.warning("Request failed, status = %d.", res);
+    avertissement("Request failed, status = %d.", res);
     data_out.clear();
   }
   return res;
@@ -917,7 +917,7 @@ int Session::request(uint8_t service,
   int res;
 
   request_lock.lock();
-  //trace("request(service=0x%x, cmde 0x%x, tx_len = %d, timeout = %d).", service, cmde, data_in.length, timeout);
+  //infos("request(service=0x%x, cmde 0x%x, tx_len = %d, timeout = %d).", service, cmde, data_in.length, timeout);
 
   service_waited = service;
 
@@ -936,11 +936,11 @@ int Session::request(uint8_t service,
   {
     request_lock.unlock();
     service_waited = 0xff;
-    log.anomaly("Error 0x%x while putting request.", res);
+    erreur("Error 0x%x while putting request.", res);
     return res;
   }
 
-  //trace("Put done, now waiting read answer...");
+  //infos("Put done, now waiting read answer...");
   if(signal_answer.wait(timeout) == 0)
   {
     service_waited = 0xff;
@@ -962,17 +962,17 @@ int Session::request(uint8_t service,
     {
       service_waited = 0xff;
       session_error = false;
-      log.anomaly("Session error.");
+      erreur("Session error.");
       return -1;
     }
 
-    //trace("Read: status = %d.", status);
+    //infos("Read: status = %d.", status);
     return status;
   }
   else
   {
     service_waited = 0xff;
-    log.anomaly("No response.");
+    erreur("No response.");
     // timeout
     request_lock.unlock();
     return -1;

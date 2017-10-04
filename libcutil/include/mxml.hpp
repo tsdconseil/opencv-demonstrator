@@ -2,10 +2,9 @@
 #define MXML_H
 
 
-#include "trace.hpp"
-
 #include <vector>
 #include <string>
+#include "journal.hpp"
 
 
 

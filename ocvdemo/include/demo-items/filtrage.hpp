@@ -92,11 +92,6 @@ public:
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
-class DemoSousSpectrale: public OCVDemoItem
-{
-public:
-  DemoSousSpectrale();
-  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
-};
+
 
 #endif

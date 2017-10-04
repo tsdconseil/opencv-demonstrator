@@ -1,9 +1,8 @@
 #include "hal.hpp"
-#include "trace.hpp"
-
 #include <stdio.h>
 #include <string.h> // for memcpy
 #include <unistd.h> // for usleep
+#include "../include/journal.hpp"
 
 #if 0
 
@@ -270,8 +269,6 @@ int Signal::wait(unsigned int timeout)
   return wait_with_timeout(handle, timeout);
 # elif defined(LINUX)
 
-
-
   struct timespec ts;
 
   clock_gettime(CLOCK_REALTIME, &ts);
@@ -317,6 +314,56 @@ int Signal::wait(unsigned int timeout)
     return -1;
   ::ResetEvent(handle);
   return 0;
+# endif
+}
+
+int Signal::wait_multiple(unsigned int timeout, std::vector<Signal *> sigs)
+{
+  unsigned int nsigs = sigs.size();
+
+  if(nsigs == 0)
+    return 0;
+
+# ifndef WIN
+
+  // TODO : without polling...
+
+  float cible = utils::hal::get_tick_count_ms() + timeout;
+
+  for(;;)
+  {
+    for(auto i = 0u; i < sigs.size(); i++)
+    {
+      if(sigs[i]->cnt > 0)
+      {
+	sigs[i]->cnt--;
+	return i;
+      }
+    }
+    if(timeout > 0)
+    {
+      float temps = utils::hal::get_tick_count_ms();
+      if(temps >= cible)
+	return -1;
+    }
+    utils::hal::sleep(1);
+  }
+
+# else
+
+  HANDLE handles[nsigs];
+
+  for(auto i = 0u; i < nsigs; i++)
+    handles[i] = sigs[i]->handle;
+
+  int res = ::WaitForMultipleObjects(nsigs, handles, false, timeout == 0 ? INFINITE : timeout);
+
+  if((res < (int) WAIT_OBJECT_0) || (res >= (int) (WAIT_OBJECT_0 + nsigs)))
+    return -1;
+
+  ::ResetEvent(handles[res - WAIT_OBJECT_0]);
+
+  return res - WAIT_OBJECT_0;
 # endif
 }
 
@@ -485,15 +532,15 @@ uint32_t RawFifo::read(void *data_, uint32_t size, uint32_t timeout)
     {
       if(h_not_empty.wait(timeout))
       {
-        printf(">>>>>>>>>>>>>>>>>>>>>>\nTIMEOUT FIFO READ: size=%d, requested=%d, timeout=%d ms.\n", fifo_size, size, timeout);
-        fflush(0);
+        //printf(">>>>>>>>>>>>>>>>>>>>>>\nTIMEOUT FIFO READ: size=%d, requested=%d, timeout=%d ms.\n", fifo_size, size, timeout);
+        //fflush(0);
 
         mutex.lock();
         lsize = this->fifo_size;
         mutex.unlock();
 
-        printf(">>>>> lsize = %d.\n", lsize);
-        fflush(0);
+        //printf(">>>>> lsize = %d.\n", lsize);
+        //fflush(0);
 
         if(lsize >= size)
           break;

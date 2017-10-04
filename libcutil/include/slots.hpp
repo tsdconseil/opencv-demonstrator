@@ -46,6 +46,12 @@ public:
   virtual int call( B &b) = 0;
 };
 
+class VoidEventFunctor
+{
+public:
+  virtual void call() = 0;
+};
+
 template <class A, class B>
 class SpecificEventFunctor: public EventFunctor<B>
 {
@@ -62,6 +68,26 @@ public:
   }
 private:
   int (A::*m_function)( B &);
+  A *object;
+};
+
+
+template <class A>
+class SpecificVoidEventFunctor: public VoidEventFunctor
+{
+public:
+  SpecificVoidEventFunctor(A *object, void (A::*m_function)())
+  {
+    this->object = object;
+    this->m_function = m_function;
+  }
+
+  virtual void call()
+  {
+    (*object.*m_function)();
+  }
+private:
+  void (A::*m_function)();
   A *object;
 };
 /** @endcond */
@@ -94,7 +120,26 @@ public:
 private:
     std::deque<void *> listeners;
     std::deque<EventFunctor<Type> *> functors;
-    //OSMutex mutex;
+};
+
+class VoidEventProvider
+{
+public:
+    void remove_all_listeners();
+    void dispatch();
+
+    template<class A>
+    int add_listener(A *target,
+                     void (A:: *fun)());
+
+    template<class A>
+    int remove_listener(A *target,
+                        void (A:: *fun)());
+
+    virtual ~VoidEventProvider(){remove_all_listeners();}
+
+private:
+    std::deque<VoidEventFunctor *> functors;
 };
 
 /** Event listener mother class. */
@@ -133,20 +178,10 @@ void Provider<Type>::remove_listener(Listener<Type> *lst)
 template <class Type>
 void Provider<Type>::remove_all_listeners()
 {
-  //mutex.lock();
   listeners.clear();
   functors.clear();
-  //mutex.unlock();
 }
 
-/*template <class Type>
-void Provider<Type>::wait_dispatch_done()
-{
-  mutex.lock();
-  listeners.clear();
-  functors.clear();
-  mutex.unlock();
-}*/
 
 
 template <class Type>
@@ -177,6 +212,15 @@ void Provider<Type>::dispatch( Type &evt)
   //mutex.unlock();
 }
 
+template<class A>
+int VoidEventProvider::add_listener(A *target,
+                                    void (A:: *fun)())
+{
+  /* TODO: check if not already registered */
+  VoidEventFunctor *f = new SpecificVoidEventFunctor<A>(target, fun);
+  functors.push_back(f);
+  return 0;
+}
 
 template<class Type>
 template<class A>
@@ -186,6 +230,14 @@ int Provider<Type>::add_listener(A *target,
   /* TODO: check if not already registered */
   SpecificEventFunctor<A,Type> *f = new SpecificEventFunctor<A,Type>(target, fun);
   functors.push_back(f);
+  return 0;
+}
+
+
+template<class A>
+int VoidEventProvider::remove_listener(A *target,
+                                    void (A:: *fun)())
+{
   return 0;
 }
 

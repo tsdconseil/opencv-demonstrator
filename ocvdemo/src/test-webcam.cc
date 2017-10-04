@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 {
   utils::CmdeLine cmdeline(argc, argv);
   utils::init(cmdeline, "ocvdemo", "test-webcam");
-  utils::TraceManager::set_global_min_level(utils::TraceManager::TraceTarget::TRACE_TARGET_FILE, utils::TraceLevel::AL_VERBOSE);
+  utils::journal::set_global_min_level(utils::journal::TraceTarget::TRACE_TARGET_FILE, utils::journal::AL_VERBOSE);
 
   VideoCapture cam(0);
 
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
   if(!cam.isOpened())
   {
-    utils::mmi::dialogs::show_error(utils::langue.get_item("cam-err-1"), utils::langue.get_item("cam-err-2"), utils::langue.get_item("cam-err-3"));
+    utils::mmi::dialogs::affiche_erreur(utils::langue.get_item("cam-err-1"), utils::langue.get_item("cam-err-2"), utils::langue.get_item("cam-err-3"));
     return -1;
   }
 

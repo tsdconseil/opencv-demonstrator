@@ -10,42 +10,33 @@
 #include <stdlib.h>
 #include <limits.h>
 
+using namespace std;
+
 namespace utils
 {
 namespace mmi
 {
 
-
-
-
-
 using namespace fields;
 
-Logable AttributeListView::log("view/attribute-list-view");
-Logable AttributeView::log("view/attribute-view");
-Logable NodeView::log("view/node-view");
-Logable NodeView::MyTreeModel::log("view/node-view/tree");
-Logable NodeDialog::log("view/node-dialog");
-Logable StringListView::log("view/string-list");
-Logable SelectionView::log("view/sel-view");
 
-static string wtypes[GenericView::WIDGET_MAX + 1] = 
+
+static string wtypes[((int) GenericView::WIDGET_MAX) + 1] =
 {
-  "auto", 
+  "vue-modele",
   "nullptr-widget", 
-  "field", 
-  "field-list", 
-  "indicator",
-  "button",
-  "border-layout",
-  "grid-layout",
-  "fixed-layout",
-  "trig-layout",
+  "champs",
+  "liste-champs",
+  "indicateur",
+  "bouton",
+  "disposition-bordure",
+  "disposition-grille",
+  "disposition-fixe",
+  "disposition-trig",
   "notebook",
-  "pane",
+  "panneau",
   "image",
   "label",
-  "custom",
   "combo",
   "decimal",
   "hexa",
@@ -63,9 +54,13 @@ static string wtypes[GenericView::WIDGET_MAX + 1] =
   "file",
   "serial",
   "list-layout",
-  "vbox",
-  "hbox",
-  "button-box"
+  "disposition-verticale",
+  "disposition-horizontale",
+  "boite-boutons",
+  "vue-speciale",
+  "separateur-horizontal",
+  "separateur-vertical",
+  "invalide"
 };
 
 
@@ -145,20 +140,16 @@ string NodeView::mk_label(const Localized &l)
   return traduction;
 }
 
-string NodeView::mk_label_colon(const Localized &l)
+std::string NodeView::mk_label_colon(const Localized &l)
 {
-  string traduction = mk_label(l);
-  if (langue.current_language.compare("fr") == 0)
+  std::string traduction = mk_label(l);
+  if(Localized::current_language == Localized::LANG_FR)
     return traduction + " : ";
   return traduction + ": ";
 }
 
 
-
-
-
-
-static string mk_html_tooltip(refptr<AttributeSchema> as)
+static std::string mk_html_tooltip(refptr<AttributeSchema> as)
 {
   std::string desc = as->name.get_description(Localized::LANG_CURRENT);
   std::string title = NodeView::mk_label(as->name);
@@ -235,12 +226,6 @@ bool AttributeView::on_focus_in(GdkEventFocus *gef)
   return true;
 }
 
-std::string AttributeView::class_name() const 
-{
-  return std::string("AttributeView (") + tp + ")";
-}
-
-
 GenericView::WidgetType AttributeView::choose_view_type(refptr<AttributeSchema> as)
 {
   if((as->constraints.size() > 0) && (as->type != TYPE_COLOR))
@@ -290,16 +275,19 @@ GenericView::WidgetType AttributeView::choose_view_type(refptr<AttributeSchema> 
     default:
     {
       string s = as->to_string();
-      TraceManager::trace(AL_WARNING,
-                          "attribute-view", "choose view type: unable to select one, schema:\n%s", s.c_str());
-      return GenericView::WIDGET_nullptr;
+      avertissement("choose view type: unable to select one, schema:\n%s", s.c_str());
+      return GenericView::WIDGET_NULL;
     }
   }
 }
 
 AttributeView *AttributeView::factory(Node model, Node view)
 {
-  XPath path = view.get_attribute_as_string("model");
+  XPath path;
+  if(view.has_attribute("model"))
+    path = view.get_attribute_as_string("model");
+  else
+    path = view.get_attribute_as_string("modele");
   Node owner = model.get_child(path.remove_last());
   refptr<AttributeSchema> as = owner.schema()->get_attribute(path.get_last());
   Attribute *att = owner.get_attribute(path.get_last());
@@ -317,9 +305,7 @@ AttributeView *AttributeView::factory(Node model, Node view)
 
   std::string s = GenericView::type_to_string(type);
 
-  TraceManager::trace(AL_VERBOSE,
-                      "attribute-view", "factory(): att type: %d (%s).",
-                      (int) type, s.c_str());
+  trace_verbeuse("factory(): att type: %d (%s).", (int) type, s.c_str());
 
   AttributeView *res = nullptr;
 
@@ -327,37 +313,42 @@ AttributeView *AttributeView::factory(Node model, Node view)
   {
     case GenericView::WIDGET_INDICATOR:
     {
-      res = new FixedStringView(att);
+      res = new VueChaineConstante(att);
       break;
     }
     case GenericView::WIDGET_STRING:
     {
-      res = new StringView(att);
+      res = new VueChaine(att);
+      break;
+    }
+    case GenericView::WIDGET_TEXT:
+    {
+      erreur("A FAIRE : vue texte.");
+      //res = new VueTexte(att);
       break;
     }
     case GenericView::WIDGET_DECIMAL_ENTRY:
     {
-      res = new DecimalSpinView(att);
+      res = new VueDecimal(att);
       break;
     }
     case GenericView::WIDGET_FLOAT_ENTRY:
     {
-      res = new FloatView(att);
+      res = new VueFloat(att);
       break;
     }
     case GenericView::WIDGET_HEXA_ENTRY:
     {
-      res = new HexaView(att);
+      res = new VueHexa(att);
       break;
     }
     case GenericView::WIDGET_COMBO:
     {
-      res = new ComboView(att);
+      res = new VueCombo(att);
       break;
     }
     default:
-      TraceManager::trace(AL_WARNING,
-                        "attribute-view", "factory(): unamanaged att type: %d (%s).", (int) type, s.c_str());
+      avertissement("factory(): unamanaged att type: %d (%s).", (int) type, s.c_str());
   }
 
   if(res != nullptr)
@@ -386,16 +377,16 @@ AttributeView *AttributeView::build_attribute_view(Attribute *model,
 
   if(has_sub_schema)
   {
-    res = new ChoiceView(model, parent, config);
+    res = new VueChoix(model, parent, config);
   }
   else if((schema.constraints.size() > 0) && (schema.type != TYPE_COLOR))
   {
-    res = new ComboView(model);
+    res = new VueCombo(model);
   }
   else if ((schema.enumerations.size() > 0) && (schema.has_max)
       && (schema.max < 100))
   {
-    res = new ComboView(model);
+    res = new VueCombo(model);
   }
   else
   {
@@ -403,58 +394,77 @@ AttributeView *AttributeView::build_attribute_view(Attribute *model,
     {
     case TYPE_INT:
     {
-      if (schema.is_bytes)
-        res = new BytesView(model);
+      if(schema.is_instrument)
+        res = new VueChaineConstante(model);
+      else if (schema.is_bytes)
+        res = new VueOctets(model);
       else if (schema.is_hexa)
-        res = new HexaView(model);
+        res = new VueHexa(model);
       else
-        res = new DecimalSpinView(model, 1);
+        res = new VueDecimal(model, 1);
       break;
     }
     case TYPE_STRING:
     {
-      if (schema.formatted_text)
-        res = new TxtView(model, config.small_strings);
+      if(schema.is_instrument)
+        res = new VueChaineConstante(model);
+      else if(schema.formatted_text)
+        res = new VueTexte(model, config.small_strings);
       else
-        res = new StringView(model, config.small_strings);
+        res = new VueChaine(model, config.small_strings);
       break;
     }
     case TYPE_BOOLEAN:
     {
       if (schema.is_instrument)
-        res = new LedView(model);
+        res = new VueLed(model);
       else
-        res = new BooleanView(model);
+        res = new VueBouleen(model);
       break;
     }
     case TYPE_FLOAT:
     {
-      res = new FloatView(model);
+      if(schema.is_instrument)
+        res = new VueChaineConstante(model);
+      else
+        res = new VueFloat(model);
       break;
     }
     case TYPE_COLOR:
     {
-      res = new ColorView(model);
+      res = new VueChoixCouleur(model);
       break;
     }
     case TYPE_DATE:
     {
-      res = new DateView(model);
+      if(schema.is_instrument)
+        res = new VueChaineConstante(model);
+      else
+        res = new VueDate(model);
       break;
     }
     case TYPE_FOLDER:
     {
-      res = new FolderView(model);
+      if(schema.is_instrument)
+        res = new VueChaineConstante(model);
+      else
+        res = new VueDossier(model);
       break;
     }
     case TYPE_FILE:
     {
-      res = new FileView(model);
+      if(schema.is_instrument)
+        res = new VueChaineConstante(model);
+      else
+        res = new VueFichier(model);
       break;
     }
     case TYPE_SERIAL:
     {
-      res = new SerialView(model);
+      if(schema.is_instrument)
+        res = new VueChaineConstante(model);
+      else
+        res = new VueSelPortCOM(model);
       break;
     }
     default:
@@ -484,9 +494,9 @@ void NodeView::load_pics(NodeSchema *&sc)
     p.second = sc;
     std::string filename = utils::get_img_path() + files::get_path_separator()
         + sc->icon_path;
-    //log.trace(std::string("Loading pic: ") + filename);
+    //infos(std::string("Loading pic: ") + filename);
     if (!files::file_exists(filename))
-      log.warning("picture loading: " + filename + " not found.");
+      avertissement("picture loading: " + filename + " not found.");
     else {
       p.first = Gdk::Pixbuf::create_from_file(filename.c_str());
       pics.push_back(p);
@@ -501,9 +511,9 @@ void NodeView::load_pics(NodeSchema *&sc)
    std::pair<Glib::RefPtr<Gdk::Pixbuf>, NodeSchema *> p;
    p.second = sc;
    std::string filename = IMG_DIR + "/img/" + sc->icon_path;
-   log.trace(std::string("Loading pic: ") + filename);
+   infos(std::string("Loading pic: ") + filename);
    if(!Util::file_exists(filename))
-   log.anomaly("picture loading: " + filename + " not found.");
+   erreur("picture loading: " + filename + " not found.");
    else
    {
    p.first  = Gdk::Pixbuf::create_from_file(filename);
@@ -514,10 +524,15 @@ void NodeView::load_pics(NodeSchema *&sc)
    }*/
 }
 
-void NodeView::update_langue() {
+void NodeView::maj_langue()
+{
   table.update_langue();
   for (unsigned int i = 0; i < sub_views.size(); i++)
     sub_views[i]->update_langue();
+}
+
+void NodeView::update_langue() {
+  maj_langue();
 }
 
 void NodeView::set_sensitive(bool sensitive)
@@ -577,8 +592,8 @@ bool NodeView::MyTreeModel::row_drop_possible_vfunc(
     Node target = row[parent->columns.m_col_ptr];
     //target = target.parent();
 
-    log.trace("drop to: ");
-    target.log.trace("me.");
+    //infos("drop to: ");
+    //utils::infos("me.");
 
     Glib::RefPtr<Gtk::TreeModel> refThis = Glib::RefPtr<Gtk::TreeModel> (const_cast<NodeView::MyTreeModel*>(this));
     refThis->reference(); //, true /* take_copy */)
@@ -588,16 +603,16 @@ bool NodeView::MyTreeModel::row_drop_possible_vfunc(
     const_iterator iter = refThis->get_iter(path_dragged_row);
     Row row2 = *iter;
     Node src = row2[parent->columns.m_col_ptr];
-    log.trace("drop from: ");
-    src.log.trace("me.");
+    //infos("drop from: ");
+    //src.infos("me.");
 
     std::string src_type = src.schema()->name.get_id();
     if (target.schema()->has_child(src_type)) {
-      log.trace("%s -> %s: ok.", src_type.c_str(),
+      infos("%s -> %s: ok.", src_type.c_str(),
           target.schema()->name.get_id().c_str());
       return true;
     }
-    log.trace("%s -> %s: nok.", src_type.c_str(),
+    infos("%s -> %s: nok.", src_type.c_str(),
         target.schema()->name.get_id().c_str());
     return false;
   }
@@ -606,7 +621,7 @@ bool NodeView::MyTreeModel::row_drop_possible_vfunc(
 
 bool NodeView::MyTreeModel::drag_data_received_vfunc(
     const TreeModel::Path& dest, const Gtk::SelectionData& selection_data) {
-  log.trace("drag data received.");
+  infos("drag data received.");
   Gtk::TreeModel::Path dest_parent = dest;
   NodeView::MyTreeModel* unconstThis = const_cast<NodeView::MyTreeModel*>(this);
   const_iterator iter_dest_parent = unconstThis->get_iter(dest_parent);
@@ -614,8 +629,8 @@ bool NodeView::MyTreeModel::drag_data_received_vfunc(
     Row row = *iter_dest_parent;
     Node target = row[parent->columns.m_col_ptr];
 
-    log.trace("drop to: ");
-    target.log.trace("me.");
+    //infos("drop to: ");
+    //target.infos("me.");
 
     Glib::RefPtr < Gtk::TreeModel > refThis = Glib::RefPtr < Gtk::TreeModel
         > (const_cast<NodeView::MyTreeModel*>(this));
@@ -628,13 +643,13 @@ bool NodeView::MyTreeModel::drag_data_received_vfunc(
     Row row2 = *iter;
     Node src = row2[parent->columns.m_col_ptr];
 
-    log.trace("drop from: ");
-    src.log.trace("me.");
+    //infos("drop from: ");
+    //src.infos("me.");
 
-    log.trace("dragging..");
+    infos("dragging..");
     src.parent().remove_child(src);
     Node nv = target.add_child(src);
-    log.trace("done.");
+    infos("done.");
     parent->populate(); //update_view();
     parent->set_selection(nv);
     return true;
@@ -665,7 +680,7 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
     const NodeViewConfiguration &config) {
   this->config = config;
   // (1) Inits diverses
-  //log.trace("Creation...");
+  //infos("Creation...");
   this->nb_columns = config.nb_columns;
   this->show_children = config.show_children;
   this->mainWin = mainWin;
@@ -690,8 +705,8 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
           && !config.disable_all_children && !can_tab_display(ss))
       {
         tree_display = true;
-        model.log.trace("Tree display because of %s, min = %d, max = %d.",
-            ss.name.get_id().c_str(), ss.min, ss.max);
+        /*infos("Tree display because of %s, min = %d, max = %d.",
+            ss.name.get_id().c_str(), ss.min, ss.max);*/
       }
       if ((ss.min == 0) && (ss.max == 1))
         has_optionnals = true;
@@ -703,7 +718,7 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
   if (tree_display)
   {
     affichage = AFFICHAGE_TREE;
-    model.log.trace("Aff tree");
+    //infos("Aff tree");
   }
   else
   {
@@ -724,7 +739,7 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
     //if((schema->optionals.size() > 0) || ((schema->children.size() > 0) && show_children))
     {
       //affichage = AFFICHAGE_OPTIONS;
-      //model->trace("Aff options");
+      //model->infos("Aff options");
     }
     if (affichage == AFFICHAGE_TREE)
     {
@@ -732,13 +747,13 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
       if (schema->has_description())
       {
         affichage = AFFICHAGE_REGLIST;
-        model.log.trace("Aff reg desc list");
+        //model.infos("Aff reg desc list");
       }
       // Juste attributs, sans frame (table)
       else
       {
         affichage = AFFICHAGE_REGLIST;
-        model.log.trace("Aff reg list");
+        //model.infos("Aff reg list");
       }
     }
   }
@@ -748,15 +763,15 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
   //////////////////////////////////////////////////////////////
   if (affichage == AFFICHAGE_TREE)
   {
-    //trace("Creation: arbre...");
+    //infos("Creation: arbre...");
     pics_done.clear();
     load_pics(schema);
-    //trace("Creation: load pics ok.");
+    //infos("Creation: load pics ok.");
     rp = nullptr;
 
     if (!config.display_only_tree)
     {
-      //trace("display_only_tree = false.");
+      //infos("display_only_tree = false.");
       //hpane.add1(tree_frame);
       //hpane.add2(properties_frame);
 
@@ -772,7 +787,7 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
       hpane.set_position(300);
     }
     //else
-    //trace("display_only_tree = true.");
+    //infos("display_only_tree = true.");
     tree_view.set_headers_visible(false);
     tree_view.set_enable_tree_lines(true);
 
@@ -814,7 +829,7 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
         sigc::mem_fun(*this, &NodeView::on_selection_changed));
 
     popup_menu.accelerate(tree_view);
-    //trace("Creation: arbre ok.");
+    //infos("Creation: arbre ok.");
   }
 
   //////////////////////////////////////////////////////////////
@@ -869,7 +884,7 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
   {
     auto l = make_description_label(model.schema()->name);
     table.pack_end(*l, Gtk::PACK_SHRINK);
-    //log.trace("Ajout description node.");
+    //infos("Ajout description node.");
   }*/
 
   //////////////////////////////////////////////////////////////
@@ -880,7 +895,7 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
     if (has_optionnals)
     {
       vbox.pack_start(table, Gtk::PACK_SHRINK);
-      log.trace("Create option view...");
+      infos("Create option view...");
       option_view = new SelectionView(model);
       vbox.pack_start(*option_view, Gtk::PACK_EXPAND_WIDGET);
       
@@ -929,7 +944,7 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
 
   model.add_listener((CListener<ChangeEvent> *) this);
 
-  /*log.trace("EVIEW for %s:\nconfig = %s,\nres = %s, has optionnals = %s",
+  /*infos("EVIEW for %s:\nconfig = %s,\nres = %s, has optionnals = %s",
    model.get_identifier().c_str(),
    config.to_string().c_str(),
    aff_mode_names[affichage].c_str(),
@@ -937,36 +952,36 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
 }
 
 bool NodeView::is_valid() {
-  //log.trace("is_valid()...");
+  //infos("is_valid()...");
   for (unsigned int i = 0; i < sub_views.size(); i++) {
     if (!sub_views[i]->is_valid()) {
-      log.warning("sub_view[%d] not valid.", i);
+      avertissement("sub_view[%d] not valid.", i);
       return false;
     }
   }
   bool tvalid = table.is_valid();
   if (!tvalid) {
-    log.warning("attribute list is not valid.");
+    avertissement("attribute list is not valid.");
   }
   return tvalid;
 }
 
 NodeView::~NodeView() {
-  //log.trace("~NodeView..");
+  //infos("~NodeView..");
   model./*CProvider<ChangeEvent>::*/remove_listener(
       (CListener<ChangeEvent> *) this);
   //model./*CProvider<StructChangeEvent>::*/remove_listener((CListener<StructChangeEvent> *)this);
   for (unsigned int i = 0; i < sub_views.size(); i++)
     delete sub_views[i];
   sub_views.clear();
-  //log.trace("~NodeView done.");
+  //infos("~NodeView done.");
 }
 
 void NodeView::populate_notebook() {
   if (affichage != AFFICHAGE_OPTIONS)
     return;
 
-  //log.trace("Populate notebook...");
+  //infos("Populate notebook...");
 
   /* Remove old pages */
   int n = notebook.get_n_pages();
@@ -987,12 +1002,12 @@ void NodeView::populate_notebook() {
     //if (!(is_notebook_display(os) && model.has_child(os.name.get_id())
     //    && (!os.is_exclusive))) 
     //{
-      //log.trace("not for notebook: %s.", os.name.get_id().c_str());
-      //log.trace("OS = %s.", os.to_string().c_str());
+      //infos("not for notebook: %s.", os.name.get_id().c_str());
+      //infos("OS = %s.", os.to_string().c_str());
       //if (!is_notebook_display(os))
-      //  log.trace("!is_notebook_display");
+      //  infos("!is_notebook_display");
       //if (!model.has_child(os.name.get_id()))
-      // log.trace("no such child");
+      // infos("no such child");
     //}
 
     if (is_notebook_display(os) && model.has_child(os.name.get_id())
@@ -1004,7 +1019,7 @@ void NodeView::populate_notebook() {
 
       uint32_t n = model.get_children_count(os.name.get_id());
 
-      //log.trace("notebook of for %s: %d children.", os.name.get_id().c_str(), n);
+      //infos("notebook of for %s: %d children.", os.name.get_id().c_str(), n);
 
       for (unsigned int j = 0; j < n; j++) {
         Node child = model.get_child_at(os.name.get_id(), j);
@@ -1046,7 +1061,7 @@ void NodeView::populate_notebook() {
         } else {
           std::string filename = utils::get_img_path()
               + files::get_path_separator() + schem->icon_path;
-          //log.trace("img filename: %s.", filename.c_str());
+          //infos("img filename: %s.", filename.c_str());
           ybox->pack_start(*(new Gtk::Image(filename)));
           ybox->pack_start(*(new Gtk::Label(" " + tname)));
           notebook.append_page(*align, *ybox);
@@ -1075,7 +1090,7 @@ Gtk::Widget *NodeView::get_widget() {
   // Attributs + options a cocher + onglets
   else if (affichage == AFFICHAGE_OPTIONS)
     return &hbox;
-  log.anomaly("Type d'affichage inconnu.");
+  erreur("Type d'affichage inconnu.");
   return nullptr;
 }
 
@@ -1126,7 +1141,7 @@ void NodeView::populate(Node m, Gtk::TreeModel::Row row) {
     if (ss.is_exclusive)
       continue;
 
-    //log.trace("populate: child %s..", ss.name.get_id().c_str());
+    //infos("populate: child %s..", ss.name.get_id().c_str());
 
     unsigned int n = m.get_children_count(ss.name.get_id());
     for (unsigned int j = 0; j < n; j++) {
@@ -1137,7 +1152,7 @@ void NodeView::populate(Node m, Gtk::TreeModel::Row row) {
 
       // if schema name equals sub node schema name ?????
       if (ss.name.get_id().compare(child.schema()->name.get_id())) {
-        log.trace("apply localized.");
+        infos("apply localized.");
         s = ss.name.get_localized();
       }
 
@@ -1165,7 +1180,7 @@ void NodeView::populate(Node m, Gtk::TreeModel::Row row) {
       subrow[columns.m_col_ptr] = child;
 
       if (has_pic(schema)) {
-        //log.trace("Set pic for %s.", lst[j].get_identifier().c_str());
+        //infos("Set pic for %s.", lst[j].get_identifier().c_str());
         subrow[columns.m_col_pic] = get_pics(schema);
       }
       populate(child, subrow);
@@ -1174,7 +1189,7 @@ void NodeView::populate(Node m, Gtk::TreeModel::Row row) {
         //tree_view.expand_to_path(tree_model->get_path(subrow));
         tree_view.expand_row(tree_model->get_path(subrow), true);
       /*else
-       m.log.anomaly("NO UNFOLD.");*/
+       m.erreur("NO UNFOLD.");*/
     }
   }
 
@@ -1188,10 +1203,10 @@ void NodeView::on_event(const ChangeEvent &e)
       || (e.type == ChangeEvent::CHILD_REMOVED))
   {
     string s = e.to_string();
-    log.trace("got add/rem event: %s", s.c_str());
+    infos("got add/rem event: %s", s.c_str());
     if (e.path.length() == 2)
     {
-      log.trace("on_event(StructChangeEvent)");
+      infos("on_event(StructChangeEvent)");
       if (affichage == AFFICHAGE_TREE)
         populate();
       else if (affichage == AFFICHAGE_OPTIONS)
@@ -1206,7 +1221,7 @@ void NodeView::on_event(const StructChangeEvent &e)
 {
   /*if(*(e.get_owner()) == this->model)
    {
-   log.trace("on_event(StructChangeEvent)");
+   infos("on_event(StructChangeEvent)");
    if(affichage == AFFICHAGE_TREE)
    populate();
    else if(affichage == AFFICHAGE_OPTIONS)
@@ -1238,14 +1253,14 @@ void NodeView::on_selection_changed() {
 }
 
 void NodeView::on_down(Node child) {
-  log.trace("on_down..");
+  infos("on_down..");
   Node nv = child.parent().down(child);
   populate();
   set_selection(nv);
 }
 
 void NodeView::on_up(Node child) {
-  log.trace("on_up..");
+  infos("on_up..");
   Node nv = child.parent().up(child);
   populate();
   set_selection(nv);
@@ -1343,7 +1358,7 @@ bool NodeView::MyTreeView::on_button_press_event(GdkEventButton *event) {
 
 void NodeView::remove_element(Node elt) {
   if (elt.parent().is_nullptr())
-    log.anomaly(std::string("Node without parent: ") + elt.schema()->name.get_id());
+    erreur(std::string("Node without parent: ") + elt.schema()->name.get_id());
   else {
     Node parent = elt.parent();
     elt.parent().remove_child(elt);
@@ -1365,7 +1380,7 @@ int NodeView::set_selection(Gtk::TreeModel::Row &root, Node reg,
     std::string chpath = path + ":" + str::int2str(cnt);
 
     if (e == reg) {
-      log.trace("set_selection: found(2).");
+      infos("set_selection: found(2).");
 
       //void  expand_to_path (const TreeModel::Path& path)
       /*type_children::iterator it1 =
@@ -1388,7 +1403,7 @@ int NodeView::set_selection(Gtk::TreeModel::Row &root, Node reg,
 
 void NodeView::set_selection(Node reg) {
   uint32_t cnt = 0;
-  log.trace("set_selection(%s)...", reg.get_localized_name().c_str());
+  infos("set_selection(%s)...", reg.get_localized_name().c_str());
   typedef Gtk::TreeModel::Children type_children;
   type_children children = tree_model->children();
   for (type_children::iterator iter = children.begin(); iter != children.end();
@@ -1397,7 +1412,7 @@ void NodeView::set_selection(Node reg) {
     Gtk::TreeModel::Row row = *iter;
     Node e = row[columns.m_col_ptr];
     if (e == reg) {
-      log.trace("set_selection: found(1).");
+      infos("set_selection: found(1).");
       //tree_view.expand_all();
       tree_view.expand_to_path(Gtk::TreeModel::Path(path));
       tree_view.get_selection()->select(row);
@@ -1423,7 +1438,7 @@ void NodeView::add_element(std::pair<Node, SubSchema *> p) {
     std::string sname = "";
     if (sc->has_attribute("name")) {
       std::string phrase = langue.get_item("Please enter ");
-      if (langue.current_language.compare("fr") == 0)
+      if(Localized::current_language == Localized::LANG_FR)
         phrase += std::string("le nom du ") + nname + " :";
       else
         phrase += nname + " name:";
@@ -1433,7 +1448,7 @@ void NodeView::add_element(std::pair<Node, SubSchema *> p) {
       sname = res;
     }
 
-    //log.trace("add_child of type %s..", p.second->name.get_id().c_str());
+    //infos("add_child of type %s..", p.second->name.get_id().c_str());
     nv = Node::create_ram_node(sc);
     if (nv.has_attribute("name"))
       nv.set_attribute("name", sname);
@@ -1449,7 +1464,7 @@ void NodeView::add_element(std::pair<Node, SubSchema *> p) {
       set_selection(nv);
     }
   }
-  //log.trace("Now m =\n%s", m.to_xml().c_str());
+  //infos("Now m =\n%s", m.to_xml().c_str());
 }
 
 NodeView::MyTreeView::MyTreeView(NodeView *parent) :
@@ -1475,7 +1490,7 @@ void NodeView::setup_row_view(Node ptr) {
 
   if (!config.display_only_tree) {
     if (rp != nullptr) {
-      //log.trace("Removing prop. contents...");
+      //infos("Removing prop. contents...");
       properties_frame.remove();
       delete rp;
       rp = nullptr;
@@ -1509,7 +1524,7 @@ Glib::RefPtr<Gdk::Pixbuf> NodeView::get_pics(NodeSchema *&schema)
 {
   for (unsigned int i = 0; i < pics.size(); i++) {
     if (pics[i].second == schema) {
-      //log.trace("Returning pic.");
+      //infos("Returning pic.");
       return pics[i].first;
     }
   }
@@ -1536,7 +1551,7 @@ bool AttributeListView::is_valid() {
     if (!(attributes_view[i].av->is_valid()))
       {
         string s = attributes_view[i].av->model->get_string();
-      log.warning("Attribute view[%d] (%s = %s) not valid.", i,
+      avertissement("Attribute view[%d] (%s = %s) not valid.", i,
           attributes_view[i].av->model->schema->name.get_id().c_str(),
               s.c_str());
       return false;
@@ -1555,7 +1570,7 @@ AttributeListView::~AttributeListView() {
 }
 
 void AttributeListView::on_the_realisation() {
-  /*log.trace("realized.");
+  /*infos("realized.");
    Glib::RefPtr<Gdk::Window> wnd;
    wnd = get_window();
 
@@ -1563,7 +1578,7 @@ void AttributeListView::on_the_realisation() {
    Gtk::Requisition requi = the_vbox.size_request();
    w = requi.width;
    h = requi.height;
-   log.trace("REQUI w = %d, h = %d.", w, h);
+   infos("REQUI w = %d, h = %d.", w, h);
 
    scroll.set_shadow_type(Gtk::SHADOW_NONE);
 
@@ -1593,7 +1608,7 @@ AttributeListView::AttributeListView(Node model,
   {
     auto l = make_description_label(model.schema()->name);
     pack_start(*l, Gtk::PACK_SHRINK);
-    //log.trace("Ajout description node.");
+    //infos("Ajout description node.");
   }*/
 
 
@@ -1621,6 +1636,8 @@ AttributeListView::AttributeListView(Node model,
     }
   }
 
+  if(nrows == 0)
+    nrows = 1;
   table1.resize(nrows, 3);
 
   nb_columns = config.nb_columns;
@@ -1663,7 +1680,7 @@ AttributeListView::AttributeListView(Node model,
     table2.resize(natt2, 3);
     hbox.pack_start(separator, Gtk::PACK_SHRINK);
     hbox.pack_start(table2, Gtk::PACK_SHRINK);
-    log.trace("n col = 2. n1 = %d, n2 = %d. f = %d.", natt1, natt2, first_att);
+    infos("n col = 2. n1 = %d, n2 = %d. f = %d.", natt1, natt2, first_att);
   }
 
   Gtk::Table *ctable = &table1;
@@ -1690,24 +1707,28 @@ AttributeListView::AttributeListView(Node model,
 
     av->CProvider < KeyPosChangeEvent > ::add_listener(this);
 
-    if (att->schema->is_read_only) {
-      //log.trace("****** %s IS READ ONLY.", att->name.c_str());
+    if (att->schema->is_read_only)
+    {
+      //infos("****** %s IS READ ONLY.", att->name.c_str());
       av->set_sensitive(false);
     }
 
-    if (!indicators_detected && att->schema->is_instrument) {
+    if (!indicators_detected && att->schema->is_instrument)
+    {
       indicators_detected = true;
       //pack_start(frame_indicators, Gtk::PACK_SHRINK);
-      frame_indicators.set_label(langue.get_item("indicators"));
-      frame_indicators.add(table_indicators);
+      //frame_indicators.set_label(langue.get_item("indicators"));
+      //frame_indicators.add(table_indicators);
     }
 
-    if (att->schema->is_instrument) {
+    if (att->schema->is_instrument)
+    {
       if (ctable != &table_indicators)
         otable = ctable;
       ctable = &table_indicators;
       crow = &row_indicators;
-    } else
+    }
+    else
       has_no_attributes = false;
 
     ViewElem ve;
@@ -1729,7 +1750,7 @@ AttributeListView::AttributeListView(Node model,
         } else if (next_col == 1)
           next_col = 3;*/
       }
-      //log.trace("x=[%d,%d], y=[%d,%d]", j, next_col, row, row+1);
+      //infos("x=[%d,%d], y=[%d,%d]", j, next_col, row, row+1);
 
       float xscale;
       if (j >= 1)
@@ -1741,7 +1762,7 @@ AttributeListView::AttributeListView(Node model,
           Gtk::ALIGN_CENTER, xscale, 0);
       align->add(*(av->get_widget(j)));
 
-      //log.trace("Attach(%d,%d).", j, next_col);
+      //infos("Attach(%d,%d).", j, next_col);
       ctable->attach(*align, j, next_col, *crow, (*crow) + 1,
           Gtk::FILL/* | Gtk::EXPAND*/, Gtk::FILL/* | Gtk::EXPAND*/, 5, 5);
 
@@ -1778,8 +1799,8 @@ AttributeListView::AttributeListView(Node model,
       }
       /*else
        {
-       log.anomaly("not show tooltip: %s.", att->schema.name.get_id().c_str());
-       log.anomaly("desc = <%s>.", att->schema.name.get_description().c_str());
+       erreur("not show tooltip: %s.", att->schema.name.get_id().c_str());
+       erreur("desc = <%s>.", att->schema.name.get_description().c_str());
        }*/
     }
     (*crow)++;
@@ -1822,7 +1843,7 @@ AttributeListView::AttributeListView(Node model,
 
   /** Add string lists */
 
-  /*log.trace("%s has %d children.",
+  /*infos("%s has %d children.",
    model.schema()->name.get_id().c_str(),
    model.schema()->children.size());*/
 
@@ -1832,7 +1853,7 @@ AttributeListView::AttributeListView(Node model,
     {
       SubSchema ss = model.schema()->children[i];
 
-      /*log.trace("Examining potential tabular %s.",
+      /*infos("Examining potential tabular %s.",
        ss.to_string().c_str());*/
 
       if (ss.is_hidden) {
@@ -1867,7 +1888,7 @@ AttributeListView::AttributeListView(Node model,
       NodeSchema *&es = ss.ptr;
       if (es == nullptr)
       {
-        log.anomaly("ES is nullptr, for %s (child of %s) !", ss.child_str.c_str(),
+        erreur("ES is nullptr, for %s (child of %s) !", ss.child_str.c_str(),
             model.schema()->name.get_id().c_str());
         continue;
       }
@@ -1881,8 +1902,8 @@ AttributeListView::AttributeListView(Node model,
                && (!ss.is_exclusive)))) */
           {
 
-          //log.trace("Adding tabular for %s...", es->name.get_id().c_str());
-          //log.trace("Root schema is:\n%s\n", model.schema()->to_string().c_str());
+          //infos("Adding tabular for %s...", es->name.get_id().c_str());
+          //infos("Root schema is:\n%s\n", model.schema()->to_string().c_str());
           StringListView *slv = new StringListView(model, es, config);
           //table1.attach(*slv, 0, 3, row, row+1, Gtk::FILL, Gtk::FILL, 5, 5);//Gtk::FILL, Gtk::FILL, 5, 5);
           the_vbox.pack_start(*slv, Gtk::PACK_EXPAND_WIDGET);
@@ -1896,14 +1917,14 @@ AttributeListView::AttributeListView(Node model,
     }
   }
 
-  /*log.trace("%s: resize main(%d), indic(%d)",
+  /*infos("%s: resize main(%d), indic(%d)",
    model.schema()->name.get_id().c_str(),
    row,
    row_indicators);*/
   if (row > 0)
   {
     table1.resize(row, 3);
-    //log.verbose("Dim table1: %d * %d.", row, 3);
+    //trace_verbeuse("Dim table1: %d * %d.", row, 3);
   }
   if (row_indicators > 0)
     table_indicators.resize(row_indicators, 3);
@@ -1924,7 +1945,7 @@ AttributeListView::AttributeListView(Node model,
       if (has_no_command) {
         has_no_command = false;
 
-        //log.trace_major("One action detected.");
+        //trace_major("One action detected.");
 
         box_actions.set_border_width(5);
         box_actions.set_spacing(5);
@@ -1934,7 +1955,7 @@ AttributeListView::AttributeListView(Node model,
 
       /*if(model.get_children_count(ss.name) == 0)
        {
-       log.anomaly("No command child.");
+       erreur("No command child.");
        continue;
        }*/
 
@@ -1971,18 +1992,25 @@ AttributeListView::AttributeListView(Node model,
   }
 # endif
 
-  if (!indicators_detected && has_no_command) {
+  if (!indicators_detected && has_no_command)
+  {
     the_vbox.pack_start(hbox, Gtk::PACK_SHRINK);
-  } else {
+  }
+  else
+  {
     frame_att.add(hbox);
-    if (!has_no_attributes) {
+    if (!has_no_attributes)
+    {
       the_vbox.pack_start(frame_att, Gtk::PACK_SHRINK);
       frame_att.set_label(langue.get_item("attributes"));
     }
-    if (indicators_detected) {
-      the_vbox.pack_start(frame_indicators, Gtk::PACK_SHRINK);
+    if (indicators_detected)
+    {
+      //the_vbox.pack_start(frame_indicators, Gtk::PACK_SHRINK);
+      the_vbox.pack_start(table_indicators, Gtk::PACK_SHRINK);
     }
-    if (!has_no_command) {
+    if (!has_no_command)
+    {
       the_vbox.pack_start(/*frame*/box_actions, Gtk::PACK_SHRINK);
     }
   }
@@ -1999,7 +2027,7 @@ AttributeListView::AttributeListView(Node model,
    Gtk::Requisition requi = the_vbox.size_request();
    w = requi.width;
    h = requi.height;
-   log.trace("REQUI w = %d, h = %d.", w, h);
+   infos("REQUI w = %d, h = %d.", w, h);
    scroll.set_size_request(w + 30, h + 30);*/
 
   model.add_listener(this);
@@ -2021,13 +2049,13 @@ static void exec_cmde(Node &model, std::string cmde_name)
 #   if 0
     /* has parameters ? */
     if (!cs->input.is_nullptr()) {
-      //log.trace("Asking for command parameters..");
+      //infos("Asking for command parameters..");
       Node prm = Node::create_ram_node(cs->input.get_reference());
       if (NodeDialog::display_modal(prm) == 0) 
       {
         ChangeEvent ce = ChangeEvent::create_command_exec(&model,
             cs->name.get_id(), &prm);
-        //log.trace("Dispatching command + parameters..");
+        //infos("Dispatching command + parameters..");
         model.dispatch_event(ce);
         }
       /*ChangeEvent ce = ChangeEvent::create_command_exec(&model,
@@ -2047,7 +2075,7 @@ static void exec_cmde(Node &model, std::string cmde_name)
 
 void AttributeListView::on_b_command(std::string name) 
 {
-  log.trace("B command detected: %s.", name.c_str());
+  infos("B command detected: %s.", name.c_str());
   CommandSchema *cs = model.schema()->get_command(name);
   if (cs != nullptr) 
   {
@@ -2058,13 +2086,13 @@ void AttributeListView::on_b_command(std::string name)
     /* has parameters ? */
     if (!cs->input.is_nullptr()) 
     {
-      log.trace("Asking for command parameters..");
+      infos("Asking for command parameters..");
       Node prm = Node::create_ram_node(cs->input.get_reference());
       if (NodeDialog::display_modal(prm) == 0)
       {
         ChangeEvent ce = ChangeEvent::create_command_exec(&model,
             cs->name.get_id(), &prm);
-        log.trace("Dispatching command + parameters..");
+        infos("Dispatching command + parameters..");
         model.dispatch_event(ce);
       }
     }
@@ -2097,7 +2125,7 @@ void AttributeListView::set_sensitive(bool sensitive)
 
 void AttributeListView::on_event(const ChangeEvent &ce) 
 {
-  log.trace(ce.to_string());
+  //infos(ce.to_string());
   for (unsigned int i = 0; i < attributes_view.size(); i++) {
     AttributeView *av = attributes_view[i].av;
     bool valid = model.is_attribute_valid(av->model->schema->name.get_id());
@@ -2151,7 +2179,7 @@ void SelectionView::init()
     Gtk::TreeView::Column *viewcol = Gtk::manage(
         new Gtk::TreeView::Column("Description", *render));
     viewcol->add_attribute(render->property_markup(), columns.m_col_desc);
-    tree_view.append_column(*viewcol);
+    //tree_view.append_column(*viewcol);
   }
 
   Glib::RefPtr < Gtk::TreeSelection > refTreeSelection =
@@ -2160,7 +2188,7 @@ void SelectionView::init()
       sigc::mem_fun(*this, &SelectionView::on_selection_changed));
 
   add(scroll);
-  scroll.set_size_request(160, 200);  
+  scroll.set_size_request(260, 200);
 }
 
 void SelectionView::setup(Node model)
@@ -2224,7 +2252,8 @@ void SelectionView::update_view()
     if(dy > 350)
       dy = 350;
 
-    scroll.set_size_request(-1, dy);
+    //scroll.set_size_request(-1, dy);
+    scroll.set_size_request(250, dy);
 
     tree_view.expand_all();
 
@@ -2315,7 +2344,7 @@ void SelectionView::on_cell_toggled(const Glib::ustring& path)
 {
   Gtk::TreeModel::iterator iter = tree_model->get_iter(path);
 
-  log.trace("cell toggled: %s", path.c_str());
+  infos("cell toggled: %s", path.c_str());
 
   if(iter && !lock) 
   {
@@ -2327,15 +2356,15 @@ void SelectionView::on_cell_toggled(const Glib::ustring& path)
     bool in_use = (*iter)[columns.m_col_use];
     if(in_use) 
     {
-      log.trace("Ajout option %s", name.c_str());
+      infos("Ajout option %s", name.c_str());
       if(!model.has_child(name))
         model.add_child(name);
       else
-        log.trace("Mais déjà présente!");
+        infos("Mais déjà présente!");
     } 
     else 
     {
-      log.trace("Retrait option %s", name.c_str());
+      infos("Retrait option %s", name.c_str());
       if(model.has_child(name))
         model.remove_child(model.get_child(name));
     }
@@ -2357,7 +2386,7 @@ StringListView::MyTreeView::MyTreeView(StringListView *parent) :
 
 bool StringListView::MyTreeView::on_button_press_event(GdkEventButton *event) 
 {
-  parent->log.trace("b press event");
+  infos("b press event");
   
   if ((event->type == GDK_2BUTTON_PRESS) && (event->button == 1)) {
     Node m = parent->get_selected();
@@ -2580,14 +2609,14 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
   //Gtk::Requisition minimum, natural;
   int dx, dy;
   /*tree_view.get_preferred_size(minimum, natural);
-   log.trace("req min = %d,%d, natural = %d,%d.",
+   infos("req min = %d,%d, natural = %d,%d.",
    minimum.width, minimum.height,
    natural.width, natural.height);
 
    int dx = minimum.width, dy = minimum.height;*/
   tree_view.get_size_request(dx, dy);
 
-  //log.trace("tree view size request = %d,%d.", dx, dy);
+  //infos("tree view size request = %d,%d.", dx, dy);
 
   dy = 200;
 
@@ -2633,7 +2662,7 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
 }
 
 void StringListView::on_b_command(std::string command) {
-  log.trace("command detected: %s.", command.c_str());
+  infos("command detected: %s.", command.c_str());
 
   Node selection = get_selected();
   exec_cmde(selection, command);
@@ -2648,9 +2677,9 @@ void StringListView::on_event(const ChangeEvent &ce)
 {
   if (!lock) 
   {
-    log.trace(ce.to_string());
+    infos(ce.to_string());
     //lock = true;
-    //log.trace("event -> update_view..");
+    //infos("event -> update_view..");
     update_view();
     //lock = false;
   }
@@ -2680,7 +2709,7 @@ void StringListView::update_view() {
 
       for (j = 0; j < schema->references.size(); j++) {
         Node ref = sub.get_reference(schema->references[j].name.get_id());
-        ref.log.trace("one ref.");
+        //ref.infos("one ref.");
         std::string name = ref.get_localized().get_localized();
         row[columns.m_cols[schema->attributes.size() + j]] = name;
       }
@@ -2744,7 +2773,7 @@ void StringListView::clear_table() {
 }
 
 void StringListView::on_selection_changed() {
-  //log.trace("selection changed.");
+  //infos("selection changed.");
   if (!lock) {
     lock = true;
 
@@ -2796,7 +2825,7 @@ void StringListView::set_selection(Node sub) {
 void StringListView::on_editing_done(Glib::ustring path, Glib::ustring text,
     std::string col) {
 
-  log.trace("edit done.");
+  infos("edit done.");
 
   bool display_editing_dialog = false;
 
@@ -2826,12 +2855,12 @@ void StringListView::on_editing_done(Glib::ustring path, Glib::ustring text,
 
     int row = atoi(p.c_str());
 
-    log.trace("Editing done: col=%s, row=%d, path=%s, val=%s.", col.c_str(), row,
+    infos("Editing done: col=%s, row=%d, path=%s, val=%s.", col.c_str(), row,
         p.c_str(), s.c_str());
 
     if ((row < 0)
         || (row >= (int) model.get_children_count(schema->name.get_id()))) {
-      log.anomaly("invalid row.");
+      erreur("invalid row.");
       return;
     }
     Node sub = model.get_child_at(schema->name.get_id(), row);
@@ -2845,10 +2874,10 @@ void StringListView::on_editing_done(Glib::ustring path, Glib::ustring text,
 
 void StringListView::on_editing_start(Gtk::CellEditable *ed, Glib::ustring path,
     std::string col) {
-  log.trace("editing start: col = %s", col.c_str());
+  infos("editing start: col = %s", col.c_str());
   for (unsigned int i = 0; i < schema->references.size(); i++) {
     if (schema->references[i].name.get_id().compare(col) == 0) {
-      log.trace("It is a reference column.");
+      infos("It is a reference column.");
       RefCellEditable *rce = (RefCellEditable *) ed;
 
       std::string p = path;
@@ -2856,11 +2885,11 @@ void StringListView::on_editing_start(Gtk::CellEditable *ed, Glib::ustring path,
 
       if ((row < 0)
           || (row >= (int) model.get_children_count(schema->name.get_id()))) {
-        log.anomaly("invalid row.");
+        erreur("invalid row.");
         return;
       }
       Node sub = model.get_child_at(schema->name.get_id(), row);
-      sub.log.trace("setup model..");
+      //sub.infos("setup model..");
       rce->setup_model(sub, col);
       return;
     }
@@ -2889,12 +2918,12 @@ void StringListView::on_editing_start(Gtk::CellEditable *ed, Glib::ustring path,
 
     int row = atoi(p.c_str());
 
-    log.trace("Editing start: col=%s, row=%d, path=%s.", col.c_str(), row,
+    infos("Editing start: col=%s, row=%d, path=%s.", col.c_str(), row,
         p.c_str());
 
     if ((row < 0)
         || (row >= (int) model.get_children_count(schema->name.get_id()))) {
-      log.anomaly("invalid row.");
+      erreur("invalid row.");
       return;
     }
     Node sub = model.get_child_at(schema->name.get_id(), row);
@@ -2949,6 +2978,21 @@ NodeDialog::~NodeDialog() {
   delete ev;
 }
 
+void NodeDialog::maj_langue()
+{
+  if(ev != nullptr)
+    ev->maj_langue();
+  tool_valid.set_label(langue.get_item("b-valid"));
+  tool_cancel.set_label(langue.get_item("b-cancel"));
+  auto titre = model.schema()->name.get_localized();
+  wnd.set_title(titre);
+  dlg.set_title(titre);
+  label_title.set_markup(titre);
+  b_apply.set_label(langue.get_item("b-apply"));
+  b_valid.set_label(langue.get_item("b-valid"));
+  b_close.set_label(langue.get_item("b-cancel"));
+}
+
 NodeDialog::NodeDialog(Node model, bool modal, Gtk::Window *parent_window) :
     dlg("", modal), keyboard(&dlg), kb_align(Gtk::ALIGN_CENTER,
         Gtk::ALIGN_CENTER, 0, 0) {
@@ -2959,7 +3003,7 @@ NodeDialog::NodeDialog(Node model, bool modal, Gtk::Window *parent_window) :
   exposed = false;
 
 
-  log.trace("CONS: modal = %s.", modal ? "true" : "false");
+  //infos("CONS: modal = %s.", modal ? "true" : "false");
 
   lock = false;
   u2date = true;
@@ -2972,29 +3016,28 @@ NodeDialog::NodeDialog(Node model, bool modal, Gtk::Window *parent_window) :
   config.show_children = false;
   ev = new NodeView(mainWindow, backup, config);
 
-  ev->CProvider < KeyPosChangeEvent > ::add_listener(this);
+  ev->CProvider<KeyPosChangeEvent>::add_listener(this);
 
-  //log.trace_major("EV IS READY.");
-  std::string title;
-  title = model.schema()->name.get_localized();
+  //trace_major("EV IS READY.");
 
-  if (!modal) {
+
+  if(!modal)
+  {
     window = &wnd;
     wnd.set_position(Gtk::WIN_POS_CENTER);
-    wnd.set_title(title);
     wnd.add(vbox);
     vb = &vbox;
-  } else {
+  }
+  else
+  {
     window = &dlg;
     dlg.set_position(Gtk::WIN_POS_CENTER);
-    dlg.set_title(title);
     vb = dlg.get_vbox();
   }
 
   if (!appli_view_prm.use_decorations) 
   {
     window->set_decorated(false);
-    label_title.set_markup(title);
     vb->pack_start(label_title, Gtk::PACK_SHRINK);
   }
 
@@ -3004,7 +3047,7 @@ NodeDialog::NodeDialog(Node model, bool modal, Gtk::Window *parent_window) :
 
   vb->pack_start(*(ev->get_widget()), Gtk::PACK_SHRINK);
 
-  Gtk::Image *img_valid, *img_cancel;
+  Gtk::Image *img_valid, *img_cancel, *img_apply;
   if (appli_view_prm.img_validate.size() > 0)
     img_valid = new Gtk::Image(appli_view_prm.img_validate);
   else
@@ -3017,7 +3060,11 @@ NodeDialog::NodeDialog(Node model, bool modal, Gtk::Window *parent_window) :
     img_cancel = new Gtk::Image(Gtk::StockID(Gtk::Stock::CANCEL),
         Gtk::IconSize(Gtk::ICON_SIZE_BUTTON));
 
-  if (appli_view_prm.use_button_toolbar) {
+  img_apply = new Gtk::Image(Gtk::StockID(Gtk::Stock::APPLY),
+      Gtk::IconSize(Gtk::ICON_SIZE_BUTTON));
+
+  if (appli_view_prm.use_button_toolbar)
+  {
     tool_valid.set_icon_widget(*img_valid);
     tool_cancel.set_icon_widget(*img_cancel);
     toolbar.insert(tool_cancel, -1,
@@ -3028,22 +3075,21 @@ NodeDialog::NodeDialog(Node model, bool modal, Gtk::Window *parent_window) :
     toolbar.insert(tool_valid, -1,
         sigc::mem_fun(*this, &NodeDialog::on_b_apply));
 
-    tool_valid.set_label(langue.get_item("b-valid"));
-    tool_cancel.set_label(langue.get_item("b-cancel"));
-  } else {
+
+  }
+  else
+  {
     hbox.pack_end(b_close, Gtk::PACK_SHRINK);
     hbox.pack_end(b_apply, Gtk::PACK_SHRINK);
+    hbox.pack_end(b_valid, Gtk::PACK_SHRINK);
     hbox.set_layout(Gtk::BUTTONBOX_END);
 
     b_close.set_border_width(4);
     b_apply.set_border_width(4);
+    b_valid.set_border_width(4);
 
-    b_close.set_label(langue.get_item("b-close"));
-    b_apply.set_label(langue.get_item("b-valid"));
-    b_apply.set_label(langue.get_item("b-valid"));
-    b_close.set_label(langue.get_item("b-cancel"));
-
-    b_apply.set_image(*img_valid);
+    b_valid.set_image(*img_valid);
+    b_apply.set_image(*img_apply);
     b_close.set_image(*img_cancel);
   }
 
@@ -3051,6 +3097,8 @@ NodeDialog::NodeDialog(Node model, bool modal, Gtk::Window *parent_window) :
     keyboard.target_window = window;
     kb_align.add(keyboard);
   }
+
+  maj_langue();
 
   add_widgets();
   /*
@@ -3095,6 +3143,8 @@ NodeDialog::NodeDialog(Node model, bool modal, Gtk::Window *parent_window) :
     wnd.show();
   }
 
+  b_valid.signal_clicked().connect(
+      sigc::mem_fun(*this, &NodeDialog::on_b_valid));
   b_apply.signal_clicked().connect(
       sigc::mem_fun(*this, &NodeDialog::on_b_apply));
   b_close.signal_clicked().connect(
@@ -3106,7 +3156,7 @@ NodeDialog::NodeDialog(Node model, bool modal, Gtk::Window *parent_window) :
   window->signal_draw().connect(
       sigc::mem_fun(*this, &NodeDialog::on_expose_event2));
 
-  log.trace("done cons.");
+  //infos("done cons.");
 }
 
 void NodeDialog::on_b_close() {
@@ -3141,16 +3191,27 @@ void NodeDialog::on_b_valid()
 }
 #endif
 
-void NodeDialog::on_b_apply() {
+void NodeDialog::on_b_apply()
+{
+  model.copy_from(backup);
+  u2date = true;
+  update_view();
+  NodeChangeEvent ce;
+  ce.source = model;
+  dispatch(ce);
+}
+
+void NodeDialog::on_b_valid()
+{
   model.copy_from(backup);
   u2date = true;
   update_view();
 
-  log.trace("On b apply.");
+  infos("On b apply.");
 
   /*if(pseudo_dialog)
    {
-   log.trace("& pseudo dialog.");
+   infos("& pseudo dialog.");
    if(vkb_displayed)
    GtkKeyboard::get_instance()->close();
    result_ok = true;
@@ -3186,7 +3247,7 @@ bool NodeDialog::on_expose_event2(const Cairo::RefPtr<Cairo::Context> &cr)
     int y = window->get_allocation().get_height();
 
     if (/*exposed &&*/((x != (int) lastx) || (y != (int) lasty))) {
-      log.verbose("Size of node-dialog changed: %d,%d -> %d,%d.", lastx, lasty, x,
+      trace_verbeuse("Size of node-dialog changed: %d,%d -> %d,%d.", lastx, lasty, x,
           y);
       DialogManager::setup_window(this, fullscreen);
     }
@@ -3202,9 +3263,9 @@ bool NodeDialog::on_expose_event2(const Cairo::RefPtr<Cairo::Context> &cr)
 void NodeDialog::update_view() {
   bool val = ev->is_valid();
 
-  log.trace("update view..");
+  infos("update view..");
 
-  //log.trace("update view: u2date = %s, pseudo = %s, is_valid = %s.", u2date ? "true" : "false", pseudo_dialog ? "true" : "false", val ? "true" : "false");
+  //infos("update view: u2date = %s, pseudo = %s, is_valid = %s.", u2date ? "true" : "false", pseudo_dialog ? "true" : "false", val ? "true" : "false");
 # if 0
   if(u2date)
   {
@@ -3214,18 +3275,18 @@ void NodeDialog::update_view() {
   else
 # endif
   {
-    //log.trace("Is valid = %s.", val ? "true" : "false");
+    //infos("Is valid = %s.", val ? "true" : "false");
     b_apply_ptr->set_sensitive(val);
 
     tool_valid.set_sensitive(val);
   }
-  //log.trace("update view done.");
+  //infos("update view done.");
 }
 
 static std::vector<NodeDialog *> dial_instances;
 
 void NodeDialog::on_event(const ChangeEvent &ce) {
-  log.trace("change event...");
+  infos("change event...");
   if (!lock) {
     lock = true;
     u2date = false;
@@ -3243,7 +3304,7 @@ void NodeDialog::on_event(const ChangeEvent &ce) {
                                                        ce.cmd_params);
                                                        this->model.dispatch_event(ce2);*/
   }
-  log.trace("done.");
+  infos("done.");
 }
 
 Gtk::Window *NodeDialog::get_window() {
@@ -3251,7 +3312,7 @@ Gtk::Window *NodeDialog::get_window() {
 }
 
 void NodeDialog::unforce_scroll() {
-  log.trace("Unforce scroll..");
+  infos("Unforce scroll..");
   scroll.remove();
   vb->remove(scroll);
   remove_widgets();
@@ -3274,16 +3335,21 @@ void NodeDialog::remove_widgets() {
     vb->remove(hbox);
 }
 
-void NodeDialog::add_widgets() {
-  if (appli_view_prm.use_touchscreen) {
-    if (appli_view_prm.vkeyboard_below) {
+void NodeDialog::add_widgets()
+{
+  if (appli_view_prm.use_touchscreen)
+  {
+    if (appli_view_prm.vkeyboard_below)
+    {
       if (appli_view_prm.use_button_toolbar)
         vb->pack_start(kb_align, Gtk::PACK_SHRINK);
       else
         vb->pack_start(hbox, Gtk::PACK_SHRINK);
       vb->pack_start(keyboard_separator, Gtk::PACK_SHRINK);
       vb->pack_start(keyboard, Gtk::PACK_SHRINK);
-    } else {
+    }
+    else
+    {
       vb->pack_start(keyboard_separator, Gtk::PACK_SHRINK);
       vb->pack_start(kb_align, Gtk::PACK_SHRINK);
       if (appli_view_prm.use_button_toolbar)
@@ -3299,8 +3365,10 @@ void NodeDialog::add_widgets() {
   }
 }
 
+
+
 void NodeDialog::force_scroll(int dx, int dy) {
-  log.trace("Force scroll(%d,%d)..", dx, dy);
+  infos("Force scroll(%d,%d)..", dx, dy);
   vb->remove(*(ev->get_widget()));
   remove_widgets();
 
@@ -3315,7 +3383,7 @@ void NodeDialog::force_scroll(int dx, int dy) {
 
 void NodeDialog::on_event(const KeyPosChangeEvent &kpce) {
   if (appli_view_prm.use_touchscreen) {
-    log.trace("update kb valid chars...");
+    infos("update kb valid chars...");
     keyboard.set_valid_chars(kpce.vchars);
   }
 }
@@ -3325,7 +3393,8 @@ NodeDialog *NodeDialog::display(Node model) {
   {
     if (dial_instances[i]->model == model)
     {
-      model.log.trace("show old window.");
+      //model.infos("show old window.");
+      dial_instances[i]->backup.copy_from(model);
       dial_instances[i]->wnd.show();
       return dial_instances[i];
     }
@@ -3351,23 +3420,22 @@ int NodeDialog::display_modal(Node model, bool fullscreen,
   nv->fullscreen = fullscreen;
   DialogManager::setup_window(nv, fullscreen);
   nv->result_ok = false;
-  nv->log.trace("run..");
+  infos("run..");
   int res = nv->dlg.run();
 
   //int res = 0;
   //Gtk::Main::run(nv->dlg);
-  nv->log.trace("run done.");
-  nv->log.trace("hide...");
+  infos("run done.");
+  infos("hide...");
   nv->dlg.hide();
 
   if ((res == Gtk::RESPONSE_ACCEPT) || (nv->result_ok)) {
-    nv->log.trace("copy model..");
+    infos("copy model..");
     model.copy_from(nv->backup);
-    nv->log.trace("delete dialog..");
+    infos("delete dialog..");
     nv->lock = true;
     delete nv;
-    TraceManager::trace(AL_NORMAL, "node-dialog",
-        "done.");
+    infos("done.");
     return 0;
   }
   delete nv;
@@ -3385,11 +3453,11 @@ int NodeDialog::display_modal(Node model, bool fullscreen,
     nv->wnd.signal_focus_in_event().connect(sigc::mem_fun(*nv, &NodeDialog::on_focus_in));
     nv->wnd.signal_focus_out_event().connect(sigc::mem_fun(*nv, &NodeDialog::on_focus_out));
 
-    nv->trace("running wnd..");
+    nv->infos("running wnd..");
     nv->result_ok = false;
 
     Gtk::Main::run(nv->wnd);
-    nv->trace("gtk return.");
+    nv->infos("gtk return.");
     //int res = 0;
     DialogManager::get_instance()->dispose();
     //GtkKeyboard::get_instance()->close();
@@ -3428,7 +3496,7 @@ int NodeDialog::display_modal(Node model, bool fullscreen,
 /*******************************************************************
  *               CHOICE VIEW IMPLEMENTATION                        *
  *******************************************************************/
-ChoiceView::ChoiceView(Attribute *model, Node parent,
+VueChoix::VueChoix(Attribute *model, Node parent,
     NodeViewConfiguration config) {
   tp = "choice";
   lock = false;
@@ -3437,11 +3505,11 @@ ChoiceView::ChoiceView(Attribute *model, Node parent,
   model_parent = parent;
   current_view = nullptr;
 
-  //parent.log.trace("parent.");
+  //parent.infos("parent.");
   if (model->schema->enumerations.size() == 0) {
-    log.warning("no enumerations ?");
+    avertissement("no enumerations ?");
   }
-  //log.trace("Schema = '%s'.", model->schema.enumerations[0].schema->name.get_id().c_str());
+  //infos("Schema = '%s'.", model->schema.enumerations[0].schema->name.get_id().c_str());
 
   nb_choices = model->schema->enumerations.size();
   radios = (Gtk::RadioButton **) malloc(
@@ -3458,8 +3526,8 @@ ChoiceView::ChoiceView(Attribute *model, Node parent,
       radios[j] = new Gtk::RadioButton(group);
 
     //NodeSchema *sub_schema = model->schema.enumerations[j].schema;
-    log.trace(model->schema->name.get_id());
-    //log.trace("j = %d.", j);
+    infos(model->schema->name.get_id());
+    //infos("j = %d.", j);
 
     radios[j]->set_label(model->schema->enumerations[j].name.get_localized());
 
@@ -3467,8 +3535,12 @@ ChoiceView::ChoiceView(Attribute *model, Node parent,
     {
       //radios[j]->set_label(sub_schema->get_localized());
       vbox.pack_start(*radios[j], Gtk::PACK_SHRINK);
+
       radios[j]->signal_toggled().connect(
-          sigc::mem_fun(*this, &ChoiceView::on_radio_activate));
+            sigc::bind(sigc::mem_fun(*this, &VueChoix::on_radio_activate), j));
+
+      //radios[j]->signal_toggled().connect(
+      //    sigc::mem_fun(*this, &ChoiceView::on_radio_activate));
     }
 
     radios[j]->signal_focus_in_event().connect(
@@ -3483,8 +3555,8 @@ ChoiceView::ChoiceView(Attribute *model, Node parent,
   on_event(ce);
 }
 
-ChoiceView::~ChoiceView() {
-  //log.trace("~ChoiceView(), model = %x...", (uint32_t) model);
+VueChoix::~VueChoix() {
+  //infos("~ChoiceView(), model = %x...", (uint32_t) model);
   lock = true;
   if (this->current_view != nullptr) {
     vbox.remove(*(current_view->get_widget()));
@@ -3496,34 +3568,42 @@ ChoiceView::~ChoiceView() {
     delete radios[j];
   }
   free(radios);
-  //log.trace("~ChoiceView() done.");
+  //infos("~ChoiceView() done.");
 }
 
-void ChoiceView::on_radio_activate() {
-  uint32_t j;
+void VueChoix::on_radio_activate(unsigned int num)
+{
+  //uint32_t j;
 
-  //log.trace("on radio activate.");
+  //infos("on radio activate.");
 
   if (!lock) {
-    lock = true;
+    //lock = true;
+
+    if(radios[num]->get_active())
+    {
+      model->set_value(model->schema->enumerations[num].value);
+    }
 
     /* get active radio */
-    for (j = 0; j < nb_choices; j++) {
+    /*for (j = 0; j < nb_choices; j++)
+    {
       //NodeSchema *sub_schema = model->schema.enumerations[j].schema;
-      if (radios[j]->get_active()) {
+      if (radios[j]->get_active())
+      {
         model->set_value(model->schema->enumerations[j].value);
         break;
       }
     }
     if (j == nb_choices)
-      log.anomaly("choice view: none selected.");
+      erreur("choice view: none selected.");*/
 
     update_sub_view();
-    lock = false;
+    //lock = false;
   }
 }
 
-void ChoiceView::update_langue() {
+void VueChoix::update_langue() {
   bool old_lock = lock;
 
   lock = true;
@@ -3545,51 +3625,55 @@ void ChoiceView::update_langue() {
   lock = old_lock;
 }
 
-unsigned int ChoiceView::get_nb_widgets() {
+unsigned int VueChoix::get_nb_widgets() {
   return 1;
 }
 
-Gtk::Widget *ChoiceView::get_widget(int index) {
+Gtk::Widget *VueChoix::get_widget(int index) {
   return &frame;
 }
 
-Gtk::Widget *ChoiceView::get_gtk_widget()
+Gtk::Widget *VueChoix::get_gtk_widget()
 {
   return &frame;
 }
 
-void ChoiceView::set_sensitive(bool b) {
+void VueChoix::set_sensitive(bool b) {
   for (uint32_t j = 0; j < nb_choices; j++)
     radios[j]->set_sensitive(b);
   if (current_view != nullptr)
     current_view->set_sensitive(b);
 }
 
-void ChoiceView::on_event(const ChangeEvent &ce) {
+void VueChoix::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
 
     unsigned int val = model->get_int();
 
     if (val > nb_choices)
-      log.anomaly("Invalid value: %d (n choices = %d).", val, nb_choices);
-    else {
+      erreur("Invalid value: %d (n choices = %d).", val, nb_choices);
+    else
+    {
       radios[val]->set_active(true);
+      for(auto i = 0u; i < nb_choices; i++)
+        if(i != val)
+          radios[i]->set_active(false);
     }
     update_sub_view();
     lock = false;
   }
 }
 
-bool ChoiceView::is_valid() {
+bool VueChoix::is_valid() {
   if (current_view == nullptr)
     return true;
   return current_view->is_valid();
 }
 
-void ChoiceView::update_sub_view() 
+void VueChoix::update_sub_view() 
 {
-  //log.trace("update_sub_view...");
+  //infos("update_sub_view...");
 
   if (current_view != nullptr) 
   {
@@ -3603,7 +3687,7 @@ void ChoiceView::update_sub_view()
 
   if (model_val >= nb_enums) 
   {
-    log.anomaly("Model value = %d > number of enums = %d.", model_val, nb_enums);
+    erreur("Model value = %d > number of enums = %d.", model_val, nb_enums);
     return;
   }
 
@@ -3616,7 +3700,7 @@ void ChoiceView::update_sub_view()
 
     if (!model_parent.has_child(sname)) 
     {
-      log.anomaly("No child of type %s.", sname.c_str());
+      erreur("No child of type %s.", sname.c_str());
       return;
     }
 
@@ -3624,7 +3708,7 @@ void ChoiceView::update_sub_view()
 
     if(sub.is_nullptr())
     {
-      log.anomaly("no such child: %s", sname.c_str());
+      erreur("no such child: %s", sname.c_str());
     }
     else
     {
@@ -3639,55 +3723,68 @@ void ChoiceView::update_sub_view()
 /*******************************************************************
  *               LED VIEW IMPLEMENTATION                       *
  *******************************************************************/
-LedView::~LedView() {
+VueLed::~VueLed() {
 
 }
 
-LedView::LedView(Attribute *model) {
+VueLed::VueLed(Attribute *model) {
   lock = false;
   this->model = model;
   //Gtk::Label *lab = new Gtk::Label();
   lab.set_use_markup(true);
   std::string s = NodeView::mk_label(model->schema->name);
-  s.resize(s.size() - 3);
-  lab.set_markup("<b>" + s + "</b>");
+  //s.resize(s.size() - 3);
+  //lab.set_markup("<b>" + s + "</b>");
+  update_langue();
 
-  vbox.pack_start(led, Gtk::PACK_SHRINK);
-  vbox.pack_start(align, Gtk::PACK_SHRINK);
-  align.set_border_width(5);
-  align.add(lab);
-  led.add_listener(this, &LedView::on_signal_toggled);
+  led.set_mutable(!model->schema->is_read_only);
+  led.set_red(model->schema->is_error);
+
+  //vbox.pack_start(led, Gtk::PACK_SHRINK);
+  //vbox.pack_start(align, Gtk::PACK_SHRINK);
+  //align.set_border_width(5);
+  //align.add(lab);
+  led.light(model->get_boolean());
+  led.add_listener(this, &VueLed::on_signal_toggled);
+  led.show();
   /*check.add(lab);
    check.set_active(model->get_boolean());
    check.signal_toggled().connect( sigc::mem_fun(*this, &BooleanView::on_signal_toggled));*/
 }
 
-void LedView::update_langue() 
+void VueLed::update_langue() 
 {
-  std::string s = NodeView::mk_label(model->schema->name);
-  s.resize(s.size() - 3);
-  lab.set_markup("<b>" + s + "</b>");
+  //std::string s = NodeView::mk_label(model->schema->name);
+  //s.resize(s.size() - 3);
+  lab.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
+  //lab.set_markup("<b>" + s + "</b>");
 }
 
-unsigned int LedView::get_nb_widgets() {
-  return 1;
+unsigned int VueLed::get_nb_widgets() {
+  return 2;
 }
 
-Gtk::Widget *LedView::get_widget(int index) {
-  return &vbox;
-}
-
-Gtk::Widget *LedView::get_gtk_widget()
+Gtk::Widget *VueLed::get_widget(int index)
 {
-  return &vbox;
+  if(index == 0)
+    return &lab;
+  else
+    return &led;
+    //return &vbox;
 }
 
-void LedView::set_sensitive(bool b) {
+Gtk::Widget *VueLed::get_gtk_widget()
+{
+  return &led;//&vbox;
+}
+
+void VueLed::set_sensitive(bool b) {
   led.set_mutable(b);
-  //check.set_sensitive(b);
+  lab.set_sensitive(b);
+  led.set_sensitive(b);
 }
 
-int LedView::on_signal_toggled(const LedEvent &le) {
+int VueLed::on_signal_toggled(const LedEvent &le) {
   if (!lock) {
     lock = true;
     model->set_value(led.is_on());
@@ -3696,7 +3793,7 @@ int LedView::on_signal_toggled(const LedEvent &le) {
   return 0;
 }
 
-void LedView::on_event(const ChangeEvent &ce) {
+void VueLed::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
     led.light(model->get_boolean());
@@ -3712,7 +3809,6 @@ void LedView::on_event(const ChangeEvent &ce) {
 
 GenericView::GenericView()
 {
-  log.setup("view/generic-view");
 }
 
 
@@ -3720,113 +3816,245 @@ GenericView::GenericView()
 
 GenericView::WidgetType GenericView::type_from_string(const string &s)
 {
+  infos("%s...", s.c_str());
   for(unsigned int i = 0; i <= WIDGET_MAX; i++)
   {
-    if(wtypes[i].compare(s) == 0)
+    if(wtypes[i] == s)
+    {
+      infos("trouve (%d)", i);
       return (WidgetType) i;
+    }
   }
-  TraceManager::trace(AL_ANOMALY,
-                      "generic-view", "%s: not found: %s", __func__, s.c_str());
-  return WIDGET_nullptr;
+  infos("Type de widget non reconnu: '%s'", s.c_str());
+  return WIDGET_NULL;
 }
 
-string     GenericView::type_to_string(GenericView::WidgetType type)
+std::string     GenericView::type_to_string(GenericView::WidgetType type)
 {
   unsigned int id = (unsigned int) type;
   if(id > WIDGET_MAX)
   {
-    TraceManager::trace(AL_ANOMALY,
-                        "generic-view", "%s: invalid type conversion (%d).", __func__, id);
+    erreur("invalid type conversion (%d).", id);
     return "nullptr-widget";
   }
   return wtypes[id];
 }
 
 
-
-GenericView *GenericView::factory(Node data_model, Node view_model, Controler *controler)
+struct FabriqueWidgetElmt
 {
-  if(view_model.schema()->name.get_id() != "widget")
+  FabriqueWidget *fab;
+  std::string id;
+};
+
+static std::vector<FabriqueWidgetElmt> fabriques;
+
+int GenericView::enregistre_widget(std::string id, FabriqueWidget *fabrique)
+{
+  FabriqueWidgetElmt fwe;
+  fwe.id = id;
+  fwe.fab = fabrique;
+  fabriques.push_back(fwe);
+  return 0;
+}
+
+
+class SepV: public GenericView
+{
+public:
+  SepV()
   {
-    TraceManager::trace(AL_ANOMALY,
-                        "generic-view", "factory(): view model is not widget!");
+
+  }
+  Gtk::VSeparator sep;
+  Gtk::Widget *get_gtk_widget(){return &sep;}
+};
+
+class SepH: public GenericView
+{
+public:
+  SepH()
+  {
+  }
+  Gtk::HSeparator sep;
+  Gtk::Widget *get_gtk_widget(){return &sep;}
+};
+
+GenericView *GenericView::fabrique(Node data_model, Node modele_vue, Controleur *controler)
+{
+  GenericView *res = nullptr;
+
+
+  if(modele_vue.is_nullptr())
+  {
+    erreur("Modele de vue vide.");
     return nullptr;
   }
 
-  WidgetType type = type_from_string(view_model.get_attribute_as_string("type"));
+  auto id_widget = modele_vue.schema()->name.get_id();
+  infos("Fabique [%s]...", id_widget.c_str());
 
-  //string ms = data_model.to_xml(0,true);
-  //TraceManager::trace(AL_VERBOSE,
-  //                    "generic-view", "factory(): model = %s.", ms.c_str());
+  WidgetType type = type_from_string(id_widget);
+
 
 
   switch(type)
   {
 
-  case WIDGET_CUSTOM:
+  case WIDGET_NULL:
   {
-    return new CustomWidget(data_model, view_model, controler);
+    bool trouve = false;
+    for(auto &fab: fabriques)
+    {
+      if(fab.id == id_widget)
+      {
+        infos("Appelle fabrique speciale [%s]...", id_widget.c_str());
+        res = fab.fab->fabrique(data_model, modele_vue, controler);
+        trouve = true;
+        break;
+      }
+    }
+    if(!trouve)
+      erreur("Widget invalide : %s.", id_widget.c_str());
+    break;
+  }
+
+  case WIDGET_AUTO:
+  {
+    trace_verbeuse("Fabrique vue automatique");
+
+    XPath chemin = XPath(modele_vue.get_attribute_as_string("modele"));
+
+    if(chemin.length() == 0)
+    {
+      erreur("widget auto: l'attribut 'modele' doit etre specifie.");
+      return nullptr;
+    }
+
+    Node mod = data_model.get_child(chemin);
+
+    if(mod.is_nullptr())
+    {
+      erreur("Modele non trouve.", chemin.c_str());
+      return nullptr;
+    }
+
+    res = new NodeView(mod);
+    break;
+  }
+
+  case WIDGET_VUE_SPECIALE:
+  {
+    trace_verbeuse("Fabrique vue speciale");
+    res = new CustomWidget(data_model, modele_vue, controler);
+    break;
   }
 
   case WIDGET_TRIG_LAYOUT:
   {
-    TraceManager::trace(AL_VERBOSE,
-                        "generic-view", "factory(): make trig layout");
-    return new TrigLayout(data_model, view_model);
+    trace_verbeuse("Fabrique trig layout");
+    res = new TrigLayout(data_model, modele_vue);
+    break;
   }
 
   case WIDGET_LIST_LAYOUT:
   {
-    TraceManager::trace(AL_VERBOSE,
-                        "generic-view", "factory(): make list layout");
-    return new ListLayout(data_model, view_model, controler);
+    trace_verbeuse("Fabrique list layout");
+    res = new ListLayout(data_model, modele_vue, controler);
+    break;
   }
 
   case WIDGET_FIELD_LIST:
   {
-    TraceManager::trace(AL_VERBOSE,
-                        "generic-view", "factory(): make field list");
-    return new   FieldListView(data_model, view_model, controler);
+    trace_verbeuse("Fabrique field list");
+    res = new   FieldListView(data_model, modele_vue, controler);
+    break;
   }
 
   case WIDGET_VBOX:
-    return new BoxLayout(1, data_model, view_model, controler);
+    res = new BoxLayout(1, data_model, modele_vue, controler);
+    break;
   case WIDGET_HBOX:
-    return new BoxLayout(0, data_model, view_model, controler);
-    
+    res = new BoxLayout(0, data_model, modele_vue, controler);
+    break;
   case WIDGET_NOTEBOOK:
-    return new NoteBookLayout(data_model, view_model, controler);
-
+    res = new NoteBookLayout(data_model, modele_vue, controler);
+    break;
   case WIDGET_BUTTON_BOX:
-    return new HButtonBox(data_model, view_model, controler);
+    res = new HButtonBox(data_model, modele_vue, controler);
+    break;
+
+  case WIDGET_SEP_V:
+    res = new SepV();
+    break;
+  case WIDGET_SEP_H:
+    res = new SepH();
+    break;
+  case WIDGET_GRID_LAYOUT:
+    res = new SubPlot(data_model, modele_vue, controler);
+    break;
 
   case WIDGET_FIELD:
-  {
-    // TODO
-  }
-
-  case WIDGET_nullptr:
   case WIDGET_PANEL:
   case WIDGET_INDICATOR:
   case WIDGET_BUTTON:
   case WIDGET_BORDER_LAYOUT:
-  case WIDGET_GRID_LAYOUT:
+
   case WIDGET_FIXED_LAYOUT:
-  case WIDGET_PANE:
+  case WIDGET_PANNEAU:
   case WIDGET_IMAGE:
   case WIDGET_LABEL:
   default:
   {
-    TraceManager::trace(AL_ANOMALY,
-                        "generic-view", "factory(): Unmanaged widget type (%d)", (int) type);
-
-    return nullptr;
+    auto s = type_to_string(type);
+    erreur("Type de widget non gere (%d / %s)", (int) type, s.c_str());
   }
   }
-
-  return nullptr;
+  if(res != nullptr)
+  {
+    res->view_model = modele_vue;
+    res->data_model = data_model;
+  }
+  return res;
 }
 
+
+SubPlot::SubPlot(Node &data_model, Node &view_model, Controleur *controler)
+{
+  unsigned int n = view_model.get_children_count();
+  for(auto i = 0u; i < n; i++)
+  {
+    Node ch = view_model.get_child_at(i);
+    auto v = GenericView::fabrique(data_model, ch, controler);
+
+    auto x = ch.get_attribute_as_int("x"),
+         y = ch.get_attribute_as_int("y"),
+         ncols = ch.get_attribute_as_int("ncols"),
+         nrows = ch.get_attribute_as_int("nrows");
+
+    grille.attach(*(v->get_gtk_widget()), x, y, ncols, nrows);
+    grille.set_column_homogeneous(true);
+    grille.set_row_homogeneous(true);
+    grille.set_row_spacing(5);
+    grille.set_column_spacing(5);
+
+    //vs.push_back(v);
+    //auto orient = ch.get_attribute_as_string("orientation");
+    //if(orient == "left")
+    //  hpane.add1(*(v->get_gtk_widget()));
+    //else if(orient == "right")
+    //  hpane.add2(*(v->get_gtk_widget()));
+    //else if(orient == "bottom")
+    //  vbox.pack_start(*(v->get_gtk_widget()), Gtk::PACK_SHRINK);
+    //else
+    //  erreur("Orientation invalide dans un triglayout ('%s')", orient.c_str());
+  }
+}
+
+Gtk::Widget *SubPlot::get_gtk_widget()
+{
+  return &grille;
+}
 
 /*******************************************************************
  *******************************************************************
@@ -3838,38 +4066,34 @@ TrigLayout::TrigLayout(Node &data_model, Node &view_model_)
 {
 
   this->data_model = data_model;
-  this->view_model = view_model_.get_child("trig-layout");
+  this->view_model = view_model_;
 
-  GenericView *v1 = nullptr, *v2 = nullptr, *v3 = nullptr;
+  //GenericView *v1 = nullptr, *v2 = nullptr, *v3 = nullptr;
 
   string s = this->view_model.to_xml(0,true);
-  log.trace("building trig layout, view model = \n%s", s.c_str());
+  infos("trig layout, modele de vue = \n%s", s.c_str());
 
-  //log.trace("left count = %d.", view_model.get_children_count("left"));
-
-  if(view_model.has_child("left"))
-  {
-    log.trace("Left is defined.");
-    v1 = GenericView::factory(data_model, view_model.get_child("left"));
-  }
-
-  if(view_model.has_child("right"))
-    v2 = GenericView::factory(data_model, view_model.get_child("right"));
-
-  if(view_model.has_child("bottom"))
-    v3 = GenericView::factory(data_model, view_model.get_child("bottom"));
+  std::vector<GenericView *> vs;
 
   vbox.pack_start(hpane, Gtk::PACK_EXPAND_WIDGET);
   vbox.pack_start(vsep, Gtk::PACK_SHRINK);
 
-  if(v3 != nullptr)
-    vbox.pack_start(*(v3->get_gtk_widget()), Gtk::PACK_SHRINK);
-
-  if(v1 != nullptr)
-    hpane.add1(*(v1->get_gtk_widget()));
-  
-  if(v2 != nullptr)
-    hpane.add2(*(v2->get_gtk_widget()));
+  unsigned int n = view_model.get_children_count();
+  for(auto i = 0u; i < n; i++)
+  {
+    Node ch = view_model.get_child_at(i);
+    auto v = GenericView::fabrique(data_model, ch);
+    vs.push_back(v);
+    auto orient = ch.get_attribute_as_string("orientation");
+    if(orient == "left")
+      hpane.add1(*(v->get_gtk_widget()));
+    else if(orient == "right")
+      hpane.add2(*(v->get_gtk_widget()));
+    else if(orient == "bottom")
+      vbox.pack_start(*(v->get_gtk_widget()), Gtk::PACK_SHRINK);
+    else
+      erreur("Orientation invalide dans un triglayout ('%s')", orient.c_str());
+  }
 }
 
 Gtk::Widget *TrigLayout::get_gtk_widget()
@@ -3883,7 +4107,10 @@ Gtk::Widget *TrigLayout::get_gtk_widget()
  *******************************************************************
  *******************************************************************/
 
-BoxLayout::BoxLayout(int vertical, Node &data_model, Node &view_model, Controler *controler)
+BoxLayout::BoxLayout(int vertical,
+                     Node &modele_donnees,
+                     Node &modele_vue,
+                     Controleur *controleur)
 {
   this->vertical = vertical;
 
@@ -3892,22 +4119,69 @@ BoxLayout::BoxLayout(int vertical, Node &data_model, Node &view_model, Controler
   else
     box = &hbox;
 
-  Node ch = view_model.get_child("box");
+  unsigned int n = modele_vue.get_children_count();
 
-  for(Node child: ch.children("widget"))
+  elems.resize(n);
+
+  for(unsigned int i = 0u; i < n; i++)
+    elems[i] = nullptr;
+
+  for(unsigned int i = 0u; i < n; i++)
   {
-    GenericView *gv = GenericView::factory(data_model, child, controler);
-    elems.push_back(gv);
+    auto child = modele_vue.get_child_at(i);
+    GenericView *gv = GenericView::fabrique(modele_donnees, child, controleur);
 
-    std::string pack = child.get_attribute_as_string("pack");
-    bool pos_end = child.get_attribute_as_boolean("pos-end");
-    
-    if(pos_end)
-      box->pack_end(*(gv->get_gtk_widget()),
-		      pack == "shrink" ? Gtk::PACK_SHRINK : Gtk::PACK_EXPAND_WIDGET);
+    if(gv == nullptr)
+    {
+      auto s = child.to_xml();
+      erreur("Construction boite : echec lors de la construction d'un enfant:\n%s", s.c_str());
+      continue;
+    }
+
+    assert(!gv->view_model.is_nullptr());
+
+
+    unsigned int y;
+    if(vertical)
+      y = child.get_attribute_as_int("y");
     else
-      box->pack_start(*(gv->get_gtk_widget()),
-                    pack == "shrink" ? Gtk::PACK_SHRINK : Gtk::PACK_EXPAND_WIDGET);
+      y = child.get_attribute_as_int("x");
+    if(y >= n)
+    {
+      erreur("y > nombre d'elements dans la boite (y = %d, n = %d).", y, n);
+      return;
+    }
+    elems[y] = gv;
+  }
+
+  // Classement suivant y
+
+
+  for(unsigned int i = 0u; i < n; i++)
+  {
+    //auto child = view_model.get_child_at(i);
+    GenericView *gv = elems[i];//GenericView::fabrique(data_model, child, controler);
+    //elems.push_back(gv);
+
+    if(gv == nullptr)
+    {
+      avertissement("Vue boite : element de position %d non specifie.", i);
+      continue;
+    }
+    
+    std::string pack = gv->view_model.get_attribute_as_string("pack");
+    bool pos_fin = gv->view_model.get_attribute_as_boolean("pos-end");
+
+    trace_verbeuse("disposition h/v : elem = %d, pack = %s, pos fin = %d",
+        i, pack.c_str(), pos_fin);
+
+    Gtk::PackOptions po =  pack == "shrink" ? Gtk::PACK_SHRINK : Gtk::PACK_EXPAND_WIDGET;
+
+    if(pos_fin)
+      box->pack_end(*(gv->get_gtk_widget()), po);
+    else
+      box->pack_start(*(gv->get_gtk_widget()), po);
+    gv->get_gtk_widget()->show();
   }
   box->show_all_children(true);
 }
@@ -3916,10 +4190,15 @@ BoxLayout::~BoxLayout()
 {
   for(GenericView *gv: elems)
   {
+    if(gv == nullptr)
+      continue;
+    //trace_verbeuse("remove de box...");
     box->remove(*(gv->get_gtk_widget()));
+    //trace_verbeuse("supression widget...");
     delete gv;
   }
   elems.clear();
+  //trace_verbeuse("fin destructeur");
 }
 
 Gtk::Widget *BoxLayout::get_gtk_widget()
@@ -3934,30 +4213,26 @@ Gtk::Widget *BoxLayout::get_gtk_widget()
  *******************************************************************
  *******************************************************************/
 
-NoteBookLayout::NoteBookLayout(Node &data_model, Node &view_model, Controler *controler)
+NoteBookLayout::NoteBookLayout(Node &data_model, Node &view_model, Controleur *controler)
 {
-  Node ch = view_model.get_child("notebook");
+  unsigned int n = view_model.get_children_count();
 
-  for(Node child: ch.children("notebook-page"))
+  for(unsigned int i = 0; i < n; i++)
   {
-    if(child.has_child("widget"))
-    {
+    Node child = view_model.get_child_at(i);
+    GenericView *gv = GenericView::fabrique(data_model, child.get_child("widget"), controler);
+    elems.push_back(gv);
 
+    auto name = child.get_localized_name();
 
-      GenericView *gv = GenericView::factory(data_model, child.get_child("widget"), controler);
-      elems.push_back(gv);
+    // TODO: in elems to be able to delete
+    Gtk::HBox *ybox = new Gtk::HBox();
+    Gtk::Label *lab = new Gtk::Label();
+    lab->set_markup("<b> " + name + "</b>");
 
-      auto name = child.get_localized_name();
-
-      // TODO: in elems to be able to delete
-      Gtk::HBox *ybox = new Gtk::HBox();
-      Gtk::Label *lab = new Gtk::Label();
-      lab->set_markup("<b> " + name + "</b>");
-
-      ybox->pack_start(*lab);
-      notebook.append_page(*(gv->get_gtk_widget()), *ybox);
-      ybox->show_all_children();
-    }
+    ybox->pack_start(*lab);
+    notebook.append_page(*(gv->get_gtk_widget()), *ybox);
+    ybox->show_all_children();
   }
   notebook.show_all_children(true);
 }
@@ -3988,11 +4263,11 @@ Gtk::Widget *NoteBookLayout::get_gtk_widget()
  *******************************************************************
  *******************************************************************/
 
-HButtonBox::HButtonBox(Node &data_model, Node &view_model_, Controler *controler)
+HButtonBox::HButtonBox(Node &data_model, Node &view_model_, Controleur *controler)
 {
   this->data_model = data_model;
   this->controler  = controler;
-  this->view_model = view_model_.get_child("button-box");
+  this->view_model = view_model_;//.get_child("button-box");
 
   unsigned int n = view_model.get_children_count("bouton");
   actions.resize(n);
@@ -4022,8 +4297,8 @@ Gtk::Widget *HButtonBox::get_gtk_widget()
 
 void HButtonBox::on_button(std::string action)
 {
-  log.verbose("action detected: %s", action.c_str());
-  controler->on_action(action, data_model);
+  trace_verbeuse("action detected: %s", action.c_str());
+  controler->gere_action(action, data_model);
 }
 
 /*******************************************************************
@@ -4034,18 +4309,26 @@ void HButtonBox::on_button(std::string action)
 
 CustomWidget::CustomWidget(Node &data_model,
                            Node &view_model,
-                           Controler *controler)
+                           Controleur *controler)
 {
   this->data_model = data_model;
   this->view_model = view_model;
   this->controler = controler;
-  this->id = view_model.get_attribute_as_string("id");
+  this->id = view_model.get_attribute_as_string("name");
 }
 
 Gtk::Widget *CustomWidget::get_gtk_widget()
 {
   Gtk::Widget *res = nullptr;
-  controler->get_dyn_content(id, data_model, &res);
+  controler->genere_contenu_dynamique(id, data_model, &res);
+  if(res == nullptr)
+  {
+    auto l = new Gtk::Label();
+    char bf[500];
+    sprintf(bf, "Widget à faire : %s", id.c_str());
+    l->set_label(bf);
+    return l;
+  }
   return res;
 }
 
@@ -4081,11 +4364,11 @@ void ListLayout::rebuild_view()
 
   unsigned int i = 0, n = rnode.get_children_count(postfix);
 
-  /*log.trace_major("tp = %s, prefix = %s, n = %d.", tp.c_str(), prefix.c_str(), n);
+  /*trace_major("tp = %s, prefix = %s, n = %d.", tp.c_str(), prefix.c_str(), n);
   auto ss = rnode.to_xml();
-  log.verbose("rnode = %s.\n", ss.c_str());
+  trace_verbeuse("rnode = %s.\n", ss.c_str());
   ss = data_model.to_xml();
-  log.verbose("data_model = %s.\n", ss.c_str());*/
+  trace_verbeuse("data_model = %s.\n", ss.c_str());*/
 
   unsigned int ncols = view_model.get_attribute_as_int("ncols");
   uint16_t x = 0, y = 0;
@@ -4094,24 +4377,32 @@ void ListLayout::rebuild_view()
   elems.resize(n);
   for(i = 0; i < n; i++)
   {
+    elems[i].id = i;
     elems[i].label = new SensitiveLabel(utils::str::int2str(i));
     elems[i].label->add_listener(this, &ListLayout::on_click);
-        //new Gtk::Label();
-
-    //elems[i].event_box = new Gtk::EventBox();
 
 
     elems[i].widget = nullptr;
     elems[i].model = rnode.get_child_at(postfix, i);
-    controler->get_dyn_content(view_model.get_attribute_as_string("child-type"),
+    controler->genere_contenu_dynamique(view_model.get_attribute_as_string("child-type"),
                                elems[i].model, &elems[i].widget);
 
     elems[i].vbox = new Gtk::VBox();
     elems[i].frame = new Gtk::Frame();
     elems[i].align = new Gtk::Alignment(0.5,0.5,0,0);
     elems[i].align2 = new Gtk::Alignment(0.5,0.5,0,0);
-    elems[i].align2->set_padding(10,10,10,10);
-    table.attach(*(elems[i].align), x, x+1, y, y+1);//, Gtk::SHRINK, Gtk::SHRINK);
+
+    elems[i].align2->set_padding(3,3,3,3);
+
+    //elems[i].align2->set_padding(10,10,10,10);
+    elems[i].evt_box = new Gtk::EventBox();
+    elems[i].evt_box->add(*(elems[i].align));
+
+    elems[i].evt_box->set_events(Gdk::BUTTON_PRESS_MASK /*| Gdk::POINTER_MOTION_MASK | Gdk::BUTTON_RELEASE_MASK*/);
+    elems[i].evt_box->signal_button_press_event().connect(sigc::bind<Elem *>(sigc::mem_fun(this,
+        &ListLayout::on_button_press_event), &(elems[i])));;
+
+    table.attach(*(elems[i].evt_box), x, x+1, y, y+1);//, Gtk::SHRINK, Gtk::SHRINK);
     elems[i].align->add(*(elems[i].frame));
     elems[i].align2->add(*(elems[i].vbox));
     elems[i].vbox->pack_start(*(elems[i].label), Gtk::PACK_SHRINK);
@@ -4120,7 +4411,7 @@ void ListLayout::rebuild_view()
       elems[i].vbox->pack_start(*(elems[i].widget), Gtk::PACK_SHRINK);
 
     //elems[i].label->set_border_width(15); // test, to remove
-    elems[i].align2->set_border_width(15);
+    elems[i].align2->set_border_width(5);//15);
     elems[i].frame->add(*(elems[i].align2));
     if(x == ncols - 1)
       y++;
@@ -4134,21 +4425,49 @@ void ListLayout::rebuild_view()
   update_view();
 }
 
+bool ListLayout::on_button_press_event(GdkEventButton *evt, Elem *elt)
+{
+  trace_verbeuse("Bpress event sur element list layout (type = %d).", (int) evt->type);
+
+  current_selection = elt->id;
+  update_view();
+
+  if((evt->type == GDK_2BUTTON_PRESS) && (evt->button == 1))
+  {
+    trace_verbeuse("Double click.");
+    for(Action &a: actions)
+    {
+      if(a.is_default)
+      {
+        controler->gere_action(a.name,
+                             get_selection());
+        return 0;
+      }
+    }
+  }
+  else if((evt->type == GDK_BUTTON_PRESS) && (evt->button == 1))
+  {
+    trace_verbeuse("simple clock");
+  }
+
+  return true;
+}
+
 int ListLayout::on_click(const LabelClick &click)
 {
-  log.verbose("click detected: %s, type = %s", click.path.c_str(), (click.type == LabelClick::VAL_CLICK) ? "val" : "sel");
+  trace_verbeuse("click detected: %s, type = %s", click.path.c_str(), (click.type == LabelClick::VAL_CLICK) ? "val" : "sel");
   int id = atoi(click.path.c_str());
   current_selection = id;
   update_view();
 
   if(click.type == LabelClick::VAL_CLICK)
   {
-    log.verbose("Double click.");
+    trace_verbeuse("Double click.");
     for(Action &a: actions)
     {
       if(a.is_default)
       {
-        controler->on_action(a.name,
+        controler->gere_action(a.name,
                              get_selection());
         return 0;
       }
@@ -4170,22 +4489,33 @@ int ListLayout::on_click(const LabelClick &click)
 
 #endif*/
 
+# define BCOL_INACTIVE "#000080"
+# define BCOL_ACTIVE   "#FF00FF"
+
+#if 0
 # define BCOL_INACTIVE "#202020"
 # define BCOL_ACTIVE   "#400040"
+#endif
+
+#define OVERRIDE_COLORS
 
 void ListLayout::update_view()
 {
   for(auto i = 0u; i < elems.size(); i++)
   {
     //elems[i].frame->set_border_width(0);
+#   ifdef OVERRIDE_COLORS
+    elems[i].frame->set_border_width(0);
     elems[i].frame->set_shadow_type(Gtk::SHADOW_NONE);
     elems[i].frame->override_color(Gdk::RGBA(BCOL_INACTIVE), Gtk::STATE_FLAG_NORMAL);
+#   endif
 
     //elems[i].event_box->override_color(Gdk::RGBA(BCOL_INACTIVE),
     //                                   Gtk::STATE_FLAG_NORMAL);
 
     Gtk::Widget *unused;
-    elems[i].label->label.set_markup(controler->get_dyn_content(this->view_model.get_attribute_as_string("child-type"),
+    elems[i].label->label.set_markup(controler->genere_contenu_dynamique(
+        view_model.get_attribute_as_string("child-type"),
                                      elems[i].model, &unused));
   }
 
@@ -4193,14 +4523,17 @@ void ListLayout::update_view()
   {
     /*assert(current_selection < (int) elems.size());
     elems[current_selection].frame->set_border_width(5);*/
+#   ifdef OVERRIDE_COLORS
+    elems[current_selection].frame->set_border_width(5);
     elems[current_selection].frame->set_shadow_type(Gtk::SHADOW_OUT);
     elems[current_selection].frame->override_color(Gdk::RGBA(BCOL_ACTIVE), Gtk::STATE_FLAG_NORMAL);
+#   endif
 
     Gtk::Widget *unused;
-    auto s = controler->get_dyn_content(this->view_model.get_attribute_as_string("child-type"),
+    auto s = controler->genere_contenu_dynamique(this->view_model.get_attribute_as_string("child-type"),
 					elems[current_selection].model, &unused);
-    s = "<big>"+s+"</big>";
-    elems[current_selection].label->label.set_markup(s);
+    //s = "<big>"+s+"</big>";
+    //elems[current_selection].label->label.set_markup(s);
 
     //elems[current_selection].event_box->modify_bg(Gtk::STATE_FLAG_NORMAL, Gdk::RGBA(BCOL_ACTIVE));
     //elems[current_selection].event_box->override_color(Gdk::RGBA(BCOL_ACTIVE), Gtk::STATE_FLAG_NORMAL);
@@ -4219,17 +4552,22 @@ void ListLayout::update_view()
 
 void ListLayout::on_event(const ChangeEvent &ce)
 {
-  log.verbose("change event detected: %s.", ce.path.c_str());
+  auto s = ce.to_string();
   switch(ce.type)
   {
   case ChangeEvent::CHILD_ADDED:
   case ChangeEvent::CHILD_REMOVED:
-    rebuild_view();
+    //if(data_model_.get_child())
+    if(ce.path.length() <= 2) // Ne regarde que des changements qui le concerne directement
+    {
+      trace_verbeuse("Changement sur list layout: %s.", s.c_str());
+      rebuild_view();
+    }
+    break;
+  case ChangeEvent::GROUP_CHANGE:
+    //update_view();
     break;
   case ChangeEvent::ATTRIBUTE_CHANGED:
-  case ChangeEvent::GROUP_CHANGE:
-    update_view();
-    break;
   case ChangeEvent::COMMAND_EXECUTED:
     break;
   }
@@ -4245,22 +4583,16 @@ Node ListLayout::get_selection()
 
 void ListLayout::on_button(std::string action)
 {
-  log.verbose("action detected: %s", action.c_str());
-  controler->on_action(action, get_selection());
+  trace_verbeuse("action detected: %s", action.c_str());
+  controler->gere_action(action, get_selection());
 }
 
-ListLayout::ListLayout(Node &data_model, Node &view_model_, Controler *controler)
+ListLayout::ListLayout(Node &data_model, Node &view_model_, Controleur *controler)
 {
-  log.setup("list-layout");
   current_selection = -1;
   this->controler = controler;
   this->data_model = data_model;
-  this->view_model = view_model_.get_child("list-layout");
-
-  //GenericView *v1 = nullptr, *v2 = nullptr, *v3 = nullptr;
-
-  //string s = this->view_model.to_xml(0,true);
-  //log.trace("building list layout, view model = \n%s", s.c_str());
+  this->view_model = view_model_;
 
   unsigned int n = view_model.get_children_count("bouton");
   actions.resize(n);
@@ -4284,12 +4616,20 @@ ListLayout::ListLayout(Node &data_model, Node &view_model_, Controler *controler
   hbox.set_layout(Gtk::BUTTONBOX_END);
 
   vbox.pack_start(table, Gtk::PACK_EXPAND_WIDGET);
-  vbox.pack_start(vsep, Gtk::PACK_SHRINK);
-  vbox.pack_start(hbox, Gtk::PACK_SHRINK);
+
 
   rebuild_view();
 
-  vbox.show_all_children(true);
+  scroll.add(vbox);
+  scroll.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  scroll.set_min_content_width(500);
+  scroll.set_min_content_height(400);
+
+  /*vbox*/scroll.show_all_children(true);
+
+  vbox_ext.pack_start(scroll, Gtk::PACK_EXPAND_WIDGET);
+  vbox_ext.pack_start(vsep, Gtk::PACK_SHRINK);
+  vbox_ext.pack_start(hbox, Gtk::PACK_SHRINK);
 
   data_model.add_listener(this);
 }
@@ -4301,7 +4641,7 @@ ListLayout::~ListLayout()
 
 Gtk::Widget *ListLayout::get_gtk_widget()
 {
-  return &vbox;
+  return &vbox_ext;
 }
 
 
@@ -4311,28 +4651,28 @@ Gtk::Widget *ListLayout::get_gtk_widget()
  *******************************************************************
  *******************************************************************/
 
-FieldListView::FieldListView(Node &data_model, Node &view_model_, Controler *controler)
+FieldListView::FieldListView(Node &data_model, Node &view_model_, Controleur *controler)
 {
-  log.setup("libcutil/field-list-view");
-
+  this->view_model = view_model_;
+  this->data_model = data_model;
   this->controler = controler;
-  Node view_model = view_model_.get_child("field-list");
+  Node view_model = view_model_;//.get_child("field-list");
 
-  unsigned int i, n = view_model.get_children_count("field-view");
+  unsigned int i, n = view_model.get_children_count("champs");
 
-  log.verbose("Field list view: n rows = %d.", n);
+  trace_verbeuse("Field list view: n rows = %d.", n);
   table.resize(n, 3);
 
   for(i = 0; i < n; i++)
   {
-    Node field = view_model.get_child_at("field-view", i);
-    XPath path = XPath(field.get_attribute_as_string("model"));
+    Node field = view_model.get_child_at("champs", i);
+    XPath path = XPath(field.get_attribute_as_string("modele"));
     std::string ctrl_id = field.get_attribute_as_string("ctrl-id");
     //bool editable = field.get_attribute_as_boolean("editable");
 
     if(path.length() == 0)
     {
-      log.anomaly("%s: field-view: 'model' attribute not specified.");
+      erreur("%s: field-view: 'model' attribute not specified.");
       continue;
     }
 
@@ -4341,14 +4681,14 @@ FieldListView::FieldListView(Node &data_model, Node &view_model_, Controler *con
 
     if(att_owner.is_nullptr())
     {
-      log.anomaly("Field '%s': model not found.", path.c_str());
+      erreur("Field '%s': model not found.", path.c_str());
       continue;
     }
 
     if(!att_owner.schema()->has_attribute(att_name))
     {
       auto s = att_owner.to_xml();
-      log.anomaly("Field '%s': no such attribute in the model.\nModel = \n%s",
+      erreur("Field '%s': no such attribute in the model.\nModel = \n%s",
                   path.c_str(), s.c_str());
       continue;
     }

@@ -39,7 +39,7 @@ void ModelEditor::on_b_new()
   std::string path, name;
   files::split_path_and_filename(model_path, path, name);
 
-  std::string fn = dialogs::new_dialog("Nouvelle configuration", "*.xml", "Fichier XML", name, path);
+  std::string fn = dialogs::nouveau_fichier("Nouvelle configuration", "*.xml", "Fichier XML", name, path);
   if(fn.size() == 0)
     return;
 
@@ -48,7 +48,7 @@ void ModelEditor::on_b_new()
 
   if(ev != nullptr)
   {
-    log.trace("Delete old widget...");
+    infos("Delete old widget...");
     model.remove_listener(this);
     vboxi.remove(*(ev->get_widget()));
     delete ev;
@@ -56,20 +56,20 @@ void ModelEditor::on_b_new()
 
   model_path = fn;
 
-  log.trace("Model switch..");
+  infos("Model switch..");
   model = mod;
   model.add_listener(this);
 
   model.save(fn);
 
-  log.trace("Model view creation..");
+  infos("Model view creation..");
   NodeViewConfiguration vconfig;
   //vconfig.show_children = true;
   //vconfig.show_separator = false;
   //vconfig.nb_attributes_by_column = 20;
   //vconfig.nb_columns = 2;
   ev = new utils::mmi::NodeView(this, model, vconfig);
-  log.trace("Adding to current view..");
+  infos("Adding to current view..");
   vboxi.pack_start(*(ev->get_widget()), Gtk::PACK_EXPAND_WIDGET);
   this->show_all_children(true);
   config.set_attribute("last-file", fn);
@@ -107,7 +107,7 @@ void ModelEditor::on_b_exit()
   }
   std::string cfg_file = utils::get_current_user_path() + PATH_SEP + "cfg.xml";
   config.save(cfg_file);
-  log.trace("Bye.");
+  infos("Bye.");
   exit(0);
 }
 
@@ -115,7 +115,7 @@ void ModelEditor::on_b_open()
 {
   std::string path, name;
   files::split_path_and_filename(config.get_attribute_as_string("last-file"), path, name);
-  std::string fn = dialogs::open_dialog("Ouvrir", /*"*.xml"*/ext, /*"Fichier XML"*/extname, name, path);
+  std::string fn = dialogs::ouvrir_fichier("Ouvrir", /*"*.xml"*/ext, /*"Fichier XML"*/extname, name, path);
   if(fn.size() > 0)
     this->open(fn);
 }
@@ -142,7 +142,7 @@ void ModelEditor::on_event(const ChangeEvent &ce)
   else
   {
     model_saved = false;
-    //trace("Change event detected: %s", ce.to_string().c_str());
+    //infos("Change event detected: %s", ce.to_string().c_str());
     update_view();
   }
 }
@@ -168,7 +168,7 @@ void ModelEditor::update_view()
 
 void ModelEditor::on_event(const EVSelectionChangeEvent &evse)
 {
-  log.trace("Sel change detected.");
+  infos("Sel change detected.");
 
   #if 0
 
@@ -194,7 +194,7 @@ void ModelEditor::on_event(const EVSelectionChangeEvent &evse)
 
   if(type.compare("card") == 0)
   {
-    trace("Selection = card %s.", name.c_str());
+    infos("Selection = card %s.", name.c_str());
     open(dbpath
          + Util::get_path_separator()
          + "cards"
@@ -204,7 +204,7 @@ void ModelEditor::on_event(const EVSelectionChangeEvent &evse)
   }
   else if(type.compare("fpga-lib") == 0)
   {
-    trace("Selection = fpga lib %s.", name.c_str());
+    infos("Selection = fpga lib %s.", name.c_str());
     open(dbpath
          + Util::get_path_separator()
          + "fpga"
@@ -214,7 +214,7 @@ void ModelEditor::on_event(const EVSelectionChangeEvent &evse)
   }
   else if(type.compare("mod") == 0)
   {
-    trace("Selection = module %s.", name.c_str());
+    infos("Selection = module %s.", name.c_str());
     open(dbpath
          + Util::get_path_separator()
          + "modules"
@@ -228,7 +228,6 @@ void ModelEditor::on_event(const EVSelectionChangeEvent &evse)
 
 ModelEditor::ModelEditor()
 {
-  log.setup("cutil", "model-editor");
   ev = nullptr;
   mainWindow = this;
   set_title("Model editor");
@@ -257,7 +256,7 @@ ModelEditor::ModelEditor()
     }
   }
 
-  log.trace("Application configuration:\n%s\n", config.to_xml().c_str());
+  infos("Application configuration:\n%s\n", config.to_xml().c_str());
 
   add(vbox);
 
@@ -312,7 +311,7 @@ ModelEditor::ModelEditor()
   b_infos.signal_clicked().connect(sigc::mem_fun(*this, &ModelEditor::on_b_infos));
 
 
-  log.trace("Construction terminÃ©e.");
+  infos("Construction terminÃ©e.");
   show_all_children(true);
   update_view();
   //set_size_request(1000,780);
@@ -334,35 +333,35 @@ int ModelEditor::open(std::string filename)
   {
 
     // CREATION DU FICHIER SI IL N'EXISTE PAS ?
-    log.anomaly("File not found: %s.", filename.c_str());
-    dialogs::show_error("Ouverture", "Le fichier n'existe pas.", filename + " n'est pas accessible.");
+    erreur("File not found: %s.", filename.c_str());
+    dialogs::affiche_erreur("Ouverture", "Le fichier n'existe pas.", filename + " n'est pas accessible.");
     return -1;
   }
 
 
   if(mx.from_file(filename))
   {
-    log.anomaly("Parse error in %s.", filename.c_str());
-    dialogs::show_error("Ouverture", "Le format du fichier est invalide", "");
+    erreur("Parse error in %s.", filename.c_str());
+    dialogs::affiche_erreur("Ouverture", "Le format du fichier est invalide", "");
     return -2;
   }
 
   model_path = filename;
 
-  log.trace("Loading model...");
+  infos("Loading model...");
   Node mod = Node::create_ram_node(root_fs->get_schema(mx.name), filename);
 
   if(ev != nullptr)
   {
-    log.trace("Delete old widget...");
+    infos("Delete old widget...");
     model.remove_listener(this);
     vboxi.remove(*(ev->get_widget()));
     delete ev;
   }
-  log.trace("Model switch..");
+  infos("Model switch..");
   model = mod;
   model.add_listener(this);
-  log.trace("Model view creation..");
+  infos("Model view creation..");
   NodeViewConfiguration vconfig;
   vconfig.display_only_tree = false;
   vconfig.show_children = true;
@@ -372,7 +371,7 @@ int ModelEditor::open(std::string filename)
   //vconfig.nb_attributes_by_column = 20;
   //vconfig.nb_columns = 2;
   ev = new NodeView(this, model, vconfig);
-  log.trace("Adding to current view..");
+  infos("Adding to current view..");
   vboxi.pack_start(*(ev->get_widget()), Gtk::PACK_EXPAND_WIDGET);
   this->show_all_children(true);
   config.set_attribute("last-file", filename);
@@ -411,9 +410,9 @@ int ModelEditor::main(CmdeLine &cmdeline)
   }
   else
   {
-    log.warning("no schema specified.");
+    avertissement("no schema specified.");
     
-    schema_path = dialogs::open_dialog(str::latin_to_utf8("Schéma de données"),
+    schema_path = dialogs::ouvrir_fichier(str::latin_to_utf8("Schéma de données"),
 				    "*.xml", 
 				    "Fichier XML",
 				    "", 
@@ -425,7 +424,7 @@ int ModelEditor::main(CmdeLine &cmdeline)
   
   if(!files::file_exists(schema_path))
   {
-    log.warning("Schema file not found: %s.", schema_path.c_str());
+    avertissement("Schema file not found: %s.", schema_path.c_str());
     return -1;
   }
 
@@ -438,7 +437,7 @@ int ModelEditor::main(CmdeLine &cmdeline)
   }
   else
   {
-    log.anomaly("TODO: root schema selection.");
+    erreur("TODO: root schema selection.");
     return -1;
   }
 
@@ -451,7 +450,7 @@ int ModelEditor::main(CmdeLine &cmdeline)
     open(cmdeline.get_option("-d"));
   else
   {
-    log.warning("no file specified.");
+    avertissement("no file specified.");
 
 
 

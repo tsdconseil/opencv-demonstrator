@@ -25,6 +25,7 @@
 
 #include <string>
 #include <stdint.h>
+#include <vector>
 
 
 #ifdef BLACKFIN
@@ -421,9 +422,13 @@ public:
     /** Russian */
     LANG_RU   = 5,
 
+    LANG_ES   = 6,
+
     /** Unspecified language */
     LANG_UNKNOWN = 255
   } Language;
+
+  static Language current_language;
 
   Localized();
   Localized(const Localized &l);
@@ -502,16 +507,26 @@ public:
 
 /** @brief Initialise paths and analyse standard command line options.
  *  Options managed:
- *  - [-v]          : enable debug trace on stdout
+ *  - [-v]          : enable debug infos on stdout
  *  - [-L fr|en|de] : specify current language
  *  - [-q]          : disable log files.
  *
  *  @param cmdeline  Command line arguments.
- *  @param project   Name of the project (used to define the application data folders).
+ *  @param projet    Name of the project (used to define the application data folders).
  *  @param app       Name of the application */
 extern void init(CmdeLine &cmde_line,
-                 const std::string &project,
-                 const std::string &app);
+                 const std::string &projet,
+                 const std::string &app = "",
+                 unsigned int vmaj = 0,
+                 unsigned int vmin = 0,
+                 unsigned int vpatch = 0);
+
+extern void init(int argc, const char **argv,
+                 const std::string &projet,
+                 const std::string &app = "",
+                 unsigned int vmaj = 0,
+                 unsigned int vmin = 0,
+                 unsigned int vpatch = 0);
 
 
 /** @brief Read an environment variable */
@@ -522,6 +537,9 @@ extern std::string get_fixed_data_path();
 
 /** @brief Get the path to the current user parameters directory (e.g. C:\\Doc and Settings\\CURRENT_USER\\AppData\\AppName) */
 extern std::string get_current_user_path();
+
+/** @brief Get the path to the current user document directory (e.g. C:\\Doc and Settings\\CURRENT_USER\\AppName) */
+extern std::string get_current_user_doc_path();
 
 /** @brief Get the path to path the all user parameters directory (e.g. C:\\Doc and Settings\\All Users\\AppData\\AppName) */
 extern std::string get_all_user_path();
@@ -561,7 +579,7 @@ namespace str
   std::string str_to_class(std::string name);
   std::string str_to_file(std::string name);
   /** Returns an abbridged version of the specified file path (for display purpose) */
-  std::string get_filename_resume(const std::string &filename);
+  std::string get_filename_resume(const std::string &filename, unsigned int max_chars = 30);
 
   bool is_deci(char c);
   bool is_hexa(char c);
@@ -599,7 +617,9 @@ namespace files
   bool file_exists(std::string name);
   bool dir_exists(std::string name);
   int copy_file(std::string target, std::string source);
-  int create_directory(std::string path);
+  int creation_dossier(std::string path);
+  int explore_dossier(std::string chemin, std::vector<std::string> &fichiers);
+  //int liste_dossier(const std::string &path, std::vector<std::string> &res);
   /** @brief If the directory does not exist, try to create it. */
   int check_and_build_directory(std::string path);
   void split_path_and_filename(const std::string complete_filename, std::string &path, std::string &filename);
@@ -624,6 +644,7 @@ namespace files
   int rel2abs(const std::string &ref,
                      const std::string &rel,
                      std::string &result);
+  void remplacement_motif(std::string &chemin);
 }
 
 
@@ -675,16 +696,22 @@ public:
   Section(const Section &c);
   ~Section();
   void operator =(const Section &c);
-  bool has_item(std::string name);
-  std::string get_item(std::string name);
-  const char *get_text(std::string name);
-  Section get_section(std::string name);
-  std::string current_language;
+  bool has_item(const std::string &name) const;
+  std::string get_item(const std::string &name) const;
+  const utils::model::Localized &get_localized(const std::string &name) const;
+  //const char *get_text(std::string name);
+  Section &get_section(const std::string &name);
+  const Section &get_section(const std::string &name) const;
+  //std::string current_language;
   void load();
   void load(std::string filename);
+  void load(const utils::model::MXml &data);
 private:
   Section(const utils::model::MXml &data);
-  utils::model::MXml data;
+  //utils::model::MXml data;
+  std::vector<utils::model::Localized> elmts;
+  std::vector<utils::refptr<Section>> subs;
+  std::string nom;
 };
 
 

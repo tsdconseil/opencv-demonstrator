@@ -8,6 +8,7 @@
 #include <sstream>
 #include <unistd.h> // for unlink
 #include <cmath>
+#include <dirent.h>
 
 #ifdef WIN
 # include <windows.h>
@@ -22,18 +23,40 @@
 #include <malloc.h>
 #include "modele.hpp"
 
+using namespace std;
+
 namespace utils
 {
 
 using namespace model;
 
 
+void VoidEventProvider::remove_all_listeners()
+{
+  functors.clear();
+}
+
+void VoidEventProvider::dispatch()
+{
+  std::vector<void *> copy;
+
+  std::vector<VoidEventFunctor *> copy2;
+  for(unsigned int i = 0; i < functors.size(); i++)
+    copy2.push_back(functors[i]);
+
+  for(unsigned int i = 0; i < copy2.size(); i++)
+  {
+    VoidEventFunctor *ef = copy2[i];
+    ef->call();
+  }
+}
+
 ////////////////////////////////////////////////
 //// CONSTANT DATA
 ////////////////////////////////////////////////
-#define NLANG 4
+#define NLANG 5
 static std::string lglist[NLANG] = 
-  {"fr", "en", "de", "ru"};
+  {"fr", "en", "de", "ru", "es"};
 
 ////////////////////////////////////////////////
 //// LOCAL FUNCTIONS    
@@ -49,16 +72,16 @@ static std::string get_self_path(const char *argv0);
 class AppData
 {
 public:
-  std::string app_name;
-  std::string project_name;
-  std::string exec_dir;
-  std::string fixed_data_path;
-  std::string img_path;
+  std::string nom_appli;
+  std::string nom_projet;
+  std::string dossier_executable;
+  std::string chemin_donnees_fixes;
+  std::string chemin_images;
 };
 
 
 static AppData appdata;
-Localized::Language current_language = Localized::LANG_FR;
+Localized::Language Localized::current_language = Localized::LANG_FR;
 
 
 Section langue;
@@ -113,9 +136,11 @@ int files::copy_file(std::string target, std::string source)
 {
 # ifndef LINUX
 
-  if(::CopyFile(source.c_str(), target.c_str(), false))
+  infos("Copie fichier [%s] <- [%s]...", target.c_str(), source.c_str());
+  if(!(::CopyFile(source.c_str(), target.c_str(), false)))
   {
-    //journal.warning("Copy file failed.");
+    int err = ::GetLastError();
+    avertissement("Echec copyfile, code d'erreur = %d (0x%x).", err, err);
     return -1;
   }
   return 0;
@@ -140,7 +165,7 @@ int proceed_syscmde_bg(std::string cmde, ...)
     return result;
   }
 
-  /*TraceManager::trace(TraceManager::TRACE_LEVEL_NORMAL,
+  /*TraceManager::infos(TraceManager::TRACE_LEVEL_NORMAL,
           "util",
           "System command: '%s'..", full_cmde);*/
 
@@ -194,7 +219,7 @@ int proceed_syscmde_bg(std::string cmde, ...)
   if(result != 0)
   {
     fprintf(stderr, "System command failure (%d): '%s'.\n", result, full_cmde);
-    TraceManager::trace(AL_ANOMALY, "util", "System command failure(%d): '%s'..\n", result, full_cmde);
+    erreur("System command failure(%d): '%s'..\n", result, full_cmde);
   }
 
   free(full_cmde);
@@ -220,14 +245,9 @@ int proceed_syscmde(std::string cmde, ...)
     return result;
   }
 
-  /*TraceManager::trace(TraceManager::TRACE_LEVEL_NORMAL, 
-		      "util", 
-		      "System command: '%s'..", full_cmde);*/
+  if(full_cmde != nullptr)
+    infos("System command: '%s'..", full_cmde);
 
-  //if(full_cmde != nullptr)
-    //log_verbose(0, "System command: [%s]...", full_cmde);
-  printf("System command: [%s]\n", full_cmde);
-  fflush(0);
 
 # ifdef LINUX
   result = system(full_cmde);
@@ -274,7 +294,7 @@ int proceed_syscmde(std::string cmde, ...)
   if(result != 0)
   {
     fprintf(stderr, "System command failure (%d): '%s'.\n", result, full_cmde);
-    TraceManager::trace(AL_ANOMALY, "util", "System command failure(%d): '%s'..\n", result, full_cmde);
+    erreur("System command failure(%d): '%s'..\n", result, full_cmde);
   }
 
   free(full_cmde);
@@ -284,94 +304,112 @@ int proceed_syscmde(std::string cmde, ...)
 
 std::string get_execution_path()
 {
-  return appdata.exec_dir;
+  return appdata.dossier_executable;
 }
 
+void init(int argc, const char **argv, const std::string &projet, const std::string &app,
+          unsigned int vmaj,
+          unsigned int vmin,
+          unsigned int vpatch)
+{
+  CmdeLine cl(argc, argv);
+  init(cl, projet, app, vmaj, vmin, vpatch);
+}
 
 void init(CmdeLine &cmdeline,
-          const std::string &project,
-          const std::string &app)
+          const std::string &projet,
+          const std::string &app,
+          unsigned int vmaj,
+          unsigned int vmin,
+          unsigned int vpatch)
 {
   std::string fullpath, unused;
-  appdata.app_name              = app;
-  appdata.project_name          = project;
+  appdata.nom_appli              = app;
+  appdata.nom_projet          = projet;
+
+  if(app.size() == 0)
+    appdata.nom_appli = projet;
 
   //if(cmdeline.argv != nullptr)
     fullpath = get_self_path(cmdeline.argv0.c_str());
-  files::split_path_and_filename(fullpath, appdata.exec_dir, unused);
-  langue.current_language = "fr";
+  files::split_path_and_filename(fullpath, appdata.dossier_executable, unused);
+  Localized::current_language = Localized::LANG_FR;
 
 
   //std::cout << "fullpath = " << fullpath << std::endl;
   //std::cout << "Exec dir = " << appdata.exec_dir << std::endl;
 
   if(cmdeline.has_option("-l"))
-    langue.current_language = cmdeline.get_option("-l", "fr");
+    Localized::current_language = Localized::parse_language(cmdeline.get_option("-l", "fr"));
 
-  if(appdata.exec_dir.size() == 0)
-    appdata.exec_dir = ".";
+  if(appdata.dossier_executable.size() == 0)
+    appdata.dossier_executable = ".";
 
-  appdata.fixed_data_path = appdata.exec_dir + PATH_SEP + "data";
+  appdata.chemin_donnees_fixes = appdata.dossier_executable + PATH_SEP + "data";
 
   //std::cout << "Fixed data path = " << appdata.fixed_data_path << std::endl;
 
-  if(!files::dir_exists(appdata.fixed_data_path))// + PATH_SEP + "std-lang.xml"))
+  if(!files::dir_exists(appdata.chemin_donnees_fixes))// + PATH_SEP + "std-lang.xml"))
   {
 #   ifdef WIN
     // SHOULD EXIST ALL TIME!
-    fprintf(stderr, "Fixed data path not found: [%s].\n", appdata.fixed_data_path.c_str());
+    fprintf(stderr, "Fixed data path not found: [%s].\n", appdata.chemin_donnees_fixes.c_str());
 #   else
-    appdata.fixed_data_path = "/usr/share/" + project + "/data";
+    appdata.chemin_donnees_fixes = "/usr/share/" + projet + "/data";
 #   endif
   }
 
-  appdata.img_path = appdata.fixed_data_path + PATH_SEP + "img";
+  appdata.chemin_images = appdata.chemin_donnees_fixes + PATH_SEP + "img";
 
-  string cup = utils::get_current_user_path();
+  std::string cup = utils::get_current_user_path();
   // Check if writable data path exists
   if(!files::dir_exists(cup))
   {
-    files::create_directory(cup);
-    fprintf(stdout, "created directory %s.\n", cup.c_str());
+    files::creation_dossier(cup);
+    //fprintf(stdout, "created directory %s.\n", cup.c_str());
   }
 
-  std::string log_file = cup + PATH_SEP + app + "-log.txt";
+  std::string cudp = utils::get_current_user_doc_path();
+  if(!files::dir_exists(cudp))
+    files::creation_dossier(cudp);
 
-  TraceLevel tl = AL_NONE;
-  TraceLevel tlf = AL_NONE;
+  std::string log_file = cup + PATH_SEP + appdata.nom_appli + "-log.txt";
+
+  journal::TraceLevel tl = journal::AL_NONE;
+  journal::TraceLevel tlf = journal::AL_NONE;
 
   if(cmdeline.has_option("-v"))
-    tl = AL_NORMAL;
+    tl = journal::AL_NORMAL;
 
   if(cmdeline.has_option("-vv"))
-    tl = AL_VERBOSE;
+    tl = journal::AL_VERBOSE;
 
   if(cmdeline.has_option("--ftrace-level"))
   {
     int level = cmdeline.get_int_option("--ftrace-level", 7);
     if(level < 6)
-      tlf = (TraceLevel) level;
+      tlf = (journal::TraceLevel) level;
   }
 
-  if(cmdeline.has_option("--trace-file-name"))
+  if(cmdeline.has_option("--infos-file-name"))
   {
-    log_file = cmdeline.get_option("--trace-file-name");
+    log_file = cmdeline.get_option("--infos-file-name");
   }
 
-  if(cmdeline.has_option("--trace-level"))
+  if(cmdeline.has_option("--infos-level"))
   {
-    int level = cmdeline.get_int_option("--trace-level", 7);
+    int level = cmdeline.get_int_option("--infos-level", 7);
     if(level < 6)
-      tl = (TraceLevel) level;
+      tl = (journal::TraceLevel) level;
   }
 
   /* Setup STDOUT traces level */
-  TraceManager::set_global_min_level(TraceManager::TRACE_TARGET_STD, tl);
+  journal::set_global_min_level(journal::TRACE_TARGET_STD, tl);
 
   /* Setup FILE traces level */
-  TraceManager::set_global_min_level(TraceManager::TRACE_TARGET_FILE, tlf);
+  journal::set_global_min_level(journal::TRACE_TARGET_FILE, tlf);
 
-  TraceManager::set_log_file(log_file);
+  journal::set_log_file(log_file);
 
   {
     string fs = utils::get_fixed_data_path() + PATH_SEP + "std-lang.xml";
@@ -379,15 +417,40 @@ void init(CmdeLine &cmdeline,
       langue.load(fs);
   }
 
+  {
+    string fs = utils::get_fixed_data_path() + PATH_SEP + "lang.xml";
+    if(files::file_exists(fs))
+      langue.load(fs);
+  }
+
 # ifdef DEBUG_MODE
-  TraceManager::set_abort_on_anomaly(true);
+  journal::set_abort_on_anomaly(true);
 # else
   if(cmdeline.has_option("--abrt"))
-    TraceManager::set_abort_on_anomaly(true);
+    journal::set_abort_on_anomaly(true);
 # endif
 
-  TraceManager::get_instance();
-  TraceManager::trace(AL_VERBOSE, "util", "initialization done.");
+
+  ////////////////////////////////////////////////
+  /// VÃ©rification / crÃ©ation du dossier utilisateur/MGC
+  ////////////////////////////////////////////////
+  {
+    std::string chem = utils::get_current_user_doc_path();
+    if(!utils::files::dir_exists(chem))
+    {
+      infos("Creation du dossier utilisateur (%s).", chem.c_str());
+      utils::files::creation_dossier(chem);
+    }
+    if(!utils::files::dir_exists(chem))
+      erreur("Impossible de crÃ©er le dossier utilisateur [%s].", chem.c_str());
+  }
+
+
+
+  std::string dts = utils::get_current_date_time();
+  infos("Fichier journal pour l'application %s, version %d.%d.%d\nDate / heure lancement application : %s\n**************************************\n**************************************\n**************************************",
+      appdata.nom_appli.c_str(), vmaj, vmin, vpatch, dts.c_str());
+  infos("Initialisation libcutil faite.");
 }
 
 std::string get_fixed_data_path()
@@ -407,7 +470,7 @@ std::string get_fixed_data_path()
 
   //printf("get_fixed_data_path: %s\n", appdata.fixed_data_path.c_str());fflush(0);
 
-  return appdata.fixed_data_path;
+  return appdata.chemin_donnees_fixes;
 }
 
 std::string get_img_path()
@@ -416,7 +479,7 @@ std::string get_img_path()
     img_path = exec_dir + PATH_SEP + "img";
   return img_path;*/
   //return get_fixed_data_path() + PATH_SEP + "img";
-  return appdata.img_path;
+  return appdata.chemin_images;
 }
 
 /*void Util::set_fixed_data_path(std::string s)
@@ -468,7 +531,7 @@ void str::encode_byte_array_deci(std::string str, std::vector<unsigned char> vec
   unsigned char current = 0;
   if(!is_deci(s[0]))
   {
-    TraceManager::trace(AL_ANOMALY, "Encoding decimal byte array", "This string cannot be encoded: " + str);
+    erreur("Encoding decimal byte array : this string cannot be encoded: %s", str.c_str());
     return;
   }
   while(strlen(s) > 0)
@@ -924,17 +987,15 @@ bool files::file_exists(std::string name)
   return true;
 }
 
-
-
-std::string get_current_user_path()
+std::string get_current_user_doc_path()
 {
 # ifdef WIN
   TCHAR tmp[MAX_PATH]={0};
-  if(S_OK == ::SHGetFolderPath(nullptr, CSIDL_APPDATA, nullptr, 0, tmp))
+  if(S_OK == ::SHGetFolderPath(nullptr, CSIDL_PERSONAL, nullptr, 0, tmp))
   {
     std::ostringstream tmp2;
     tmp2 << tmp;
-    return tmp2.str() + PATH_SEP + appdata.project_name;
+    return tmp2.str() + PATH_SEP + appdata.nom_projet;
   }
   return "";
 # else
@@ -946,7 +1007,32 @@ std::string get_current_user_path()
       perror("getenv");
       return s;
     }
-    return std::string(temp) + "/." + appdata.project_name;
+    return std::string(temp) + "/" + appdata.nom_projet;
+  }
+# endif
+}
+
+std::string get_current_user_path()
+{
+# ifdef WIN
+  TCHAR tmp[MAX_PATH]={0};
+  if(S_OK == ::SHGetFolderPath(nullptr, CSIDL_APPDATA, nullptr, 0, tmp))
+  {
+    std::ostringstream tmp2;
+    tmp2 << tmp;
+    return tmp2.str() + PATH_SEP + appdata.nom_projet;
+  }
+  return "";
+# else
+  std::string s = "";
+  {
+    char *temp = getenv("HOME");
+    if(temp == nullptr)
+    {
+      perror("getenv");
+      return s;
+    }
+    return std::string(temp) + "/." + appdata.nom_projet;
   }
 # endif
 }
@@ -959,7 +1045,7 @@ std::string get_all_user_path()
   {
     std::ostringstream tmp2;
     tmp2 << tmp;
-    return tmp2.str() + PATH_SEP + appdata.app_name;
+    return tmp2.str() + PATH_SEP + appdata.nom_appli;
   }
   return "";
 # else
@@ -1000,21 +1086,41 @@ int files::check_and_build_directory(std::string path)
 {
   if(!files::file_exists(path))
   {
-    TraceManager::trace(AL_WARNING,
-                        "util",
-                        "output path [%s] does not exist.", path.c_str());
-    if(files::create_directory(path))
+    avertissement("%s: output path [%s] does not exist.", __func__, path.c_str());
+    if(files::creation_dossier(path))
     {
-      TraceManager::trace(AL_ANOMALY,
-                          "util",
-                          "Failed to create output path.");
+      erreur("Failed to create output path.");
       return -1;
     }
   }
   return 0;
 }
 
-int files::create_directory(std::string path)
+int files::explore_dossier(std::string chemin, std::vector<std::string> &fichiers)
+{
+# ifdef WIN
+  DIR *dir;
+  struct dirent *ent;
+  if((dir = opendir(chemin.c_str())) == NULL)
+  {
+    fprintf(stderr, "Chemin non trouve : [%s].\n", chemin.c_str());
+    return -1;
+  }
+
+  while ((ent = readdir (dir)) != NULL)
+  {
+    std::string f = std::string(ent->d_name);
+    if(f.size() > 4)
+      fichiers.push_back(chemin + '/' + f);
+  }
+  closedir (dir);
+  return 0;
+# else
+  return -1;
+# endif
+}
+
+int files::creation_dossier(std::string path)
 {
 # ifdef WIN
 # ifdef VSTUDIO
@@ -1032,9 +1138,9 @@ int files::create_directory(std::string path)
 
 
 
-string str::get_filename_resume(const string &filename)
+string str::get_filename_resume(const string &filename, unsigned int max_chars)
 {
-  if(filename.size() < 30)
+  if(filename.size() < max_chars)
     return filename;
 
   int i;
@@ -1044,7 +1150,7 @@ string str::get_filename_resume(const string &filename)
     if((filename[i] == '/') || (filename[i] == '\\'))
     {
       count++;
-      if(count == 2)
+      if(count == 3)
         break;
     }
   }
@@ -1175,6 +1281,14 @@ int files::abs2rel(const std::string &ref,
     result += PATH_SEP + vabs[i];
 
   return 0;
+}
+
+void files::remplacement_motif(std::string &chemin)
+{
+  if(chemin.substr(0, 5) == "$DATA")
+  {
+    chemin = utils::get_fixed_data_path() + chemin.substr(5, chemin.size() - 5);
+  }
 }
 
 int files::rel2abs(const std::string &ref,
@@ -1317,7 +1431,7 @@ std::string str::lowercase(std::string s)
   }
   buf[i] = 0;
 
-  //TraceManager::trace(TraceManager::TRACE_LEVEL_MAJOR, "util", "lowercase: in = %s -> %s", s.c_str(), buf);
+  //TraceManager::infos(TraceManager::TRACE_LEVEL_MAJOR, "util", "lowercase: in = %s -> %s", s.c_str(), buf);
   return std::string(buf);
 }
 
@@ -1511,26 +1625,15 @@ std::string TextAlign::get_result()
 
 
 
-void Section::load(std::string filename)
+void Section::load(std::string nom_fichier)
 {
   MXml mx;
-  if(mx.from_file(std::string(filename)))
+  if(mx.from_file(nom_fichier))
   {
-    printf("Unable to load localization file.\n");
-    fflush(stdout);
+    erreur("Impossible de charger le fichier de loc (%s).", nom_fichier.c_str());
+    return;
   }
-  else
-  {
-    for(unsigned int i = 0; i < mx.children.size(); i++)
-    {
-      if(mx.children[i].name.compare("include") == 0)
-      {
-        load(utils::get_fixed_data_path() + PATH_SEP + mx.children[i].get_attribute("file").to_string());
-      }
-      else
-        data.add_child(mx.children[i]);
-    }
-  }
+  load(mx);
 }
 
 
@@ -1546,14 +1649,16 @@ Section::Section()
 
 void Section::operator =(const Section &c)
 {
-  data = c.data;
-  this->current_language = c.current_language;
+  nom = c.nom;
+  elmts = c.elmts;
+  subs = c.subs;
+  //data = c.data;
+  //this->current_language = c.current_language;
 }
 
 Section::Section(const Section &c)
 {
-  data = c.data;
-  this->current_language = c.current_language;
+  *this = c;
 }
 
 
@@ -1629,36 +1734,42 @@ std::string str::latin_to_utf8(std::string s)
   return res;
 }
 
-bool Section::has_item(std::string name)
+bool Section::has_item(const std::string &name) const
 {
-  return data.has_child("item", "name", name);
+  //return data.has_child("item", "name", name);
+  for(const auto &e: elmts)
+    if(e.get_id() == name)
+      return true;
+  return false;
 }
 
-std::string Section::get_item(std::string name)
+const utils::model::Localized &Section::get_localized(const std::string &name) const
 {
-  if(!data.has_child("item", "name", name))
-  {
-    printf("Item not found: %s\n", name.c_str());
-    return name + "=?";
-  }
-  MXml elt = data.get_child("item", "name", name);
-
-
-  if(elt.has_attribute(current_language))
-    return elt.get_attribute(this->current_language).string_value;
-  else
-    if(elt.has_attribute("en"))
-      return elt.get_attribute("en").string_value;
-    else
-      return name;
+  for(const auto &e: elmts)
+    if(e.get_id() == name)
+      return e;
+  erreur("Item de localisation non trouve: %s", name.c_str());
+  return elmts[0];
 }
 
-const char *Section::get_text(std::string name)
+std::string Section::get_item(const std::string &name) const
 {
+
+  for(const auto &e: elmts)
+    if(e.get_id() == name)
+      return e.get_localized();
+
+  erreur("Item de localisation non trouvé : %s (dans section [%s]).",
+                name.c_str(), this->nom.c_str());
+  return name + "=?";
+}
+
+/*const char *Section::get_text(std::string name)
+{*/
   /*if((data == nullptr) || (data == 0))
     return name.c_str();*/
 
-  if(!data.has_child("item", "name", name))
+/*  if(!data.has_child("item", "name", name))
   {
     printf("Item not found: %s\n", name.c_str());
     return name.c_str();
@@ -1666,22 +1777,24 @@ const char *Section::get_text(std::string name)
 
   MXml elt = data.get_child("item", "name", name);
   return elt.get_attribute(this->current_language).string_value.c_str();
+}*/
+
+const Section &Section::get_section(const std::string &name) const
+{
+  for(const auto &s: subs)
+    if(s->nom == name)
+      return *s;
+  erreur("Sous section non trouvee : %s", name.c_str());
+  return *this;
 }
 
-Section Section::get_section(std::string name)
+Section &Section::get_section(const std::string &name)
 {
-  /*if((data == nullptr) || (data == 0))
-    return *this;*/
-
-  if(!data.has_child("section", "name", name))
-  {
-    printf("Sub-section not found : %s\n", name.c_str());
-    return Section(MXml());
-  }
-  MXml dat = data.get_child("section", "name", name);
-  Section res(dat);
-  res.current_language = current_language;
-  return res;
+  for(auto &s: subs)
+    if(s->nom == name)
+      return *s;
+  erreur("Sous section non trouvee : %s", name.c_str());
+  return *this;
 }
 
 Section::~Section()
@@ -1689,13 +1802,30 @@ Section::~Section()
   //printf("delete section.\n");
 }
 
-Section::Section(const MXml &data)
+void Section::load(const utils::model::MXml &mx)
 {
-  this->data = data;
-  /*std::vector<Attribute> *va = new std::vector<Attribute>;
-  std::vector<MXml> *ve = new std::vector<MXml>;*/
-  /*if(data == nullptr)
-    data = new MXml("?", va, ve);*/
+  this->nom = mx.get_attribute("name").to_string();
+  for(auto &ch: mx.children)
+  {
+    if(ch.name == "include")
+    {
+      load(utils::get_fixed_data_path() + PATH_SEP + ch.get_attribute("file").to_string());
+    }
+    else if(ch.name == "item")
+    {
+      elmts.push_back(utils::model::Localized(ch));
+    }
+    else if(ch.name == "section")
+    {
+      Section *sec = new Section(ch);
+      subs.push_back(utils::refptr<Section>(sec));
+    }
+  }
+}
+
+Section::Section(const MXml &mx)
+{
+  load(mx);
 }
 
 
@@ -1893,11 +2023,16 @@ void Localized::set_value(Language lg, std::string value)
 {
   if(value.size() == 0)
     return;
+
+  if(lg == Localized::LANG_ID)
+    id = value;
+
   for(unsigned int i = 0; i < items.size(); i++)
   {
     if(items[i].first == lg)
     {
       items[i].second = value;
+
       return;
     }
   }
@@ -1905,9 +2040,6 @@ void Localized::set_value(Language lg, std::string value)
   item.first  = lg;
   item.second = value;
   items.push_back(item);
-
-  if(lg == Localized::LANG_ID)
-    id = value;
 }
 
 std::string Localized::to_string() const
@@ -1961,6 +2093,9 @@ std::string Localized::get_value(Language lg) const
   }
 
 
+  //auto l = Localized::language_id(lg);
+  //avertissement("Item loc non trouve : [%s], en langue [%s].", this->id.c_str(), l.c_str());
+
 
   return default_value;
 }
@@ -1982,7 +2117,7 @@ std::string Localized::get_description(Language lg) const
 {
   std::string default_value = "";
   if(lg == LANG_CURRENT)
-    lg = Localized::parse_language(langue.current_language);
+    lg = current_language;
 
   if(descriptions.size() > 0)
     default_value = descriptions[0].second;
@@ -2028,14 +2163,6 @@ Localized::Language Localized::parse_language(std::string id)
   for(auto i = 0; i < NLANG; i++)
     if(id.compare(lglist[i]) == 0)
       return (Localized::Language) (((int) LANG_FR) + i);
-  /*if(id.compare("fr") == 0)
-    return LANG_FR;
-  if(id.compare("en") == 0)
-    return LANG_EN;
-  if(id.compare("de") == 0)
-    return LANG_DE;
-  if(id.compare("ru") == 0)
-  return LANG_RU;*/
   return LANG_UNKNOWN;
 }
 
@@ -2046,18 +2173,18 @@ Localized::Localized(const MXml &mx)
   else if(mx.has_attribute("type"))
     set_value(LANG_ID, mx.get_attribute("type").to_string());
 
-  // TODO: should not repeat the same code for each language
-  if(mx.has_attribute("fr"))
+  for(auto i = 0; i < NLANG; i++)
+  {
+    if(mx.has_attribute(lglist[i])) // e.g. fr, en, etc.
+      set_value((Language) ((int)LANG_FR + i),
+          mx.get_attribute(lglist[i]).to_string());
+  }
+
+  /*if(mx.has_attribute("fr"))
     set_value(LANG_FR, mx.get_attribute("fr").to_string());
 
   if(mx.has_attribute("en"))
-    set_value(LANG_EN, mx.get_attribute("en").to_string());
-
-  if(mx.has_attribute("de"))
-    set_value(LANG_DE, mx.get_attribute("de").to_string());
-
-  if(mx.has_attribute("ru"))
-    set_value(LANG_RU, mx.get_attribute("ru").to_string());
+    set_value(LANG_EN, mx.get_attribute("en").to_string());*/
 
   std::vector<MXml> lst = mx.get_children("description");
 
@@ -2112,7 +2239,7 @@ int TestUtil::check_value(float v, float ref, float precision, const std::string
 
   if(err > precision)
   {
-    log_anomaly(0, "%s: too much error. Value = %f, reference = %f, relative error = %f %%, max relative error = %f %%.", refname.c_str(), v, ref, err, precision);
+    erreur("%s: too much error. Value = %f, reference = %f, relative error = %f %%, max relative error = %f %%.", refname.c_str(), v, ref, err, precision);
     return -1;
   }
 
@@ -2126,7 +2253,7 @@ int TestUtil::proceed()
 
   if(cmdeline.has_option("--help") || cmdeline.has_option("--usage"))
   {
-    cout << "Usage for " << appdata.project_name << "/" << appdata.app_name << ":" << endl;
+    cout << "Usage for " << appdata.nom_projet << "/" << appdata.nom_appli << ":" << endl;
 
     for(uint32_t i = 0; i < units.size(); i++)
     {
@@ -2137,7 +2264,7 @@ int TestUtil::proceed()
   }
 
 
-  cout << "Proceeding tests of " << appdata.project_name << "/" << appdata.app_name << endl;
+  cout << "Proceeding tests of " << appdata.nom_projet << "/" << appdata.nom_appli << endl;
 
   float t0 = hal::get_tick_count_us();
 
@@ -2176,8 +2303,8 @@ int TestUtil::proceed()
 
   printf("\nDuration of the whole tests: %.2f ms.\n", (t1 - t0) / 1000.0);
 
-  uint32_t nb_warnings  = TraceManager::get_warning_count();
-  uint32_t nb_anomalies = TraceManager::get_anomaly_count();
+  uint32_t nb_warnings  = journal::get_warning_count();
+  uint32_t nb_anomalies = journal::get_anomaly_count();
 
   cout << nb_warnings << " warning(s), " << nb_anomalies << " anomalie(s)." << endl;
 

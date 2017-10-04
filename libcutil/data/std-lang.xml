@@ -24,6 +24,7 @@
   <item name="default-val" fr="Valeur par défaut" en="Default value"/>
   <item name="ref-sel" fr="Sélection de la référence" en="Reference selection"/>
   <item name="select-folder" fr="Sélection du dossier" en="Folder selection"/>
+  <item name="select-fichier" fr="Choix du fichier" en="File selection"/>
   <item name="exit" fr="Quitter" en="Exit"/>
   <item name="save" fr="Enregistrer" en="Save"/>
   <item name="open" fr="Ouvrir" en="Open"/>
@@ -55,4 +56,22 @@
   <item name="Add..." fr="Ajouter..."/>
   <item name="Remove" fr="Retirer"/>
   <item name="Add " fr="Ajouter " en="Add "/>
+  
+  <section name="svg-log">
+  
+   <item name = "check-lock-1"
+        fr   = "Fin innatendue du programme"
+        en   = "Unexpected end of the application"/>
+   <item name = "check-lock-2"
+         fr   = "Enregistrement du fichier journal"
+         en   = "Log file saving"/>
+   <item name = "check-lock-3"
+         fr   = "Lors de la précédente exécution de MGC, l'application s'est interrompue de manière innatendue. Nous sommes désolé pour ce désagrément. Souhaitez-vous enregistrer le dernier fichier journal ? Vous pouvez ensuite le transmettre au support technique avec une description du bug."
+         en   = "During the previous execution of MGC, the application stopped in an unexpected way. We are sorry for the disagreement. Do you wish to save the log file? You can them send it to the support team, with a description of the bug, and we will try to solve this problem."/>
+   <item name = "svg-log-titre"
+         fr   = "Enregistrement du fichier journal"
+         en   = "Log file saving"/>
+  
+  </section>
+  
 </section>

@@ -1,5 +1,8 @@
+#include "../../include/journal.hpp"
 #include "comm/serial.hpp"
-#include "trace.hpp"
+#ifdef WIN
+#include <windows.h>
+#endif
 
 namespace utils
 {
@@ -38,7 +41,7 @@ int reg_open_subkey_at(HKEY hKey, uint32_t index, REGSAM samDesired,
     if(errcode != 0)
     {
       if(errcode != ERROR_NO_MORE_ITEMS)
-        TraceManager::trace(AL_NORMAL, "reg", "RegEnumKeyEx error %d, index = %d.\n", errcode, index);
+        erreur("RegEnumKeyEx error %d, index = %d.\n", errcode, index);
       free(buffer);
       return errcode;
     }
@@ -48,7 +51,7 @@ int reg_open_subkey_at(HKEY hKey, uint32_t index, REGSAM samDesired,
     *subkey_name = std::string(buffer);
   errcode = RegOpenKeyEx(hKey, buffer, 0, samDesired, phkResult);
   if(errcode != 0)
-    TraceManager::trace(AL_NORMAL, "reg", "RegOpenKeyEx error %d.\n", errcode);
+    erreur("RegOpenKeyEx error %d.\n", errcode);
   free(buffer);
   return errcode;
 }
@@ -92,12 +95,13 @@ int Serial::enumerate(std::vector<SerialInfo> &infos)
 # ifdef LINUX
   return 0;
 # else
+  std::vector<SerialInfo> tmp;
   OSVERSIONINFO os;
   uint32_t i, j, k, errcode;
   HKEY key_enum, key1, key2, key3;
   std::string port_name, friendly_name, technology;
 
-  TraceManager::trace(AL_NORMAL, "reg", "Serial port enumeration...\n");
+  infos("Serial port enumeration...");
 
   memset(&os, 0, sizeof(os));
   os.dwOSVersionInfoSize = sizeof(os);
@@ -106,14 +110,14 @@ int Serial::enumerate(std::vector<SerialInfo> &infos)
 
   if ((os.dwPlatformId != VER_PLATFORM_WIN32_NT) || (os.dwMajorVersion <= 4))
   {
-    TraceManager::trace(AL_ANOMALY, "reg", "Unsupported os.");
+    erreur("Unsupported os.");
     return -1;
   }
 
   if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CURRENTCONTROLSET\\ENUM", 0,
       KEY_ENUMERATE_SUB_KEYS, &key_enum) != 0)
   {
-    TraceManager::trace(AL_ANOMALY, "reg", "enumerate: RegOpenKeyEx error.\n");
+    erreur("enumerate: RegOpenKeyEx error.");
     return -1;
   }
 
@@ -125,7 +129,7 @@ int Serial::enumerate(std::vector<SerialInfo> &infos)
       break;
     else if(errcode != 0)
     {
-      TraceManager::trace(AL_ANOMALY, "serial", "enumerate: reg_open_subkey_at(1) error.\n");
+      erreur("enumerate: reg_open_subkey_at(1) error.");
       return -1;
     }
 
@@ -136,7 +140,7 @@ int Serial::enumerate(std::vector<SerialInfo> &infos)
         break;
       else if(errcode != 0)
       {
-        TraceManager::trace(AL_ANOMALY, "serial", "enumerate: reg_open_subkey_at(2) error.\n");
+        erreur("enumerate: reg_open_subkey_at(2) error.");
         RegCloseKey(key1);
         RegCloseKey(key_enum);
         return -1;
@@ -149,7 +153,7 @@ int Serial::enumerate(std::vector<SerialInfo> &infos)
           break;
         else if(errcode != 0)
         {
-          TraceManager::trace(AL_ANOMALY, "serial", "enumerate: reg_open_subkey_at(3) error.\n");
+          erreur("enumerate: reg_open_subkey_at(3) error.");
           RegCloseKey(key1);
           RegCloseKey(key2);
           RegCloseKey(key_enum);
@@ -206,7 +210,7 @@ int Serial::enumerate(std::vector<SerialInfo> &infos)
         serial_info.name = port_name;
         serial_info.complete_name = (friendly_name.size() == 0) ? serial_info.name : std::string(friendly_name);
         serial_info.techno = technology;
-        infos.push_back(serial_info);
+        tmp.push_back(serial_info);
 
         RegCloseKey(key3);
       } // for k
@@ -215,6 +219,40 @@ int Serial::enumerate(std::vector<SerialInfo> &infos)
     RegCloseKey(key1);
   } // for i
   RegCloseKey(key_enum);
+
+  // Vérifie que les ports COM sont bien actifs
+  for(auto &si: tmp)
+  {
+    char port[50];
+
+    sprintf(port, "%s", si.name.c_str());
+    if(strlen(port) > 4)
+    {
+      sprintf(port, "%s%s", "\\\\.\\", si.name.c_str());
+    }
+
+    HANDLE h = ::CreateFile(
+                      port,
+                      GENERIC_READ | GENERIC_WRITE,
+                      0,
+                      NULL,
+                      OPEN_EXISTING,
+                      FILE_ATTRIBUTE_NORMAL,
+                      NULL);
+    if(h == INVALID_HANDLE_VALUE)
+    {
+      avertissement("Enumeration : port COM [%s] non actif.", si.name.c_str());
+    }
+    else
+    {
+      infos("Enumeration : port COM [%s] actif.", si.name.c_str());
+      infos.push_back(si);
+      ::CloseHandle(h);
+    }
+  }
+
+
+
   return 0;
 # endif
 }

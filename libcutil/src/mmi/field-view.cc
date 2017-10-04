@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <limits.h>
 
+using namespace std;
+
 namespace utils
 {
 namespace mmi
@@ -36,7 +38,7 @@ static void update_text_color(Gtk::Widget &w, bool valid)
  *               BYTES VIEW IMPLEMENTATION                          *
  *******************************************************************/
 
-BytesView::BytesView(Attribute *model) {
+VueOctets::VueOctets(Attribute *model) {
   this->model = model;
   valid = model->schema->is_valid(model->get_string());
   lock = false;
@@ -46,37 +48,37 @@ BytesView::BytesView(Attribute *model) {
   entry.set_width_chars(20);
   entry.set_text(model->get_string());
   entry.signal_changed().connect(
-      sigc::mem_fun(*this, &BytesView::on_signal_changed));
+      sigc::mem_fun(*this, &VueOctets::on_signal_changed));
   entry.signal_focus_in_event().connect(
       sigc::mem_fun(*this, &AttributeView::on_focus_in));
 }
 
-void BytesView::update_langue() {
+void VueOctets::update_langue() {
   label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
 }
 
-unsigned int BytesView::get_nb_widgets() {
+unsigned int VueOctets::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *BytesView::get_widget(int index) {
+Gtk::Widget *VueOctets::get_widget(int index) {
   if (index == 0)
     return &label;
   else
     return &entry;
 }
 
-Gtk::Widget *BytesView::get_gtk_widget()
+Gtk::Widget *VueOctets::get_gtk_widget()
 {
   return &entry;
 }
 
-void BytesView::set_sensitive(bool b) {
+void VueOctets::set_sensitive(bool b) {
   entry.set_sensitive(b);
   label.set_sensitive(b);
 }
 
-void BytesView::on_signal_changed() {
+void VueOctets::on_signal_changed() {
   if (!lock) {
     lock = true;
     //model->set_value(entry.get_text());
@@ -94,7 +96,7 @@ void BytesView::on_signal_changed() {
   }
 }
 
-void BytesView::on_event(const ChangeEvent &ce) {
+void VueOctets::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
     entry.set_text(model->get_string());
@@ -106,7 +108,7 @@ void BytesView::on_event(const ChangeEvent &ce) {
  *               HEXA VIEW IMPLEMENTATION                          *
  *******************************************************************/
 
-HexaView::HexaView(Attribute *model) {
+VueHexa::VueHexa(Attribute *model) {
   this->model = model;
   lock = false;
   valid = model->schema->is_valid(model->get_string());
@@ -138,30 +140,30 @@ HexaView::HexaView(Attribute *model) {
 
   //entry.set_text(model->value);
   entry.signal_changed().connect(
-      sigc::mem_fun(*this, &HexaView::on_signal_changed));
+      sigc::mem_fun(*this, &VueHexa::on_signal_changed));
 }
 
-void HexaView::update_langue() {
+void VueHexa::update_langue() {
   label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
 }
 
-unsigned int HexaView::get_nb_widgets() {
+unsigned int VueHexa::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *HexaView::get_widget(int index) {
+Gtk::Widget *VueHexa::get_widget(int index) {
   if (index == 0)
     return &label;
   else
     return &entry;
 }
 
-Gtk::Widget *HexaView::get_gtk_widget()
+Gtk::Widget *VueHexa::get_gtk_widget()
 {
   return &entry;
 }
 
-void HexaView::set_sensitive(bool b) {
+void VueHexa::set_sensitive(bool b) {
   entry.set_sensitive(b);
   label.set_sensitive(b);
 }
@@ -169,7 +171,7 @@ void HexaView::set_sensitive(bool b) {
 
 
 
-void HexaView::on_signal_changed() {
+void VueHexa::on_signal_changed() {
   if (!lock) {
     lock = true;
     //model->set_value(entry.get_text());
@@ -187,7 +189,7 @@ void HexaView::on_signal_changed() {
   }
 }
 
-void HexaView::on_event(const ChangeEvent &ce) {
+void VueHexa::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
     entry.set_text(model->get_string());
@@ -199,7 +201,7 @@ void HexaView::on_event(const ChangeEvent &ce) {
  *               TEXT VIEW IMPLEMENTATION                        *
  *******************************************************************/
 
-TxtView::TxtView(Attribute *model, bool small_) {
+VueTexte::VueTexte(Attribute *model, bool small_) {
   lock = false;
   this->model = model;
   label.set_use_markup(true);
@@ -218,7 +220,7 @@ TxtView::TxtView(Attribute *model, bool small_) {
    else
    view.set_width_chars(30);*/
   view.get_buffer()->signal_changed().connect(
-      sigc::mem_fun(*this, &TxtView::on_signal_changed));
+      sigc::mem_fun(*this, &VueTexte::on_signal_changed));
 
   scroll.set_policy(Gtk::POLICY_NEVER, Gtk::POLICY_AUTOMATIC);
   scroll.add(view);
@@ -226,32 +228,32 @@ TxtView::TxtView(Attribute *model, bool small_) {
   frame.add(scroll);
 }
 
-void TxtView::update_langue() {
+void VueTexte::update_langue() {
   label.set_markup("<b>" + NodeView::mk_label(model->schema->name) + "</b>");
 }
 
-unsigned int TxtView::get_nb_widgets() {
+unsigned int VueTexte::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *TxtView::get_widget(int index) {
+Gtk::Widget *VueTexte::get_widget(int index) {
   if (index == 0)
     return &label;
   else
     return &frame;
 }
 
-Gtk::Widget *TxtView::get_gtk_widget()
+Gtk::Widget *VueTexte::get_gtk_widget()
 {
   return &frame;
 }
 
-void TxtView::set_sensitive(bool b) {
+void VueTexte::set_sensitive(bool b) {
   view.set_sensitive(b);
   label.set_sensitive(b);
 }
 
-void TxtView::on_signal_changed() {
+void VueTexte::on_signal_changed() {
   if (!lock) {
     lock = true;
     model->set_value(view.get_buffer()->get_text());
@@ -259,7 +261,7 @@ void TxtView::on_signal_changed() {
   }
 }
 
-void TxtView::on_event(const ChangeEvent &ce) {
+void VueTexte::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
     view.get_buffer()->set_text(model->get_string());
@@ -271,7 +273,7 @@ void TxtView::on_event(const ChangeEvent &ce) {
  *               DECIMAL SPIN VIEW IMPLEMENTATION                  *
  *******************************************************************/
 
-DecimalSpinView::DecimalSpinView(Attribute *model, int compatibility_mode)
+VueDecimal::VueDecimal(Attribute *model, int compatibility_mode)
 {
   tp = "decimal-spin";
   is_sensitive = true;
@@ -284,7 +286,7 @@ DecimalSpinView::DecimalSpinView(Attribute *model, int compatibility_mode)
 
   valid = model->schema->is_valid(model->get_string());
 
-  //trace("decimal view(%s): min = %d, max = %d.", model->name.c_str(), model->schema.get_min(), model->schema.get_max());
+  //infos("decimal view(%s): min = %d, max = %d.", model->name.c_str(), model->schema.get_min(), model->schema.get_max());
 
   spin.set_range(model->schema->get_min(), model->schema->get_max());
   spin.set_value((double) model->get_float()); //atoi(model->get_string().c_str()));
@@ -304,30 +306,30 @@ DecimalSpinView::DecimalSpinView(Attribute *model, int compatibility_mode)
   }
 
   spin.signal_value_changed().connect(
-      sigc::mem_fun(*this, &DecimalSpinView::on_signal_changed));
+      sigc::mem_fun(*this, &VueDecimal::on_signal_changed));
   spin.signal_editing_done().connect(
-      sigc::mem_fun(*this, &DecimalSpinView::on_signal_changed));
+      sigc::mem_fun(*this, &VueDecimal::on_signal_changed));
   spin.signal_changed().connect(
-      sigc::mem_fun(*this, &DecimalSpinView::on_signal_changed));
+      sigc::mem_fun(*this, &VueDecimal::on_signal_changed));
   spin.signal_focus_out_event().connect(
-      sigc::mem_fun(*this, &DecimalSpinView::on_signal_focus_out));
+      sigc::mem_fun(*this, &VueDecimal::on_signal_focus_out));
   spin.signal_focus_in_event().connect(
       sigc::mem_fun(*this, &AttributeView::on_focus_in));
   update_valid();
 }
 
-void DecimalSpinView::update_langue() {
+void VueDecimal::update_langue() {
   set_sensitive(is_sensitive);
   //label.set_markup("<b>" + mk_label(&(model->schema)) + "</b>");
 }
 
-unsigned int DecimalSpinView::get_nb_widgets() {
+unsigned int VueDecimal::get_nb_widgets() {
   //if(model->schema.has_unit())
   //return 3;
   return 2;
 }
 
-Gtk::Widget *DecimalSpinView::get_widget(int index) {
+Gtk::Widget *VueDecimal::get_widget(int index) {
   if (index == 0)
     return &label;
   else if (index == 1)
@@ -340,35 +342,35 @@ Gtk::Widget *DecimalSpinView::get_widget(int index) {
   return nullptr;
 }
 
-Gtk::Widget *DecimalSpinView::get_gtk_widget()
+Gtk::Widget *VueDecimal::get_gtk_widget()
 {
   return &spin;
 }
 
-void DecimalSpinView::set_sensitive(bool b) {
+void VueDecimal::set_sensitive(bool b) {
   is_sensitive = b;
   spin.set_sensitive(b);
   label.set_sensitive(b);
   label_unit.set_sensitive(b);
-  label.set_markup("<b>" + NodeView::mk_label(model->schema->name) + "</b>");
+  label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
 }
 
-bool DecimalSpinView::on_signal_focus_out(GdkEventFocus *gef) {
-  //trace("focus out.");
+bool VueDecimal::on_signal_focus_out(GdkEventFocus *gef) {
+  //infos("focus out.");
   //on_signal_changed();
   return true;
 }
 
-void DecimalSpinView::update_valid()
+void VueDecimal::update_valid()
 {
   update_text_color(spin, valid);
 }
 
-bool DecimalSpinView::is_valid() {
+bool VueDecimal::is_valid() {
   return valid;
 }
 
-void DecimalSpinView::on_signal_changed() {
+void VueDecimal::on_signal_changed() {
   if (!lock) {
     lock = true;
 
@@ -381,7 +383,7 @@ void DecimalSpinView::on_signal_changed() {
   }
 }
 
-void DecimalSpinView::on_event(const ChangeEvent &ce) {
+void VueDecimal::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
     spin.set_range(model->schema->get_min(), model->schema->get_max());
@@ -394,40 +396,53 @@ void DecimalSpinView::on_event(const ChangeEvent &ce) {
  *               FLOAT VIEW IMPLEMENTATION                         *
  *******************************************************************/
 
-FloatView::FloatView(Attribute *model) {
+VueFloat::VueFloat(Attribute *model) {
   lock = false;
   this->model = model;
   label.set_use_markup(true);
-  label.set_markup("<b>" + NodeView::mk_label(model->schema->name) + "</b>");
+  label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
   spin.set_editable(true);
-  spin.set_increments(0.01, 1);
-  spin.set_digits(6);
-  //trace("decimal view(%s): min = %d, max = %d.", model->name.c_str(), model->schema.get_min(), model->schema.get_max());
+
+  int digits = model->schema->digits;
+
+  //utils::infos("float-view[%s]: digits = %d", model->schema->name.get_id().c_str(), digits);
+
+  if(digits <= 0)
+    digits = 6;
+
+  float increment = 1.0;
+  for(auto i = 0u; i < (unsigned int) digits; i++)
+    increment /= 10;
+
+  spin.set_increments(increment, 1);
+  spin.set_digits(digits);
+  //infos("decimal view(%s): min = %d, max = %d.", model->name.c_str(), model->schema.get_min(), model->schema.get_max());
 
   spin.set_range(model->schema->get_min(), model->schema->get_max());
-  //trace("Setting spin value = %f, str = %s", atof(model->value.c_str()), model->value.c_str());
+  //infos("Setting spin value = %f, str = %s", atof(model->value.c_str()), model->value.c_str());
   spin.set_value(model->get_float());   //atof(model->value.c_str()));
-  if (model->schema->has_unit()) {
+  if (model->schema->has_unit())
+  {
     std::string unit = model->schema->unit;
-  if (langue.has_item(unit))
-    unit = langue.get_item(unit);
+    if (langue.has_item(unit))
+      unit = langue.get_item(unit);
     label_unit.set_text(std::string("  ") + unit + "  ");
   }
   spin.signal_value_changed().connect(
-      sigc::mem_fun(*this, &FloatView::on_signal_changed));
+      sigc::mem_fun(*this, &VueFloat::on_signal_changed));
 }
 
-void FloatView::update_langue() {
+void VueFloat::update_langue() {
   label.set_markup("<b>" + NodeView::mk_label(model->schema->name) + "</b>");
 }
 
-unsigned int FloatView::get_nb_widgets() {
+unsigned int VueFloat::get_nb_widgets() {
   if (model->schema->has_unit())
     return 3;
   return 2;
 }
 
-Gtk::Widget *FloatView::get_widget(int index) {
+Gtk::Widget *VueFloat::get_widget(int index) {
   if (index == 0)
     return &label;
   else if (index == 1)
@@ -436,18 +451,18 @@ Gtk::Widget *FloatView::get_widget(int index) {
     return &label_unit;
 }
 
-Gtk::Widget *FloatView::get_gtk_widget()
+Gtk::Widget *VueFloat::get_gtk_widget()
 {
   return &spin;
 }
 
-void FloatView::set_sensitive(bool b) {
+void VueFloat::set_sensitive(bool b) {
   spin.set_sensitive(b);
   label.set_sensitive(b);
   label_unit.set_sensitive(b);
 }
 
-void FloatView::on_signal_changed() {
+void VueFloat::on_signal_changed() {
   if (!lock) {
     lock = true;
     //printf("Spin change: %s\n", Util::int2str(spin.get_value_as_float()).c_str());
@@ -456,7 +471,7 @@ void FloatView::on_signal_changed() {
   }
 }
 
-void FloatView::on_event(const ChangeEvent &ce) {
+void VueFloat::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
     spin.set_value(model->get_float());//atof(model->value.c_str()));
@@ -467,11 +482,11 @@ void FloatView::on_event(const ChangeEvent &ce) {
 /*******************************************************************
  *               BOOLEAN VIEW IMPLEMENTATION                       *
  *******************************************************************/
-BooleanView::~BooleanView() {
+VueBouleen::~VueBouleen() {
 
 }
 
-BooleanView::BooleanView(Attribute *model) {
+VueBouleen::VueBouleen(Attribute *model) {
   lock = false;
   this->model = model;
   //Gtk::Label *lab = new Gtk::Label();
@@ -481,35 +496,35 @@ BooleanView::BooleanView(Attribute *model) {
   check.add(lab);
   check.set_active(model->get_boolean());
   check.signal_toggled().connect(
-      sigc::mem_fun(*this, &BooleanView::on_signal_toggled));
+      sigc::mem_fun(*this, &VueBouleen::on_signal_toggled));
   check.signal_focus_in_event().connect(
       sigc::mem_fun(*this, &AttributeView::on_focus_in));
 }
 
-void BooleanView::update_langue()
+void VueBouleen::update_langue()
 {
   std::string s = NodeView::mk_label(model->schema->name);
   lab.set_markup("<b>" + s + "</b>");
 }
 
-unsigned int BooleanView::get_nb_widgets() {
+unsigned int VueBouleen::get_nb_widgets() {
   return 1;
 }
 
-Gtk::Widget *BooleanView::get_widget(int index) {
+Gtk::Widget *VueBouleen::get_widget(int index) {
   return &check;
 }
 
-Gtk::Widget *BooleanView::get_gtk_widget()
+Gtk::Widget *VueBouleen::get_gtk_widget()
 {
   return &check;
 }
 
-void BooleanView::set_sensitive(bool b) {
+void VueBouleen::set_sensitive(bool b) {
   check.set_sensitive(b);
 }
 
-void BooleanView::on_signal_toggled() {
+void VueBouleen::on_signal_toggled() {
   if (!lock) {
     lock = true;
     model->set_value(check.get_active());
@@ -517,7 +532,7 @@ void BooleanView::on_signal_toggled() {
   }
 }
 
-void BooleanView::on_event(const ChangeEvent &ce) {
+void VueBouleen::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
     check.set_active(model->get_boolean());
@@ -528,9 +543,9 @@ void BooleanView::on_event(const ChangeEvent &ce) {
 /*******************************************************************
  *               COMBO VIEW IMPLEMENTATION                         *
  *******************************************************************/
-ComboView::ComboView(Attribute *model) {
+VueCombo::VueCombo(Attribute *model) {
   lock = false;
-  //trace("comboview(%s)..", model->schema.name.get_id().c_str());
+  //infos("comboview(%s)..", model->schema.name.get_id().c_str());
   this->model = model;
   label.set_use_markup(true);
 
@@ -544,49 +559,61 @@ ComboView::ComboView(Attribute *model) {
   update_langue();
 
   combo.signal_changed().connect(
-      sigc::mem_fun(*this, &ComboView::on_combo_changed));
+      sigc::mem_fun(*this, &VueCombo::on_combo_changed));
   combo.signal_focus_in_event().connect(
       sigc::mem_fun(*this, &AttributeView::on_focus_in));
 }
 
-void ComboView::update_langue() {
+void VueCombo::update_langue() {
   unsigned int imax;
   bool old_lock = lock;
 
+  auto schema = model->schema;
+
   lock = true;
-  //trace("combo: update langue...");
-  label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
+  //infos("combo: update langue...");
+  label.set_markup("<b>" + NodeView::mk_label_colon(schema->name) + "</b>");
   tree_model->clear();
 
   //imin = 0;
-  imax = model->schema->constraints.size();
+  imax = schema->constraints.size();
 
   if ((imax == 0) && (model->schema->has_max)) {
-    imax = model->schema->max - model->schema->min + 1;
+    imax = schema->max - schema->min + 1;
   }
 
-  for (unsigned int i = 0; i < imax; i++) {
+
+
+  unsigned int nb_enum = model->schema->enumerations.size();
+
+  /*if(nb_enum > 0)
+    infos("vue combo: %d enumerations (prem : %s)",
+      nb_enum, schema->enumerations[0].name.get_localized().c_str());*/
+
+  for (unsigned int i = 0; i < imax; i++)
+  {
     std::string valeur;
-    if (model->schema->constraints.size() > i)
-      valeur = model->schema->constraints[i];
+    if(schema->constraints.size() > i)
+      valeur = schema->constraints[i];
     else
       valeur = str::int2str(i);
     std::string nom = valeur;
-    for (unsigned int j = 0; j < model->schema->enumerations.size(); j++) {
+    for (unsigned int j = 0; j < nb_enum; j++)
+    {
       Enumeration e;
 
-      if (i >= model->schema->enumerations.size()) {
-        log.warning("enumeration %d not defined: attribute %s.", i,
-            model->schema->name.get_id().c_str());
+      if (i >= schema->enumerations.size()) {
+        avertissement("enumeration %d not defined: attribute %s.", i,
+            schema->name.get_id().c_str());
 
-        log.trace("schema is: %s.\n", model->schema->to_string().c_str());
+        infos("schema is: %s.\n", schema->to_string().c_str());
 
         break;
       }
 
-      e = model->schema->enumerations[i];
-      if ((e.value.compare(valeur) == 0)
-          || (e.name.get_id().compare(valeur) == 0)) {
+      e = schema->enumerations[j];
+      if ((e.value == valeur) || (e.name.get_id() == valeur))
+      {
         nom = e.name.get_localized();
         break;
       }
@@ -601,9 +628,9 @@ void ComboView::update_langue() {
     row[columns.m_col_name] = nom;
     row[columns.m_col_real_name] = valeur;
 
-    if (model->schema->has_unit()) {
+    if(schema->has_unit()) {
       row[columns.m_col_unit] = "";
-      std::string unit = model->schema->unit;
+      std::string unit = schema->unit;
       if (langue.has_item(unit))
         unit = langue.get_item(unit);
       row[columns.m_col_unit] = unit;
@@ -612,20 +639,22 @@ void ComboView::update_langue() {
   unsigned int i;
   for (i = 0; i < imax; i++) {
     std::string valeur;
-    if (model->schema->constraints.size() > i)
-      valeur = model->schema->constraints[i];
+    if (schema->constraints.size() > i)
+      valeur = schema->constraints[i];
     else
       valeur = str::int2str(i);
 
     //std::string valeur = model->schema.constraints[i];
     std::string nom = valeur;
-    for (unsigned int j = 0; j < model->schema->enumerations.size(); j++) {
-      if (i >= model->schema->enumerations.size()) {
-        log.anomaly("enumeration.");
+    for (unsigned int j = 0; j < schema->enumerations.size(); j++)
+    {
+      if (i >= schema->enumerations.size())
+      {
+        erreur("enumeration.");
         break;
       }
 
-      Enumeration e = model->schema->enumerations[i];
+      Enumeration e = schema->enumerations[i];
       if (e.value.compare(valeur) == 0) {
         nom = e.name.get_localized();
         break;
@@ -641,39 +670,39 @@ void ComboView::update_langue() {
   if (i == /*model->schema.constraints.size()*/imax)
     {
       string s = model->get_string();
-    log.anomaly("Not found current value (%s, %s).",
-            model->schema->name.get_id().c_str(), s.c_str());
-    for (i = 0; i < model->schema->constraints.size(); i++) {
-      std::string valeur = model->schema->constraints[i];
-      log.trace("constraint[%d] = %s.", i, valeur.c_str());
+    avertissement("Not found current value (%s, %s).",
+            schema->name.get_id().c_str(), s.c_str());
+    for (i = 0; i < schema->constraints.size(); i++) {
+      std::string valeur = schema->constraints[i];
+      infos("constraint[%d] = %s.", i, valeur.c_str());
     }
   }
-  //log.trace("combo: update langue done.");
+  //infos("combo: update langue done.");
   lock = old_lock;
 }
 
-unsigned int ComboView::get_nb_widgets() {
+unsigned int VueCombo::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *ComboView::get_widget(int index) {
+Gtk::Widget *VueCombo::get_widget(int index) {
   if (index == 0)
     return &label;
   else
     return &combo;
 }
 
-Gtk::Widget *ComboView::get_gtk_widget()
+Gtk::Widget *VueCombo::get_gtk_widget()
 {
   return &combo;
 }
 
-void ComboView::set_sensitive(bool b) {
+void VueCombo::set_sensitive(bool b) {
   label.set_sensitive(b);
   combo.set_sensitive(b);
 }
 
-void ComboView::on_combo_changed() {
+void VueCombo::on_combo_changed() {
   if (!lock) {
     lock = true;
 
@@ -686,14 +715,14 @@ void ComboView::on_combo_changed() {
         model->set_value(real_name);
       }
     } else
-      log.anomaly("combo view: none selected.");
+      erreur("combo view: none selected.");
     lock = false;
   }
 }
 
 //    check.set_active(model->get_boolean());
 
-void ComboView::on_event(const ChangeEvent &ce) {
+void VueCombo::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
 
@@ -734,7 +763,7 @@ void ComboView::on_event(const ChangeEvent &ce) {
  *               DATE  VIEW IMPLEMENTATION                         *
  *******************************************************************/
 
-DateView::DateView(Attribute *model)
+VueDate::VueDate(Attribute *model)
 {
   adj_year  = Gtk::Adjustment::create(2000,0,2100);
   adj_month = Gtk::Adjustment::create(1,1,12);
@@ -766,24 +795,24 @@ DateView::DateView(Attribute *model)
   }
 
   day.signal_changed().connect(
-      sigc::mem_fun(*this, &DateView::on_date_changed));
+      sigc::mem_fun(*this, &VueDate::on_date_changed));
   month.signal_changed().connect(
-      sigc::mem_fun(*this, &DateView::on_date_changed));
+      sigc::mem_fun(*this, &VueDate::on_date_changed));
   year.signal_changed().connect(
-      sigc::mem_fun(*this, &DateView::on_date_changed));
+      sigc::mem_fun(*this, &VueDate::on_date_changed));
 
   day.signal_editing_done().connect(
-      sigc::mem_fun(*this, &DateView::on_date_changed));
+      sigc::mem_fun(*this, &VueDate::on_date_changed));
   day.signal_focus_out_event().connect(
-      sigc::mem_fun(*this, &DateView::on_signal_focus_out));
+      sigc::mem_fun(*this, &VueDate::on_signal_focus_out));
   month.signal_editing_done().connect(
-      sigc::mem_fun(*this, &DateView::on_date_changed));
+      sigc::mem_fun(*this, &VueDate::on_date_changed));
   month.signal_focus_out_event().connect(
-      sigc::mem_fun(*this, &DateView::on_signal_focus_out));
+      sigc::mem_fun(*this, &VueDate::on_signal_focus_out));
   year.signal_editing_done().connect(
-      sigc::mem_fun(*this, &DateView::on_date_changed));
+      sigc::mem_fun(*this, &VueDate::on_date_changed));
   year.signal_focus_out_event().connect(
-      sigc::mem_fun(*this, &DateView::on_signal_focus_out));
+      sigc::mem_fun(*this, &VueDate::on_signal_focus_out));
 
   day.signal_focus_in_event().connect(
       sigc::mem_fun(*this, &AttributeView::on_focus_in));
@@ -793,7 +822,7 @@ DateView::DateView(Attribute *model)
       sigc::mem_fun(*this, &AttributeView::on_focus_in));
 }
 
-void DateView::update_langue() {
+void VueDate::update_langue() {
   label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
   if (appli_view_prm.use_touchscreen) {
     day.set_snap_to_ticks(false);
@@ -802,35 +831,35 @@ void DateView::update_langue() {
   }
 }
 
-unsigned int DateView::get_nb_widgets() {
+unsigned int VueDate::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *DateView::get_widget(int index) {
+Gtk::Widget *VueDate::get_widget(int index) {
   if (index == 0)
     return &label;
   else
     return &hbox;
 }
 
-Gtk::Widget *DateView::get_gtk_widget()
+Gtk::Widget *VueDate::get_gtk_widget()
 {
   return &hbox;
 }
 
-void DateView::set_sensitive(bool b) {
+void VueDate::set_sensitive(bool b) {
   label.set_sensitive(b);
   year.set_sensitive(b);
   month.set_sensitive(b);
   day.set_sensitive(b);
 }
 
-bool DateView::on_signal_focus_out(GdkEventFocus *gef) {
+bool VueDate::on_signal_focus_out(GdkEventFocus *gef) {
   on_date_changed();
   return true;
 }
 
-void DateView::on_date_changed() {
+void VueDate::on_date_changed() {
   if (!lock) {
     lock = true;
 
@@ -844,7 +873,7 @@ void DateView::on_date_changed() {
     std::string s = str::int2str(vd) + "." + str::int2str(vm) + "."
         + str::int2str(vy);
 
-    //trace("new date: %s.", s.c_str());
+    //infos("new date: %s.", s.c_str());
 
     //model->set_value(s);
     valid = model->schema->is_valid(s);
@@ -860,7 +889,7 @@ void DateView::on_date_changed() {
   }
 }
 
-void DateView::on_event(const ChangeEvent &ce) {
+void VueDate::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
 
@@ -884,9 +913,9 @@ void DateView::on_event(const ChangeEvent &ce) {
  *               FOLDER VIEW IMPLEMENTATION                        *
  *******************************************************************/
 
-bool FolderView::on_focus_in(GdkEventFocus *gef) {
+bool VueDossier::on_focus_in(GdkEventFocus *gef) {
 
-  log.trace("focus in");
+  infos("focus in");
   //target_window->present();
   if (appli_view_prm.fixed_size) {
     fcd->resize(appli_view_prm.dx, appli_view_prm.dy);
@@ -898,9 +927,9 @@ bool FolderView::on_focus_in(GdkEventFocus *gef) {
   return true;
 }
 
-bool FolderView::on_frame_event(GdkEvent *gef) {
+bool VueDossier::on_frame_event(GdkEvent *gef) {
 
-  log.trace("frame event");
+  infos("frame event");
   //target_window->present();
   if (appli_view_prm.fixed_size)
   {
@@ -911,14 +940,14 @@ bool FolderView::on_frame_event(GdkEvent *gef) {
   return true;
 }
 
-FolderView::FolderView(Attribute *model)
+VueDossier::VueDossier(Attribute *model)
 {
   fcd = new Gtk::FileChooserDialog(langue.get_item("select-folder"),
       Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
   fcd->add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
   fcd->add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
 
-  button = new Gtk::FileChooserButton(*fcd);
+  bouton = new Gtk::FileChooserButton(*fcd);
 
   if (appli_view_prm.fixed_size) {
     fcd->set_position(Gtk::WIN_POS_NONE);
@@ -928,7 +957,7 @@ FolderView::FolderView(Attribute *model)
     fcd->set_size_request(appli_view_prm.dx, appli_view_prm.dy);
     //fcd->set_resize_mode(Gtk::RESIZE_QUEUE);
     fcd->signal_focus_in_event().connect(
-        sigc::mem_fun(*this, &FolderView::on_focus_in));
+        sigc::mem_fun(*this, &VueDossier::on_focus_in));
     //TODO fcd->signal_frame_event().connect(
     //    sigc::mem_fun(*this, &FolderView::on_frame_event));
   } else {
@@ -940,62 +969,62 @@ FolderView::FolderView(Attribute *model)
   label.set_use_markup(true);
   label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
 
-  button->set_action(Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+  bouton->set_action(Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
 
   ChangeEvent ce;
   on_event(ce);
 
 # if ((GTKMM_MAJOR_VERSION * 100 + GTKMM_MINOR_VERSION) < 218)
 # warning GTKMM version too old for signal_file_set
-  button->signal_selection_changed().connect(
-      sigc::mem_fun(*this, &FolderView::on_folder_changed));
+  bouton->signal_selection_changed().connect(
+      sigc::mem_fun(*this, &VueDossier::on_folder_changed));
   on_folder_changed();
 # else
-  button->signal_file_set().connect(sigc::mem_fun(*this, &FolderView::on_folder_changed));
+  bouton->signal_file_set().connect(sigc::mem_fun(*this, &VueDossier::on_folder_changed));
 # endif
 }
 
-void FolderView::update_langue() {
+void VueDossier::update_langue() {
   label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
 }
 
-unsigned int FolderView::get_nb_widgets() {
+unsigned int VueDossier::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *FolderView::get_widget(int index) {
+Gtk::Widget *VueDossier::get_widget(int index) {
   if (index == 0)
     return &label;
   else
-    return button;
+    return bouton;
 }
 
-Gtk::Widget *FolderView::get_gtk_widget()
+Gtk::Widget *VueDossier::get_gtk_widget()
 {
-  return button;
+  return bouton;
 }
 
-void FolderView::set_sensitive(bool b) {
+void VueDossier::set_sensitive(bool b) {
   label.set_sensitive(b);
-  button->set_sensitive(b);
+  bouton->set_sensitive(b);
 }
 
-void FolderView::on_folder_changed() {
+void VueDossier::on_folder_changed() {
   if (!lock) {
     lock = true;
-    Glib::ustring s = button->get_filename();
+    Glib::ustring s = bouton->get_filename();
     std::string s2 = s;
     std::string s3 = str::utf8_to_latin(s2);
-    log.trace("Folder view changed: '%s'.", s2.c_str());
+    infos("Folder view changed: '%s'.", s2.c_str());
     model->set_value(s3);
     lock = false;
   }
 }
 
-void FolderView::on_event(const ChangeEvent &ce) {
+void VueDossier::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
-    button->set_current_folder(model->get_string());
+    bouton->set_current_folder(model->get_string());
     lock = false;
   }
 }
@@ -1004,9 +1033,9 @@ void FolderView::on_event(const ChangeEvent &ce) {
  *               FILE VIEW IMPLEMENTATION                        *
  *******************************************************************/
 
-bool FileView::on_focus_in(GdkEventFocus *gef) {
+bool VueFichier::on_focus_in(GdkEventFocus *gef) {
 
-  log.trace("focus in");
+  infos("focus in");
   //target_window->present();
   if (appli_view_prm.fixed_size) {
     fcd->resize(appli_view_prm.dx, appli_view_prm.dy);
@@ -1018,9 +1047,9 @@ bool FileView::on_focus_in(GdkEventFocus *gef) {
   return true;
 }
 
-bool FileView::on_frame_event(GdkEvent *gef) {
+bool VueFichier::on_frame_event(GdkEvent *gef) {
 
-  log.trace("frame event");
+  infos("frame event");
   //target_window->present();
   if (appli_view_prm.fixed_size) {
     fcd->resize(appli_view_prm.dx, appli_view_prm.dy);
@@ -1030,21 +1059,86 @@ bool FileView::on_frame_event(GdkEvent *gef) {
   return true;
 }
 
-FileView::~FileView()
+VueFichier::~VueFichier()
 {
 
-  delete button;
+  delete bouton;
   delete fcd;
 }
 
-FileView::FileView(Attribute *model)
+bool VueFichier::gere_bouton(GdkEventButton *non_ut)
 {
-  fcd = new Gtk::FileChooserDialog(langue.get_item("select-folder"),
-      Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+  infos("Detecte clic sur bouton vue fichier.");
+
+
+  //fcd->set_action(Gtk::FILE_CHOOSER_ACTION_SAVE);
+  if(fcd->run() == Gtk::RESPONSE_OK)
+  {
+    auto s = fcd->get_filename();
+    infos("Mise a jour du texte bouton [%s]...", s.c_str());
+
+    auto e = utils::files::get_extension(s);
+    if(e.size() == 0)
+    {
+      avertissement("Pas d'extension precisee.");
+      std::string ext = model->schema->extension;
+      if(ext.size() > 0)
+      {
+        s += "." + ext;
+        infos("ajoute extension [%s] >> ", ext.c_str(), s.c_str());
+      }
+    }
+
+#   ifdef ANCIEN_BOUTON
+    bouton->set_filename(s);
+#   else
+    auto s_resume = utils::str::get_filename_resume(s);
+    infos("Nouvelle valeur de fichier : [%s], RES = [%s]", s.c_str(), s_resume.c_str());
+    bouton->set_label(s_resume);
+    model->set_value(s);
+#   endif
+  }
+  fcd->hide();
+  infos("retour gere bouton.");
+  return true;
+}
+
+void VueFichier::BoutonFichier::gere_clic()
+{
+  parent->gere_bouton(nullptr);
+}
+
+VueFichier::BoutonFichier::BoutonFichier(Gtk::FileChooserDialog *fcd, VueFichier *parent)
+ //: Gtk::FileChooserButton(*fcd)
+{
+  this->fcd = fcd;
+  this->parent = parent;
+  this->signal_clicked().connect(sigc::mem_fun(*this, &VueFichier::BoutonFichier::gere_clic));
+}
+
+
+VueFichier::VueFichier(Attribute *model, bool fichier_existant)
+{
+  this->fichier_existant = fichier_existant;
+  fcd = new Gtk::FileChooserDialog(langue.get_item("select-fichier"),
+      fichier_existant ? Gtk::FILE_CHOOSER_ACTION_OPEN : Gtk::FILE_CHOOSER_ACTION_SAVE);
   fcd->add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
   fcd->add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
 
-  button = new Gtk::FileChooserButton(*fcd);
+  bouton = new /*Gtk::FileChooserButton(*fcd)*/BoutonFichier(fcd, this);
+
+  std::string ext = model->schema->extension;
+  if (ext.size() > 0)
+  {
+    Glib::RefPtr<Gtk::FileFilter> filter = Gtk::FileFilter::create();
+    filter->set_name(ext + " file");
+    filter->add_pattern(std::string("*.") + ext);
+    infos("Extension choisie : [%s]", ext.c_str());
+    fcd->add_filter(filter);
+  }
+
+  // TODO
+  //bouton->set_image()
 
   if (appli_view_prm.fixed_size) {
     fcd->set_position(Gtk::WIN_POS_NONE);
@@ -1054,7 +1148,7 @@ FileView::FileView(Attribute *model)
     fcd->set_size_request(appli_view_prm.dx, appli_view_prm.dy);
     //fcd->set_resize_mode(Gtk::RESIZE_QUEUE);
     fcd->signal_focus_in_event().connect(
-        sigc::mem_fun(*this, &FileView::on_focus_in));
+        sigc::mem_fun(*this, &VueFichier::on_focus_in));
     //TODO fcd->signal_frame_event().connect(
     //    sigc::mem_fun(*this, &FileView::on_frame_event));
   } else {
@@ -1066,9 +1160,14 @@ FileView::FileView(Attribute *model)
   label.set_use_markup(true);
   label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
 
-  button->set_action(Gtk::FILE_CHOOSER_ACTION_OPEN);
+  maj_chemin(model->get_string());
 
-  button->set_width_chars(20);
+# ifdef ANCIEN_BOUTON
+  bouton->set_action(Gtk::FILE_CHOOSER_ACTION_OPEN); // Ou Save impossible
+  bouton->set_width_chars(20);
+  bouton->signal_button_press_event().connect(sigc::mem_fun(*this, &VueFichier::gere_bouton));
+
+
 
   std::string ext = model->schema->extension;
 
@@ -1076,63 +1175,89 @@ FileView::FileView(Attribute *model)
     Glib::RefPtr<Gtk::FileFilter> filter = Gtk::FileFilter::create();
     filter->set_name(ext + " file");
     filter->add_pattern(std::string("*.") + ext);
-    button->add_filter(filter);
+    bouton->add_filter(filter);
   }
+# endif
 
   //ChangeEvent ce;
   //on_event(ce);
-  button->set_filename(model->get_string());
+  //button->set_filename(model->get_string());
+  maj_chemin(model->get_string());
 
-  button->signal_selection_changed().connect(
-      sigc::mem_fun(*this, &FileView::on_file_changed));
+# ifdef ANCIEN_BOUTON
+  bouton->signal_selection_changed().connect(
+      sigc::mem_fun(*this, &VueFichier::gere_changement_fichier));
+# endif
 }
 
-void FileView::update_langue() {
+void VueFichier::maj_chemin(const std::string &s)
+{
+  auto s2 = s;
+  //if(s.find("$DATA") != std::string::npos)
+  if(s.substr(0, 5) == "$DATA")
+  {
+    s2 = utils::get_fixed_data_path() + s.substr(5, s.size() - 5);
+  }
+# ifdef ANCIEN_BOUTON
+  bouton->set_filename(s2);
+# else
+  s2 = utils::str::get_filename_resume(s2);
+  bouton->set_label(s2);
+# endif
+}
+
+void VueFichier::maj_langue() {
   label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
 }
 
-unsigned int FileView::get_nb_widgets() {
+unsigned int VueFichier::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *FileView::get_widget(int index) {
+Gtk::Widget *VueFichier::get_widget(int index) {
   if (index == 0)
     return &label;
   else
-    return button;
+    return bouton;
 }
 
-Gtk::Widget *FileView::get_gtk_widget()
+Gtk::Widget *VueFichier::get_gtk_widget()
 {
-  return button;
+  return bouton;
 }
 
-void FileView::set_sensitive(bool b) {
+void VueFichier::set_sensitive(bool b) {
   label.set_sensitive(b);
-  button->set_sensitive(b);
+  bouton->set_sensitive(b);
 }
 
-void FileView::on_file_changed()
+void VueFichier::gere_changement_fichier()
 {
+# if 0
   if (!lock) {
     lock = true;
-    Glib::ustring s = button->get_filename();
-
+# ifdef ANCIEN_BOUTON
+    Glib::ustring s = bouton->get_filename();
+# else
+    Glib::ustring s = bouton->get_label();
+# endif
     std::string s2 = s;
-    //printf("**** on_file_changed: %s.\n", s2.c_str());
-
-    // Here: convert absolute path to relative path
-    // --> How to find the root directory ?
+    infos("Changement nom fichier sur bouton: [%s].", s2.c_str());
     if(s2.size() > 0)
       model->set_value(s);
     lock = false;
   }
+# endif
 }
 
-void FileView::on_event(const ChangeEvent &ce) {
-  if (!lock) {
+void VueFichier::on_event(const ChangeEvent &ce) {
+  if (!lock)
+  {
     lock = true;
-    button->set_filename(model->get_string());
+    auto s = model->get_string();
+    infos("Changement modele --> bouton [%s].", s.c_str());
+    maj_chemin(s);
+    //bouton->set_filename(s);
     lock = false;
   }
 }
@@ -1140,7 +1265,7 @@ void FileView::on_event(const ChangeEvent &ce) {
 /*******************************************************************
  *               SERIAL VIEW IMPLEMENTATION                        *
  *******************************************************************/
-SerialView::SerialView(Attribute *model) {
+VueSelPortCOM::VueSelPortCOM(Attribute *model) {
   lock = false;
   this->model = model;
   label.set_use_markup(true);
@@ -1152,15 +1277,25 @@ SerialView::SerialView(Attribute *model) {
   if (model->schema->has_unit())
     combo.pack_start(columns.m_col_unit);
 
-  comm::Serial::enumerate(serials);
+  if(comm::Serial::enumerate(serials))
+  {
+    comm::SerialInfo si;
+    for(auto i = 0; i < 70; i++)
+    {
+      si.name = "COM" + utils::str::int2str(i);
+      si.complete_name = si.name;
+      si.techno = "";
+      serials.push_back(si);
+    }
+  }
 
   update_langue();
 
   combo.signal_changed().connect(
-      sigc::mem_fun(*this, &SerialView::on_combo_changed));
+      sigc::mem_fun(*this, &VueSelPortCOM::on_combo_changed));
 }
 
-void SerialView::update_langue() {
+void VueSelPortCOM::update_langue() {
   bool old_lock = lock;
 
   lock = true;
@@ -1188,28 +1323,28 @@ void SerialView::update_langue() {
   lock = old_lock;
 }
 
-unsigned int SerialView::get_nb_widgets() {
+unsigned int VueSelPortCOM::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *SerialView::get_widget(int index) {
+Gtk::Widget *VueSelPortCOM::get_widget(int index) {
   if (index == 0)
     return &label;
   else
     return &combo;
 }
 
-Gtk::Widget *SerialView::get_gtk_widget()
+Gtk::Widget *VueSelPortCOM::get_gtk_widget()
 {
   return &combo;
 }
 
-void SerialView::set_sensitive(bool b) {
+void VueSelPortCOM::set_sensitive(bool b) {
   label.set_sensitive(b);
   combo.set_sensitive(b);
 }
 
-void SerialView::on_combo_changed() {
+void VueSelPortCOM::on_combo_changed() {
   if (!lock) {
     lock = true;
 
@@ -1222,12 +1357,12 @@ void SerialView::on_combo_changed() {
         model->set_value(real_name);
       }
     } else
-      log.anomaly("combo view: none selected.");
+      erreur("combo view: none selected.");
     lock = false;
   }
 }
 
-void SerialView::on_event(const ChangeEvent &ce) {
+void VueSelPortCOM::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
     for (unsigned int i = 0; i < serials.size(); i++) {
@@ -1247,7 +1382,7 @@ void SerialView::on_event(const ChangeEvent &ce) {
  *               COLOR VIEW IMPLEMENTATION                         *
  *******************************************************************/
 
-ColorView::ColorView(Attribute *model) {
+VueChoixCouleur::VueChoixCouleur(Attribute *model) {
   lock = false;
   this->model = model;
   label.set_use_markup(true);
@@ -1268,7 +1403,7 @@ ColorView::ColorView(Attribute *model) {
 
   color.set_color(c);
   color.signal_color_set().connect(
-      sigc::mem_fun(*this, &ColorView::on_color_changed));
+      sigc::mem_fun(*this, &VueChoixCouleur::on_color_changed));
 
   //if(appli_view_prm.use_touchscreen)
   {
@@ -1281,15 +1416,15 @@ ColorView::ColorView(Attribute *model) {
 
 }
 
-void ColorView::update_langue() {
+void VueChoixCouleur::update_langue() {
   label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
 }
 
-unsigned int ColorView::get_nb_widgets() {
+unsigned int VueChoixCouleur::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *ColorView::get_widget(int index) {
+Gtk::Widget *VueChoixCouleur::get_widget(int index) {
   if (index == 0)
     return &label;
   else {
@@ -1300,7 +1435,7 @@ Gtk::Widget *ColorView::get_widget(int index) {
   }
 }
 
-Gtk::Widget *ColorView::get_gtk_widget()
+Gtk::Widget *VueChoixCouleur::get_gtk_widget()
 {
   if (cb == nullptr)
     return &color;
@@ -1308,12 +1443,12 @@ Gtk::Widget *ColorView::get_gtk_widget()
     return cb;
 }
 
-void ColorView::set_sensitive(bool b) {
+void VueChoixCouleur::set_sensitive(bool b) {
   label.set_sensitive(b);
   color.set_sensitive(b);
 }
 
-void ColorView::on_color_changed() {
+void VueChoixCouleur::on_color_changed() {
   if (!lock) {
     lock = true;
 
@@ -1327,7 +1462,7 @@ void ColorView::on_color_changed() {
   }
 }
 
-void ColorView::on_event(const ChangeEvent &ce) {
+void VueChoixCouleur::on_event(const ChangeEvent &ce) {
   if (!lock) {
     lock = true;
 
@@ -1355,7 +1490,7 @@ void ColorView::on_event(const ChangeEvent &ce) {
  *               STRING VIEW IMPLEMENTATION                        *
  *******************************************************************/
 
-StringView::StringView(Attribute *model, bool small_)
+VueChaine::VueChaine(Attribute *model, bool small_)
 {
   lock = false;
   valid = model->schema->is_valid(model->get_string());
@@ -1370,49 +1505,49 @@ StringView::StringView(Attribute *model, bool small_)
   else
     entry.set_width_chars(30);
   entry.signal_changed().connect(
-      sigc::mem_fun(*this, &StringView::on_signal_changed));
+      sigc::mem_fun(*this, &VueChaine::on_signal_changed));
   entry.signal_focus_in_event().connect(
       sigc::mem_fun(*this, &AttributeView::on_focus_in));
   update_valid();
 }
 
-StringView::~StringView()
+VueChaine::~VueChaine()
 {
   //model->CProvider<ChangeEvent>::remove_listener(this);
 }
 
-void StringView::update_langue() {
+void VueChaine::update_langue() {
   label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
 }
 
-unsigned int StringView::get_nb_widgets() {
+unsigned int VueChaine::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *StringView::get_widget(int index) {
+Gtk::Widget *VueChaine::get_widget(int index) {
   if (index == 0)
     return &label;
   else
     return &entry;
 }
 
-Gtk::Widget *StringView::get_gtk_widget()
+Gtk::Widget *VueChaine::get_gtk_widget()
 {
   return &entry;
 }
 
-void StringView::set_sensitive(bool b)
+void VueChaine::set_sensitive(bool b)
 {
   entry.set_sensitive(b);
   label.set_sensitive(b);
 }
 
-void StringView::update_valid()
+void VueChaine::update_valid()
 {
   update_text_color(entry, valid);
 }
 
-void StringView::on_signal_changed()
+void VueChaine::on_signal_changed()
 {
   if (!lock) {
     lock = true;
@@ -1427,12 +1562,12 @@ void StringView::on_signal_changed()
   }
 }
 
-bool StringView::is_valid() {
-  //trace("is_valid = %s.", valid ? "true" : "false");
+bool VueChaine::is_valid() {
+  //infos("is_valid = %s.", valid ? "true" : "false");
   return valid;
 }
 
-void StringView::on_event(const ChangeEvent &ce)
+void VueChaine::on_event(const ChangeEvent &ce)
 {
   if (!lock)
   {
@@ -1446,7 +1581,7 @@ void StringView::on_event(const ChangeEvent &ce)
  *       FIXED   STRING VIEW IMPLEMENTATION                        *
  *******************************************************************/
 
-FixedStringView::FixedStringView(Attribute *model)
+VueChaineConstante::VueChaineConstante(Attribute *model)
 {
   lock = false;
   valid = model->schema->is_valid(model->get_string());
@@ -1470,33 +1605,33 @@ FixedStringView::FixedStringView(Attribute *model)
   update_valid();
 }
 
-void FixedStringView::update_langue() {
+void VueChaineConstante::update_langue() {
   label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
 }
 
-unsigned int FixedStringView::get_nb_widgets() {
+unsigned int VueChaineConstante::get_nb_widgets() {
   return 2;
 }
 
-Gtk::Widget *FixedStringView::get_widget(int index) {
+Gtk::Widget *VueChaineConstante::get_widget(int index) {
   if (index == 0)
     return &label;
   else
     return &entry;
 }
 
-Gtk::Widget *FixedStringView::get_gtk_widget()
+Gtk::Widget *VueChaineConstante::get_gtk_widget()
 {
   return &entry;
 }
 
-void FixedStringView::set_sensitive(bool b)
+void VueChaineConstante::set_sensitive(bool b)
 {
   entry.set_sensitive(b);
   label.set_sensitive(b);
 }
 
-void FixedStringView::update_valid()
+void VueChaineConstante::update_valid()
 {
   //update_text_color(entry, valid);
 }
@@ -1516,12 +1651,12 @@ void FixedStringView::update_valid()
   }
 }*/
 
-bool FixedStringView::is_valid() {
-  //trace("is_valid = %s.", valid ? "true" : "false");
+bool VueChaineConstante::is_valid() {
+  //infos("is_valid = %s.", valid ? "true" : "false");
   return valid;
 }
 
-void FixedStringView::on_event(const ChangeEvent &ce)
+void VueChaineConstante::on_event(const ChangeEvent &ce)
 {
   if (!lock)
   {
@@ -1538,7 +1673,13 @@ void FixedStringView::on_event(const ChangeEvent &ce)
       }
     }
 
-    entry.set_markup(utils::str::latin_to_utf8(nom));
+    std::string s = utils::str::latin_to_utf8(nom);
+    if(model->schema->has_unit())
+      s += " " + model->schema->unit;
+    //if(model->schema->is_hexa)
+     // s = "0x" + s;
+
+    entry.set_markup(s);
     lock = false;
   }
 }

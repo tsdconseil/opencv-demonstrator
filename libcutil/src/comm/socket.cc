@@ -1,6 +1,7 @@
 #include "comm/socket.hpp"
 #include "cutil.hpp"
 
+
 #ifdef WIN
 #include <windows.h>
 #include <process.h>
@@ -44,13 +45,13 @@ Socket::Socket(): rx_fifo(1024 * 1024)
 
 Socket::~Socket()
 {
-  log.trace("Socket delete..");
+  infos("Socket delete..");
   if(connected)
   {
     disconnect();
     hal::sleep(1);
   }
-  log.trace("done.");
+  infos("done.");
 }
 
 bool Socket::is_connected()
@@ -58,17 +59,22 @@ bool Socket::is_connected()
   return connected;
 }
 
+int Socket::get_nb_rx_available()
+{
+  return rx_fifo.size();
+}
+
 
 int Socket::disconnect()
 {
-  log.trace("closing socket..");
+  infos("closing socket..");
   connected = false;
 
   shutdown(sock, 2);
 
   int res = closesocket(sock);
   if(res)
-    log.anomaly("closesocket error 0x%x.", res);
+    erreur("closesocket error 0x%x.", res);
 
   char c = 0;
   rx_fifo.write(&c, 1);
@@ -84,7 +90,7 @@ int Socket::connect(std::string target_ip,
 
   winsock_startup();
 
-  log.trace("connect(%s:%d)...", target_ip.c_str(), target_port);
+  infos("connect(%s:%d)...", target_ip.c_str(), target_port);
 
   /* Socket creation */
   sockaddr_in local, remote;
@@ -108,7 +114,7 @@ int Socket::connect(std::string target_ip,
 # ifdef WIN
   if((remote.sin_addr.S_un.S_addr = inet_addr(target_ip.c_str())) == INADDR_NONE)
   {
-    log.anomaly("Error setting IP.");
+    erreur("Error setting IP.");
     return -1;
   }
 # else
@@ -116,7 +122,7 @@ int Socket::connect(std::string target_ip,
   server = gethostbyname(target_ip.c_str());
   if (!server)
   {
-    log.anomaly("Impossible de résoudre \"%s\"", target_ip.c_str());
+    erreur("Impossible de résoudre \"%s\"", target_ip.c_str());
     return -1;
   }
   bzero(&remote, sizeof(remote));
@@ -131,7 +137,7 @@ int Socket::connect(std::string target_ip,
     int res = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(res == SOCKET_ERROR)
     {
-      log.anomaly("Error creating socket.");
+      erreur("Error creating socket.");
       return -1;
     }
     sock = res;
@@ -141,30 +147,30 @@ int Socket::connect(std::string target_ip,
     int res = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(res == SOCKET_ERROR)
     {
-      log.anomaly("Error creating socket.");
+      erreur("Error creating socket.");
       return -1;
     }
     sock = res;
   }
   else
   {
-    log.anomaly("Unknown socket type: %d.", type);
+    erreur("Unknown socket type: %d.", type);
     return -1;
   }
 
   if(::bind(sock, (sockaddr *)&local, sizeof(sockaddr_in)) == SOCKET_ERROR)
   {
     int err = WSAGetLastError();
-    log.anomaly("Error binding socket, err = %x.", err);
+    erreur("Error binding socket, err = %x.", err);
     return -1;    
   }
 
-  log.trace("Now connecting to server...");
+  infos("Now connecting to server...");
 
   if(::connect(sock, (sockaddr *)&remote, sizeof(sockaddr_in)) == SOCKET_ERROR)
   {
     int err = WSAGetLastError();
-    log.warning("Error connecting.");
+    avertissement("Error connecting.");
     printf("Last error = 0x%x = %d.\n", err, err);
     return -1;    
   }
@@ -178,7 +184,7 @@ int Socket::connect(std::string target_ip,
   fcntl(sock, F_SETFL, flags | O_NONBLOCK);
   //fcntl(sock, F_SETFL, O_NONBLOCK);
 # endif
-  log.trace("Connected ok.");
+  infos("Connected ok.");
   hal::thread_start(this, &Socket::rx_thread, "socket/client");
   return 0;
 }
@@ -187,7 +193,7 @@ void SocketServer::stop()
 {
   if(listening)
   {
-    log.trace("stop()...");
+    infos("stop()...");
     listening = 0;
     shutdown(listen_socket, 2);
     thread_finished.wait(100);
@@ -201,7 +207,7 @@ SocketServer::~SocketServer()
 
 void SocketServer::thread_handler()
 {
-  log.trace("Socket server thread running..");
+  infos("Socket server thread running..");
 
   for(;;)
   {
@@ -209,7 +215,7 @@ void SocketServer::thread_handler()
     SOCKET accept_socket;
     sockaddr_in address;
     int remote_port;
-    log.trace("Wait for client..");
+    infos("Wait for client..");
 
 #   ifdef LINUX
     socklen_t len = sizeof(sockaddr_in);
@@ -221,20 +227,20 @@ void SocketServer::thread_handler()
     if(!listening)
     {
       thread_finished.raise();
-      log.trace("accept thread terminated.");
+      infos("accept thread terminated.");
       return;
     }
 
     if(((int) accept_socket) == -1)
     {
       thread_finished.raise();
-      log.trace("accept thread terminated (ext).");
+      infos("accept thread terminated (ext).");
       return;
     }
 
     remote_port = ntohl(address.sin_port);
 
-    log.trace("Connection accepted, sock = %x, remote port = %d.",
+    infos("Connection accepted, sock = %x, remote port = %d.",
            accept_socket, listening, remote_port);
 
 
@@ -270,7 +276,7 @@ int SocketServer::listen(uint16_t port, Socket::socket_type_t type)
 
   local_port = port;
 
-  log.trace("listen(port = %d).", port);
+  infos("listen(port = %d).", port);
 
 
   service.sin_family = AF_INET;
@@ -290,13 +296,13 @@ int SocketServer::listen(uint16_t port, Socket::socket_type_t type)
   }
   else
   {
-    log.anomaly("Unknown socket type: %d.", type);
+    erreur("Unknown socket type: %d.", type);
     return -1;
   }
 
   if (listen_socket == INVALID_SOCKET)
   {
-    log.anomaly("Error at socket(): %ld\n", WSAGetLastError());
+    erreur("Error at socket(): %ld\n", WSAGetLastError());
     return -1;
   }
 
@@ -304,20 +310,20 @@ int SocketServer::listen(uint16_t port, Socket::socket_type_t type)
     int flag = 1;
     if(setsockopt(listen_socket, SOL_SOCKET,
                   SO_REUSEADDR, (char *) &flag, sizeof(int)))
-      log.anomaly("Failed to set SO_REUSEADDR socket option.");
+      erreur("Failed to set SO_REUSEADDR socket option.");
   }
 
   if (::bind(listen_socket,
       (SOCKADDR*) &service,
       sizeof(service)) == SOCKET_ERROR)
   {
-    log.anomaly("bind() failed.\n");
+    erreur("bind() failed.\n");
     uint32_t err = WSAGetLastError();
-    log.anomaly("Last system error: %d = 0x%x\n", err, err);
+    erreur("Last system error: %d = 0x%x\n", err, err);
 #   ifdef LINUX
     if(err == 98)
     {
-      log.warning("errno 98: Address already in use.");
+      avertissement("errno 98: Address already in use.");
     }
 #   endif
 
@@ -328,16 +334,16 @@ int SocketServer::listen(uint16_t port, Socket::socket_type_t type)
 
 
 
-  log.trace("Now listening for connection...");
+  infos("Now listening for connection...");
   // Listen for incoming connection requests
   // on the created socket
   if (::listen(listen_socket, SOMAXCONN ) == SOCKET_ERROR)
   {
     int error = WSAGetLastError();
-    log.anomaly("Error listening on socket: %d = 0x%x.\n", error, error);
+    erreur("Error listening on socket: %d = 0x%x.\n", error, error);
     if(error == 10013)
     {
-      log.anomaly("WSAEACCES: permission denied.");
+      erreur("WSAEACCES: permission denied.");
     }
 
     return -1;
@@ -354,12 +360,12 @@ void Socket::rx_thread()
   uint8_t *tmp_buf;
   //bool disable_timeout = false;
 
-  log.trace("rx thread running.");
+  infos("rx thread running.");
   
   
   if(!connected)
   {
-    log.trace("rx thread canceled.");
+    infos("rx thread canceled.");
     return;
   }
 
@@ -367,7 +373,7 @@ void Socket::rx_thread()
 
   if(tmp_buf == nullptr)
   {
-    log.anomaly("Unable to allocate rx buffer.");
+    erreur("Unable to allocate rx buffer.");
     return;
   }
 
@@ -387,7 +393,7 @@ void Socket::rx_thread()
     /* timeout */
     if(res == 0)
     {
-      log.anomaly("Timeout");
+      erreur("Timeout");
       continue;
       //return -1;
     }
@@ -403,7 +409,7 @@ void Socket::rx_thread()
     /* timeout */
     if(res == 0)
     {
-      log.anomaly("Timeout");
+      erreur("Timeout");
       continue;
     }
 
@@ -438,7 +444,7 @@ void Socket::rx_thread()
       }
       else if(result == 0)
       {
-        log.warning("Connection closed.");
+        avertissement("Connection closed.");
         connected = false;
         SocketClosedEvent sce;
         sce.socket = this;
@@ -454,12 +460,12 @@ void Socket::rx_thread()
 #       ifdef LINUX
         if(errno == EAGAIN)
         {
-          log.warning("recv: EAGAIN.");
+          avertissement("recv: EAGAIN.");
           continue;
         }
 #       endif
 
-        log.warning("recv: returned %d.", result);
+        avertissement("recv: returned %d.", result);
 
         int error = WSAGetLastError();
 
@@ -468,25 +474,25 @@ void Socket::rx_thread()
           char c = 0xff;
           free(tmp_buf);
           
-          log.trace("rx thread exit.");
+          infos("rx thread exit.");
           rx_fifo.write(&c, 1);
           this->rx_fifo.deblock();
           return;
         }
 
-        log.warning("recv error: %d/%d (socket closed).", result, error);
+        avertissement("recv error: %d/%d (socket closed).", result, error);
 
 #       ifdef WIN
         if(error == WSAEWOULDBLOCK)
         {
-          log.anomaly("no data.");
+          erreur("no data.");
           continue;
         }
 #       endif
 
         if(result == -1)
         {
-          log.warning("Connection closed.");
+          avertissement("Connection closed.");
           connected = false;
           this->rx_fifo.deblock();
           SocketClosedEvent sce;
@@ -503,14 +509,10 @@ void Socket::rx_thread()
 int Socket::read(uint8_t *buffer, uint32_t length, int timeout)
 {
   int res = rx_fifo.read(buffer, length, timeout);
-  //ByteArray ba(buffer, length);
-  //trace("Read: %s.", ba.to_string().c_str());
+  //utils::model::ByteArray ba(buffer, length);
+  //std::string s = ba.to_string();
+  //infos("Read: %s.", s.c_str());
   return res;
-}
-
-int Socket::get_nb_rx_available()
-{
-  return rx_fifo.size();
 }
 
 
@@ -583,7 +585,7 @@ void Socket::write(const uint8_t *buffer, uint32_t len)
   bool inc_transmission = false;
 
   //ByteArray ba(buffer, len);
-  //trace("Tx: %s.", ba.to_string().c_str());
+  //infos("Tx: %s.", ba.to_string().c_str());
 
   retry:
   if(this->connected)
@@ -595,10 +597,10 @@ void Socket::write(const uint8_t *buffer, uint32_t len)
       if(err == 10035)
       {
         if(nb_tries == 0)
-          log.warning("TCP bandwidth overflow.");
+          avertissement("TCP bandwidth overflow.");
         if(nb_tries > 50)
         {
-          log.anomaly("Unable to write to TCP socket.");
+          erreur("Unable to write to TCP socket.");
           disconnect();
           return;
         }
@@ -609,15 +611,15 @@ void Socket::write(const uint8_t *buffer, uint32_t len)
         nb_tries++;
         goto retry;
       }
-      log.anomaly("send error: %d.", err);
+      erreur("send error: %d.", err);
     }
     /*else if(res == 0)
     {
-      anomaly("Incomplete send: %d / %d.", res, len);
+      erreur("Incomplete send: %d / %d.", res, len);
     }*/
     else if(res < (int) len)
     {
-      log.trace("Incomplete send: %d / %d.", res, len);
+      infos("Incomplete send: %d / %d.", res, len);
       hal::sleep(20);
       ptr    += res;
       len    -= res;
@@ -626,7 +628,7 @@ void Socket::write(const uint8_t *buffer, uint32_t len)
     }
     else if(inc_transmission)
     {
-      log.trace("Finnaly transmitted all buffer.");
+      infos("Finnaly transmitted all buffer.");
     }
   }
 }
@@ -663,7 +665,7 @@ int BluetoothClient::connect(const model::ByteArray &target_mac, Socket **socket
 {
   //int res;
 
-  trace("Connect to %s...", target_mac.to_string().c_str());
+  infos("Connect to %s...", target_mac.to_string().c_str());
   *socket = nullptr;
 # if 0
 # ifdef WIN
@@ -671,12 +673,12 @@ int BluetoothClient::connect(const model::ByteArray &target_mac, Socket **socket
   res = bt_client_connect(target_mac.to_string().c_str(), &socket_windows);
   if(res != 0)
   {
-    anomaly("bt client connexion failed: %d.", res);
+    erreur("bt client connexion failed: %d.", res);
     return -1;
   }
   Socket *the_socket = new Socket();
-  trace("Wait for client..");
-  trace("Connection accepted.");
+  infos("Wait for client..");
+  infos("Connection accepted.");
   warning("TODO: get remote port.");
   the_socket->remote_port     = 0x00;
   the_socket->local_port      = 0;
@@ -708,7 +710,7 @@ int BluetoothServer::listen()
   //OSThread::thread_start(this, &BluetoothServer::thread_handler);
   int res;
 
-  trace("Listen...");
+  infos("Listen...");
 
 #   ifdef WIN
   HINSTANCE hdll;
@@ -716,7 +718,7 @@ int BluetoothServer::listen()
 
   if(hdll == nullptr)
   {
-    anomaly("Error while loading dll.\n");
+    erreur("Error while loading dll.\n");
     return -254;
   }
 
@@ -726,11 +728,11 @@ int BluetoothServer::listen()
 
   if(bt_server_start == nullptr)
   {
-    anomaly("Error while loading DLL function.\n");
+    erreur("Error while loading DLL function.\n");
     return -253;
   }
 
-  trace("calling DLL..");
+  infos("calling DLL..");
   res = bt_server_start(&listen_socket,
                         service_name.c_str(),
                         comment.c_str());
@@ -742,7 +744,7 @@ int BluetoothServer::listen()
   if(res == 0)
   {
 
-    trace("Bluetooth server successfully started.");
+    infos("Bluetooth server successfully started.");
     hal::thread_start(this, &BluetoothServer::thread_handler, "btsocket/server");
     /*Socket *the_socket = new Socket();
     the_socket->remote_port     = 0x00;
@@ -759,11 +761,11 @@ int BluetoothServer::listen()
   }
   else if(res == -3)
   {
-    anomaly("Bluetooth driver not detected.");
+    erreur("Bluetooth driver not detected.");
   }
   else
   {
-    anomaly("Bluetooh server error: %d.", res);
+    erreur("Bluetooh server error: %d.", res);
   }
 
   return res;
@@ -776,14 +778,14 @@ void BluetoothServer::stop()
 
 void BluetoothServer::thread_handler()
 {
-  trace("bluetooth server is running.");
+  infos("bluetooth server is running.");
   for(;;)
   {
     Socket *the_socket = new Socket();
     SOCKET accept_socket;
-    trace("Wait for client..");
+    infos("Wait for client..");
     accept_socket = ::accept(listen_socket, nullptr, nullptr);
-    trace("Connection accepted.");
+    infos("Connection accepted.");
     the_socket->remote_port     = 0x00;
     //the_socket->local_port      = local_port;
     the_socket->sock            = accept_socket;
@@ -814,7 +816,7 @@ int send_udp_packet(const std::string &host,
   uint8_t *data = (uint8_t *) malloc(len);
   if(data == nullptr)
   {
-    log_anomaly(0, "%s: malloc failed (%d).", __func__, len);
+    erreur("malloc failed (%d).", len);
     return -1;
   }
 
@@ -832,7 +834,7 @@ int send_udp_packet(const std::string &host,
   if(!hp)
   {
     free(data);
-    log_anomaly(0, "could not obtain address of %s.", host.c_str());
+    erreur("could not obtain address of %s.", host.c_str());
     return -1;
   }
 
@@ -843,7 +845,7 @@ int send_udp_packet(const std::string &host,
   if(fd == INVALID_SOCKET)
   {
     free(data);
-    log_anomaly(0, "socket creation failed with error: %ld", WSAGetLastError());
+    erreur("socket creation failed with error: %ld", WSAGetLastError());
     return -1;
   }
 
@@ -857,7 +859,7 @@ int send_udp_packet(const std::string &host,
   {
     free(data);
     perror("sendto failed");
-    log_anomaly(0, "Failed to send udp packet.");
+    erreur("Failed to send udp packet.");
     return -1;
   }
 
@@ -884,11 +886,11 @@ int UDPListener::listen(uint16_t port, uint32_t mps)
 
   if(listening)
   {
-    log.anomaly("%s: already listening.", __func__);
+    erreur("%s: already listening.", __func__);
     return -1;
   }
 
-  log.trace("listen(port = %d)..", port);
+  infos("listen(port = %d)..", port);
 
   this->mps = mps;
   struct sockaddr_in myaddr;      /* our address */
@@ -899,7 +901,7 @@ int UDPListener::listen(uint16_t port, uint32_t mps)
   if(fd == SOCKET_ERROR)
   {
     perror("");
-    log.anomaly("cannot create socket: %ld.", WSAGetLastError());
+    erreur("cannot create socket: %ld.", WSAGetLastError());
     return -1;
   }
 
@@ -913,7 +915,7 @@ int UDPListener::listen(uint16_t port, uint32_t mps)
   if(bind(fd, (struct sockaddr *)&myaddr, sizeof(myaddr)) == SOCKET_ERROR)
   {
     perror("");
-    log.anomaly("bind failed: %ld.", WSAGetLastError());
+    erreur("bind failed: %ld.", WSAGetLastError());
     closesocket(fd);
     return -1;
   }
@@ -921,7 +923,7 @@ int UDPListener::listen(uint16_t port, uint32_t mps)
   buf = (uint8_t *) malloc(mps);
   if(buf == nullptr)
   {
-    log.anomaly("malloc failed.");
+    erreur("malloc failed.");
     closesocket(fd);
     return -1;
   }
@@ -963,10 +965,10 @@ int
 
     if(len == (int) INVALID_SOCKET)
     {
-      log.anomaly("WSA error: %ld", WSAGetLastError());
+      erreur("WSA error: %ld", WSAGetLastError());
     }
 
-    log.verbose("received a packet of %d bytes.", len);
+    trace_verbeuse("received a packet of %d bytes.", len);
     if(len > 0)
     {
       UDPPacket packet;

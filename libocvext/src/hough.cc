@@ -11,6 +11,9 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
+namespace ocvext
+{
+
 ///** Hough transform using gradient matrix */
 //template<typename Tin>
 //void hough_gradient_template(const cv::Mat &g_abs,
@@ -280,5 +283,6 @@ void Hough_lines_with_gradient_dir(const cv::Mat &img,
 }
 
 
+}
 
 

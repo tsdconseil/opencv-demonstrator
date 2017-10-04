@@ -31,6 +31,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef WIN
+//#define USE_CONTRIB
+#endif
+
 using namespace cv;
 using namespace utils::model;
 
@@ -40,7 +44,7 @@ struct OCVDemoItemRefresh {};
 ////////////////////////////////////////////////////////////////////////////
 /** @bref Classe de base pour toutes les démonstrations OpenCV */
 /** @brief Base class for all OpenCV demonstrations */
-class OCVDemoItem: public CProvider<OCVDemoItemRefresh>
+class OCVDemoItem: public utils::CProvider<OCVDemoItemRefresh>
 {
 public:
 
@@ -139,8 +143,7 @@ public:
   /** Demande de remise à zéro de l'état de la démo */
   virtual void raz() {};
 
-protected:
-  utils::Logable journal;
+  utils::model::Node modele;
 };
 
 

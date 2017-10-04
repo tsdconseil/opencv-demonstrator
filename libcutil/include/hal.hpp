@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <deque>
 #include <string>
+#include <vector>
 
 /** @file hal.hpp
  *  @brief OS abstraction layer */
@@ -71,6 +72,7 @@ public:
   void clear();
   void wait();
   int wait(unsigned int timeout);
+  static int wait_multiple(unsigned int timeout, std::vector<Signal *> sigs);
   bool is_raised();
 # ifdef WIN
   HANDLE get_handle();
@@ -124,8 +126,11 @@ public:
 
 private:
   Mutex mutex;
+public:
   uint32_t capacity;
+private:
   std::deque<T> list;
+public:
   Signal h_not_full, h_not_empty;
 };
 
@@ -156,28 +161,6 @@ private:
   A *object;
 };
 /** @endcond */
-
-
-/*class Timer
-{
-public:
-  Timer();
-  ~Timer();
-  void start(uint32_t period_ms);
-  Signal signal;
-  template<class A>
-    void set_listener(A *object, void (A::*m_function)())
-  {
-    functor = new SpecificThreadFunctor<A>(object, m_function);
-  }
-  ThreadFunctor *functor;
-private:
-# ifdef LINUX
-# else
-  HANDLE h_timer, h_timer_queue;
-# endif
-
-};*/
 
 
 

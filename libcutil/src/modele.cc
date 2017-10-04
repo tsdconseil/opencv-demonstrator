@@ -15,6 +15,9 @@
 #include <locale>
 #include <assert.h>
 
+using namespace std;
+using namespace utils;
+
 
 #ifdef LINUX
 #ifdef putc
@@ -29,11 +32,11 @@ namespace utils
 namespace model
 {
 
-Logable NodeSchema::log("model");
-Logable Node::log("model");
-Logable NodePatron::log("model");
-Logable AttributeSchema::log("model");
-Logable Attribute::log("model");
+journal::Logable NodeSchema::log("model");
+static journal::Logable log("model");
+journal::Logable NodePatron::log("model");
+journal::Logable AttributeSchema::log("model");
+journal::Logable Attribute::log("model");
 
 bool NodeSchema::is_empty() const
 {
@@ -52,6 +55,18 @@ void NodeSchema::add_attribute(refptr<AttributeSchema> schema)
 {
   attributes.push_back(schema);
   att_mapper[schema->name.get_id()] = attributes.size() - 1;
+}
+
+void NodeSchema::ajoute_enfant(NodeSchema *enfant, unsigned int min, unsigned int max)
+{
+  SubSchema ss;
+  ss.child_str = enfant->name.get_id();
+  ss.default_count = min;
+  ss.min = min;
+  ss.max = max;
+  ss.name = enfant->name;
+  ss.ptr = enfant;
+  add_sub_node(ss);
 }
 
 void NodeSchema::add_sub_node(const SubSchema &schema)
@@ -148,7 +163,7 @@ Localized Node::get_localized() const
 {
   Localized res;
 
-  if(data == nullptr)
+  if(__builtin_expect(data == nullptr, 0))
   {
     res.set_value(Localized::LANG_ID, "");
     return res;
@@ -160,8 +175,22 @@ Localized Node::get_localized() const
     res.set_value(Localized::LANG_ID, get_attribute_as_string("type"));
   else
   {
-    log.warning("Localization of an node without identifier.");
+    avertissement("Localization of an node without identifier.");
   }
+
+  auto lst = Localized::language_list();
+  for(auto l: lst)
+  {
+    auto s = Localized::language_id(l);
+    if(has_attribute(s))
+    {
+      auto v = get_attribute_as_string(s);
+      if(v.size() > 0)
+        res.set_value(l, v);
+    }
+  }
+
+# if 0
   if(has_attribute("fr"))
   {
     std::string fr = get_attribute_as_string("fr");
@@ -180,6 +209,7 @@ Localized Node::get_localized() const
     if(de.size() > 0)
       res.set_value(Localized::LANG_DE, de);
   }
+# endif
   if(this->has_child("description"))
   {
     for(const Node desc: children("description"))
@@ -200,7 +230,7 @@ NodeSchema::NodeSchema(const Node &e, FileSchema *root, const string &name_)
 
   if(e.is_nullptr())
   {
-    log.warning("constructor: from nullptr node.");
+    avertissement("constructor: from nullptr node.");
     return;
   }
 
@@ -228,8 +258,7 @@ NodeSchema::NodeSchema(const Node &e, FileSchema *root, const string &name_)
   for(const Node &ch: e.children("attribute"))
   {
     string attname = ch.get_attribute_as_string("name");
-
-    refptr<AttributeSchema> ref = refptr<AttributeSchema>(new AttributeSchema(ch));
+    auto ref = refptr<AttributeSchema>(new AttributeSchema(ch));
     add_attribute(ref);
   }
 
@@ -248,14 +277,17 @@ NodeSchema::NodeSchema(const Node &e, FileSchema *root, const string &name_)
 
   for(const Node sb: e.children("sub"))
   {
+
     SubSchema ss;
     ss.min = sb.get_attribute_as_int("min");
     ss.max = sb.get_attribute_as_int("max");
     ss.child_str = sb.get_attribute_as_string("type");
     ss.name = sb.get_localized();
+
     ss.display_tab = false;
     ss.display_tree = false;
-    ss.default_key = sb.get_attribute_as_string("key");
+    if(sb.has_attribute("key"))
+      ss.default_key = sb.get_attribute_as_string("key");
 
     if(sb.has_attribute("sub-readonly"))
       ss.readonly = sb.get_attribute_as_boolean("sub-readonly");
@@ -298,7 +330,8 @@ NodeSchema::NodeSchema(const Node &e, FileSchema *root, const string &name_)
     ss.name = sb.get_localized();
     ss.display_tab = false;
     ss.display_tree = false;
-    ss.default_key = sb.get_attribute_as_string("key");
+    if(sb.has_attribute("key"))
+      ss.default_key = sb.get_attribute_as_string("key");
 
     if(sb.has_attribute("sub-readonly"))
         ss.readonly = sb.get_attribute_as_boolean("sub-readonly");
@@ -505,7 +538,7 @@ NodeSchema::NodeSchema(const MXml &mx)
   {
     if(!mx.has_attribute("name"))
     {
-      log.anomaly("XML has no 'name' attribute.");
+      erreur("XML has no 'name' attribute.");
       return;
     }
     name = Localized(mx);
@@ -530,7 +563,7 @@ bool NodeSchema::has_reference(std::string name) const
 {
   for(unsigned int i = 0; i < references.size(); i++)
   {
-    if(references[i].name.get_id().compare(name) == 0)
+    if(references[i].name.get_id() == name)
       return true;
   }
   return false;
@@ -540,7 +573,7 @@ SubSchema *NodeSchema::get_child(std::string name)
 {
   for(unsigned int i = 0; i < children.size(); i++)
   {
-    if(children[i].name.get_id().compare(name) == 0)
+    if(children[i].name.get_id() == name)
       return &(children[i]);
   }
   return nullptr;
@@ -565,7 +598,7 @@ NodeSchema *NodeSchema::get_sub(std::string name)
       return children[i].ptr;
     }
   }
-  log.anomaly("Sub not found: %s.", name.c_str());
+  erreur("Sub not found: %s.", name.c_str());
   return nullptr;
 }
 
@@ -623,7 +656,7 @@ refptr<AttributeSchema> NodeSchema::get_attribute(std::string name)
     if(as->name.get_id().compare(name) == 0)
       return as;
   }
-  log.anomaly("att not found: %s.", name.c_str());
+  erreur("att not found: %s.", name.c_str());
   return refptr<AttributeSchema>();
 }
 
@@ -668,6 +701,7 @@ void NodeSchema::do_inherits()
       att_mapper[att->name.get_id()] = attributes.size() - 1;
     }
   }
+  //inheritance = nullptr;
 }
 
 void NodeSchema::serialize(ByteArray &ba)
@@ -681,6 +715,7 @@ void NodeSchema::serialize(ByteArray &ba)
   ba.putw(children.size());
   for(const SubSchema &ss: children)
   {
+    ba.puts(ss.name.get_id());
     ba.puts(ss.child_str);
     uint16_t flags = 0;
     if(ss.has_min())
@@ -752,7 +787,7 @@ CommandSchema *NodeSchema::get_command(std::string name)
     if(commands[i].name.get_id().compare(name) == 0)
       return &commands[i];
   }
-  log.anomaly("get_command(%s): not found.", name.c_str());
+  erreur("get_command(%s): not found.", name.c_str());
   return nullptr;
 }
 
@@ -773,7 +808,7 @@ int FileSchema::check_complete()
 
 FileSchema::~FileSchema()
 {
-  //log.trace("Destruction file schema...");
+  //infos("Destruction file schema...");
 }
 
 void FileSchema::add_schema(const Node &e, const string &name)
@@ -788,7 +823,7 @@ void FileSchema::add_schema(const Node &e, const string &name)
   {
     if(e.type().compare("schema") != 0)
     {
-      log.anomaly("This file is not an application file (root tag is " + e.type() + ").");
+      erreur("This file is not an application file (root tag is " + e.type() + ").");
       return;
     }
     for(unsigned int i = 0; i < e.get_children_count("node"); i++)
@@ -796,7 +831,7 @@ void FileSchema::add_schema(const Node &e, const string &name)
       NodeSchema *es_ = new NodeSchema(e.get_child_at("node", i));
       refptr<NodeSchema> es(es_);
       schemas.push_back(es);
-      //trace("Added schema: %s.", es.name.c_str());
+      //infos("Added schema: %s.", es.name.c_str());
     }
 
 #   if 0
@@ -810,7 +845,7 @@ void FileSchema::add_schema(const Node &e, const string &name)
       NodeSchema *es_ = new NodeSchema(e.get_child_at("node", i));
       refptr<NodeSchema> es(es_);
       schemas.push_back(es);
-      //trace("Added schema: %s.", es.name.c_str());
+      //infos("Added schema: %s.", es.name.c_str());
     }
 #   endif
   }
@@ -845,7 +880,7 @@ void FileSchema::from_element(const Node &e)
       root->update_size_info();
       return;
     }
-    log.anomaly("This file is not an application file (root tag is " + e.type() + ").");
+    erreur("This file is not an application file (root tag is " + e.type() + ").");
     return;
   }
   std::string rootname = e.get_attribute_as_string("root");
@@ -885,7 +920,7 @@ void FileSchema::from_xml2(const MXml &node)
     const MXml &se = *(lst[i]);
     refptr<NodeSchema> es(new NodeSchema(se));
     schemas.push_back(es);
-    // trace("added schema %s.", es.name.get_id().c_str());
+    // infos("added schema %s.", es.name.get_id().c_str());
     from_xml2(se);
   }
 }
@@ -896,7 +931,7 @@ int FileSchema::from_xml(const MXml &xm)
 
   if(xm.name.compare("schema") != 0)
   {
-    log.anomaly("This file is not an application file (root tag is " + xm.name + ").");
+    erreur("This file is not an application file (root tag is " + xm.name + ").");
     return -1;
   }
 
@@ -918,7 +953,7 @@ int FileSchema::from_xml(const MXml &xm)
   {
     if(!lst[i]->has_attribute("path"))
     {
-      log.warning("Tag include-schema without path.");
+      avertissement("Tag include-schema without path.");
       continue;
     }
     std::string path = lst[i]->get_attribute("path").to_string();
@@ -926,13 +961,13 @@ int FileSchema::from_xml(const MXml &xm)
     MXml xm;
     if(xm.from_file(utils::get_fixed_data_path() + PATH_SEP + path))
     {
-      log.anomaly("Failed to load include schema @%s.", path.c_str());
+      erreur("Echec chargement du schema @[%s].", path.c_str());
       continue;
     }
     else
     {
-      log.trace("Loading include-schema %s..", path.c_str());
-      //trace("VALLLL = \n%s\n", xm.dump().c_str());
+      infos("Chargement schema a partir de [%s]..", path.c_str());
+      //infos("VALLLL = \n%s\n", xm.dump().c_str());
       from_xml2(xm);
     }
   }
@@ -953,7 +988,7 @@ int FileSchema::from_xml(const MXml &xm)
     }
     if(j == schemas.size())
     {
-      log.warning("Extension: schema not found: %s.", type.c_str());
+      avertissement("Extension: schema not found: %s.", type.c_str());
     }
     else
     {
@@ -989,9 +1024,9 @@ int FileSchema::from_file(std::string filename)
   return from_xml(xm);
 }
 
-FileSchema::FileSchema(std::string filename): log("libcutil")
+FileSchema::FileSchema(std::string filename)
 {
-  log.trace("fileschema(%s)...", filename.c_str());
+  infos("fileschema(%s)...", filename.c_str());
   from_file(filename);
 }
 
@@ -1006,7 +1041,7 @@ void FileSchema::build_references()
 
       if(schemas[i]->children[j].ptr == nullptr)
       {
-        log.warning("build references: schema not found: %s.", schemas[i]->children[j].child_str.c_str());
+        avertissement("build references: schema not found: %s.", schemas[i]->children[j].child_str.c_str());
         // Remove schema from the children
         std::deque<SubSchema>::iterator it = schemas[i]->children.begin() + j;
         schemas[i]->children.erase(it);
@@ -1042,7 +1077,7 @@ void FileSchema::build_references()
       schemas[i]->references[j].ptr = get_schema(schemas[i]->references[j].child_str);
       if(schemas[i]->references[j].ptr == nullptr)
       {
-        log.anomaly("Schema not found for ref: %s.", schemas[i]->references[j].child_str.c_str());
+        erreur("Schema not found for ref: %s.", schemas[i]->references[j].child_str.c_str());
         return;
       }
     }
@@ -1051,11 +1086,14 @@ void FileSchema::build_references()
       schemas[i]->inheritance = get_schema(schemas[i]->inheritance_name);
     }
   }
+  // Ceci est fait plusieurs fois, afin de bien gérer le cas des héritages
+  // de schéma qui eux-mêmes héritent d'autres schémas...
   for(unsigned int i = 0; i < schemas.size(); i++)
-  {
-    if(schemas[i]->inheritance != nullptr)
-      schemas[i]->do_inherits();
-  }
+    schemas[i]->do_inherits();
+  for(unsigned int i = 0; i < schemas.size(); i++)
+    schemas[i]->do_inherits();
+  for(unsigned int i = 0; i < schemas.size(); i++)
+    schemas[i]->do_inherits();
 }
 
 NodeSchema *FileSchema::get_schema(std::string name)
@@ -1065,7 +1103,7 @@ NodeSchema *FileSchema::get_schema(std::string name)
     if(s->name.get_id().compare(name) == 0)
       return s.get_reference();
   }
-  log.warning("Schema not found: " + name);
+  avertissement("Schema not found: " + name);
   return nullptr;
 }
 
@@ -1143,11 +1181,11 @@ std::string FileSchema::to_string()
   return res;
 }
 
-FileSchema::FileSchema(): log("libcutil")
+FileSchema::FileSchema()
 {
 }
 
-FileSchema::FileSchema(const FileSchema &c): log("libcutil")
+FileSchema::FileSchema(const FileSchema &c)
 {
   *this = c;
 }
@@ -1165,7 +1203,7 @@ void FileSchema::operator =(const FileSchema &c)
 
 AttributeSchema::~AttributeSchema()
 {
-  //log.trace("delete.");
+  //infos("delete.");
 }
 
 long int AttributeSchema::get_min()
@@ -1192,7 +1230,7 @@ long int AttributeSchema::get_max()
   {
     if(max == -1)
     {
-      log.anomaly("max == -1");
+      erreur("max == -1");
       return 4294967295UL;
     }
     return max;
@@ -1235,6 +1273,7 @@ AttributeSchema::AttributeSchema()
   is_read_only = false;
   is_instrument = false;
   formatted_text = false;
+  is_error = false;
 }
 
 void AttributeSchema::serialize(ByteArray &ba) const
@@ -1318,7 +1357,7 @@ std::string AttributeSchema::get_ihm_value(std::string val) const
   }
   if(type == TYPE_BOOLEAN)
   {
-    if(langue.current_language.compare("fr") == 0)
+    if(Localized::current_language == Localized::LANG_FR)
     {
       if((val.compare("0") == 0) || (val.compare("false") == 0))
         return "non";
@@ -1480,6 +1519,10 @@ AttributeSchema::AttributeSchema(const Node &e)
   if(e.has_attribute("instrument"))
     is_instrument = e.get_attribute_as_boolean("instrument");
 
+  is_error = e.get_attribute_as_boolean("error");
+
+  digits = e.get_attribute_as_int("digits");
+
   is_volatile = e.has_attribute("volatile") ? e.get_attribute_as_boolean("volatile") : false;
   is_hidden = e.has_attribute("hidden") ? e.get_attribute_as_boolean("hidden") : false;
   is_hexa   = e.get_attribute_as_boolean("hexa");
@@ -1518,6 +1561,16 @@ AttributeSchema::AttributeSchema(const Node &e)
   {
     type = TYPE_STRING;
     is_ip = true;
+  }
+  else if(typestr.compare("folder") == 0)
+  {
+    type = TYPE_FOLDER;
+    size = 3;
+  }
+  else if(typestr.compare("file") == 0)
+  {
+    type = TYPE_FILE;
+    size = 3;
   }
   else if(typestr.compare("float") == 0)
   {
@@ -1630,9 +1683,14 @@ AttributeSchema::AttributeSchema(const MXml &mx)
 
   if(!mx.has_attribute("name"))
   {
-    log.anomaly("The XML attribute has no name: %s", mx.dump().c_str());
+    erreur("The XML attribute has no name: %s", mx.dump().c_str());
     return;
   }
+
+  is_error = false;
+
+  if(mx.has_attribute("error"))
+    is_error = mx.get_attribute("error").to_bool();
 
   is_ip = false;
 
@@ -1654,6 +1712,11 @@ AttributeSchema::AttributeSchema(const MXml &mx)
   is_signed = false;
   id = 0xffff;
   is_read_only = false;
+
+  digits = 0;
+  if(mx.has_attribute("digits"))
+    digits = mx.get_attribute("digits").to_int();
+
 
   formatted_text = false;
   if(mx.has_attribute("formatted-text"))
@@ -1678,7 +1741,7 @@ AttributeSchema::AttributeSchema(const MXml &mx)
   if(mx.has_attribute("readonly"))
     is_read_only = mx.get_attribute("readonly").to_bool();
 
-  //trace("%s: readonly = %s.", name.c_str(), is_read_only ? "true" : "false");
+  //infos("%s: readonly = %s.", name.c_str(), is_read_only ? "true" : "false");
 
   /*if(mx.has_attribute("en"))
     en = mx.get_attribute("en").to_string();
@@ -1912,6 +1975,8 @@ void AttributeSchema::operator =(const AttributeSchema &c)
   formatted_text = c.formatted_text;
   default_value.clear();
   default_value = c.default_value;
+  is_error = c.is_error;
+  digits = c.digits;
   assert(c.is_valid(c.default_value));
   assert(is_valid(default_value));
   //log.setup("model", string("att-schema<") + name.get_id() + ">");
@@ -1933,7 +1998,7 @@ std::string AttributeSchema::type2string() const
   case TYPE_SERIAL: return "serial";
   case TYPE_DATE: return "date";
   }
-  log.anomaly("type2string");
+  erreur("type2string");
   return "error";
 }
 
@@ -1964,13 +2029,17 @@ int    AttributeSchema::get_int    (const ByteArray &ba) const
   {
     return (int) get_float(ba);
   }
+  else if(type == TYPE_BOOLEAN)
+  {
+    return ba[0];
+  }
   else if(type == TYPE_INT)
   {
     ByteArray tmp(ba);
 
     if((unsigned int) size != ba.size())
     {
-      log.anomaly("get_int(): size in schema = %d, in data = %d.", size, ba.size());
+      erreur("get_int(): size in schema = %d, in data = %d.", size, ba.size());
       return 0;
     }
 
@@ -2009,7 +2078,7 @@ int    AttributeSchema::get_int    (const ByteArray &ba) const
       return c;
     }
 
-    log.anomaly("get int: unmanaged size = %d.", size);
+    erreur("get int: unmanaged size = %d.", size);
 
     return 0;
   }
@@ -2046,9 +2115,13 @@ float  AttributeSchema::get_float  (const ByteArray &ba) const
   {
     return get_int(ba);
   }
+  else if(type == TYPE_BOOLEAN)
+  {
+    return get_int(ba);
+  }
   else
   {
-    log.anomaly("AttributeSchema::get_float(): invalid type.");
+    erreur("AttributeSchema::get_float(): invalid type.");
     return 0.0;
   }
 }
@@ -2076,7 +2149,15 @@ string AttributeSchema::get_string (const ByteArray &ba) const
     {
       float f = get_float(ba);
       char buf[500];
-      sprintf(buf, "%f", f);
+
+      if(digits >= 0)
+      {
+        char buf1[50];
+        sprintf(buf1, "%%.%df", digits);
+        sprintf(buf, buf1, f);
+      }
+      else
+        sprintf(buf, "%f", f);
       return string(buf);
     }
     default:
@@ -2088,7 +2169,7 @@ string AttributeSchema::get_string (const ByteArray &ba) const
     }
   }
   string id = name.get_id();
-  log.anomaly("%s: type unspecified, att name = %s.", __func__, id.c_str());
+  erreur("%s: type unspecified, att name = %s.", __func__, id.c_str());
   return "?";
 }
 
@@ -2111,8 +2192,6 @@ bool  AttributeSchema::is_valid(const ByteArray &ba) const
     if(ba.size() != 1)
       return false;
   }
-
-
   return true;
 }
 
@@ -2123,11 +2202,15 @@ int    AttributeSchema::serialize(ByteArray &ba, int value)    const
     ba.putf((float) value);
     return 0;
   }
-
+  else if(type == TYPE_BOOLEAN)
+  {
+    ba.putc((value == 0) ? 0 : 1);
+    return 0;
+  }
 
   if(type != TYPE_INT)
   {
-    log.warning("serialize(int): not an int!");
+    avertissement("serialize(int): not an int!");
   }
 
   if(size == 8)
@@ -2155,7 +2238,7 @@ int    AttributeSchema::serialize(ByteArray &ba, float value)  const
   return 0;
 }
 
-int    AttributeSchema::serialize(ByteArray &ba, string value) const
+int    AttributeSchema::serialize(ByteArray &ba, const string &value) const
 {
   const AttributeSchema &as = *this;
   switch(as.type)
@@ -2268,14 +2351,14 @@ void Attribute::unserialize(ByteArray &ba)
   ByteArray new_value;
   //value.clear();
 
-  //trace("unserialize()...");
+  //infos("unserialize()...");
 
   switch(schema->type)
   {
     case TYPE_INT:
     {
       ba.pop(new_value, schema->size);
-      //trace("int unserialization: size = %d, new size = %d.", schema->size, new_value.size());
+      //infos("int unserialization: size = %d, new size = %d.", schema->size, new_value.size());
       break;
     }
     case TYPE_FLOAT:
@@ -2306,7 +2389,7 @@ void Attribute::unserialize(ByteArray &ba)
   if(value != new_value)
   {
     value = new_value;
-    //trace("unserialization: size = %d.", value.size());
+    //infos("unserialization: size = %d.", value.size());
 
     if(!inhibit_event_dispatch)
     {
@@ -2330,6 +2413,11 @@ float Attribute::get_float() const
 
 bool Attribute::get_boolean() const
 {
+  if(__builtin_expect(schema.is_nullptr(), 0))
+  {
+    erreur("get_bool : schema = null.");
+    return false;
+  }
   return schema->get_boolean(value);
 }
 
@@ -2340,13 +2428,13 @@ int Attribute::get_int() const
 
 void             Node::add_listener(CListener<ChangeEvent> *lst)
 {
-  if(data != nullptr)
+  if(__builtin_expect(data != nullptr, 1))
     data->CProvider<ChangeEvent>::add_listener(lst);
 }
 
 void             Node::remove_listener(CListener<ChangeEvent> *lst)
 {
-  if(data != nullptr)
+  if(__builtin_expect(data != nullptr, 1))
     data->CProvider<ChangeEvent>::remove_listener(lst);
 }
 
@@ -2355,7 +2443,7 @@ void             Node::remove_listener(CListener<ChangeEvent> *lst)
 int NodeSchema::get_sub_index(const string &name) const
 {
   map<string, int>::const_iterator it = mapper.find(name);
-  if(it == mapper.end())
+  if(__builtin_expect(it == mapper.end(), 0))
     return -1;
   return it->second;
 }
@@ -2366,7 +2454,7 @@ void RamNode::remove_child(Node child)
 
   if(index == -1)
   {
-    log.anomaly("%s: no such child.", __func__);
+    erreur("%s: no such child.", __func__);
     return;
   }
 
@@ -2380,27 +2468,54 @@ void RamNode::remove_child(Node child)
     }
   }
 
-  log.anomaly("Can't erase children.");
+  erreur("Can't erase children.");
 }
 
-Node RamNode::add_child(const string &sub_name)
+void RamNode::add_children(const std::string &type, const std::vector<const MXml *> &lst)
+{
+  unsigned int n = lst.size();
+  int index = schema->get_sub_index(type);
+  if(__builtin_expect(index == -1, 0))
+  {
+    erreur("Type invalide : %s", type.c_str());
+    return;
+  }
+  SubSchema &ss = schema->children[index];
+  NodeSchema *schema = ss.ptr;
+  NodeCol &col = children[index];
+
+  unsigned int id = col.nodes.size();
+
+  for(auto i = 0u; i < n; i++)
+  {
+    Node nv(new RamNode(schema));
+    RamNode *nvram = (RamNode *) nv.data;
+    nvram->CProvider<ChangeEvent>::add_listener(this);
+    nvram->instance = id;
+    nvram->parent   = this;
+    nvram->sub_type = type;
+    nvram->type     = type;
+    col.nodes.push_back(nv);
+    id++;
+    nv.fromXml(*(lst[i]));
+  }
+}
+
+Node RamNode::add_child(const string sub_name)
 {
   int index = schema->get_sub_index(sub_name);
 
   if(index == -1)
   {
-    //Node n(this);
-    //trace(n.to_xml(0,true));
-    /*trace(schema->to_string());
-
-    trace("Mapper:");
+    auto s = schema->to_string();
+    infos("Schema = \n%s\n", s.c_str());
+    infos("Mapper:");
     std::map<string,int>::iterator it;
     for(it = schema->mapper.begin(); it != schema->mapper.end(); it++)
     {
-      trace("map(%s) = %d.", (*it).first.c_str(), (*it).second);
-    }*/
-
-    log.anomaly("%s: no such child: %s.", __func__, sub_name.c_str());
+      infos("map(%s) = %d.", (*it).first.c_str(), (*it).second);
+    }
+    erreur("%s: no such child: %s.", __func__, sub_name.c_str());
     return Node();
   }
 
@@ -2423,7 +2538,7 @@ void RamNode::on_event(const ChangeEvent &ce)
 {
   event_detected = true;
 
-  //trace(ce.to_string());
+  //infos(ce.to_string());
 
   if((ce.type == ChangeEvent::GROUP_CHANGE) && (inhibit_event_raise))
     return;
@@ -2437,7 +2552,7 @@ void RamNode::on_event(const ChangeEvent &ce)
     ChangeEvent nce = ce;
     XPathItem xpi(schema->name.get_id(), instance);
     nce.path = ce.path.add_parent(xpi);
-    //trace("ram_node::on_event -> dispatch... %s", nce.to_string().c_str());
+    //infos("ram_node::on_event -> dispatch... %s", nce.to_string().c_str());
     CProvider<ChangeEvent>::dispatch(nce);
   }
 
@@ -2456,9 +2571,17 @@ void RamNode::on_event(const ChangeEvent &ce)
 
 bool Node::get_attribute_as_boolean(const string &name) const
 {
+  if(data == nullptr)
+  {
+    erreur("%s: data est nul.", __func__);
+    return false;
+  }
   const Attribute *att = get_attribute(name);
   if(att == nullptr)
+  {
+    erreur("%s: echec get_att.", __func__);
     return false;
+  }
   return att->get_boolean();
 }
 
@@ -2536,7 +2659,7 @@ void Node::unserialize(ByteArray &source)
 
   if(data == nullptr)
   {
-    log.anomaly("%s: data == nullptr.", __func__);
+    erreur("%s: data == nullptr.", __func__);
     return;
   }
 
@@ -2560,7 +2683,7 @@ void Node::unserialize(ByteArray &source)
 
     if(source.size() < 4)
     {
-      log.anomaly("unserialization: incomplete source.");
+      erreur("unserialization: incomplete source.");
       return;
     }
 
@@ -2569,7 +2692,7 @@ void Node::unserialize(ByteArray &source)
     // k is the old number of children
     k = get_children_count(cname);
 
-    //trace("unserialize type %s: local count = %d, new count = %d.",
+    //infos("unserialize type %s: local count = %d, new count = %d.",
     //      cname.c_str(), k, m);
 
     // Update existing nodes
@@ -2612,7 +2735,7 @@ int Node::get_path_to(const Node &child, XPath &res)
 
   if(schema() == nullptr)
   {
-    log.anomaly("get_path_to: no schema.");
+    erreur("get_path_to: no schema.");
     return -1;
   }
 
@@ -2625,7 +2748,7 @@ int Node::get_path_to(const Node &child, XPath &res)
   for(SubSchema &ss: schema()->children)
   {
     std::string sub_name = ss.name.get_id();//ss.ptr->name.get_id();
-    //log.trace("check sub %s: %d elems.", sub_name.c_str(), get_children_count(sub_name));
+    //infos("check sub %s: %d elems.", sub_name.c_str(), get_children_count(sub_name));
     j = 0;
     for(Node cld: children(sub_name))
     {
@@ -2692,7 +2815,7 @@ Node Node::get_child(const XPath &path)
 
   if(!path.is_valid())
   {
-    log.anomaly("get_child_from_path(): invalid path.");
+    erreur("get_child_from_path(): invalid path.");
     return res;
   }
 
@@ -2708,7 +2831,7 @@ Node Node::get_child(const XPath &path)
   {
     if(parent().is_nullptr())
     {
-      log.anomaly("get_child_from_path(%s): no parent.",
+      erreur("get_child_from_path(%s): no parent.",
               path.c_str());
       return res;
     }
@@ -2724,8 +2847,8 @@ Node Node::get_child(const XPath &path)
 
   if(!this->has_child(root.name))
   {
-    log.warning("model = %s\n", to_xml(0,true).c_str());
-    log.anomaly("get_child_from_path(%s): no such child: %s, len = %d.",
+    avertissement("model = %s\n", to_xml(0,true).c_str());
+    erreur("get_child_from_path(%s): no such child: %s, len = %d.",
             path.c_str(),
             root.name.c_str(),
             path.length());
@@ -2752,7 +2875,7 @@ Node Node::get_child(const XPath &path)
 
     if(!found)
     {
-      log.anomaly("get_child_from_path(%s: %s = %s): no such child.",
+      erreur("get_child_from_path(%s: %s = %s): no such child.",
               path.c_str(), root.att_name.c_str(), root.att_value.c_str());
       return res;
     }
@@ -2761,9 +2884,9 @@ Node Node::get_child(const XPath &path)
 
   if(instance >= (int) get_children_count(root.name))
   {
-    log.anomaly("get_child_from_path(%s): no such child instance: %s[%d].",
+    erreur("get_child_from_path(%s): no such child instance: %s[%d].",
             path.c_str(), root.name.c_str(), instance);
-    log.trace("model = %s\n", to_xml(0,true).c_str());
+    infos("model = %s\n", to_xml(0,true).c_str());
     return res;
   }
 
@@ -2776,7 +2899,7 @@ const Node Node::get_child(const XPath &path) const
 
   if(!path.is_valid())
   {
-    log.anomaly("get_child_from_path(): invalid path.");
+    erreur("get_child_from_path(): invalid path.");
     return res;
   }
 
@@ -2792,7 +2915,7 @@ const Node Node::get_child(const XPath &path) const
   {
     if(parent().is_nullptr())
     {
-      log.anomaly("get_child_from_path(%s): no parent.",
+      erreur("get_child_from_path(%s): no parent.",
               path.c_str());
       return res;
     }
@@ -2808,8 +2931,8 @@ const Node Node::get_child(const XPath &path) const
 
   if(!this->has_child(root.name))
   {
-    log.warning("model = %s\n", to_xml(0,true).c_str());
-    log.anomaly("get_child_from_path(%s): no such child: %s, len = %d.",
+    avertissement("model = %s\n", to_xml(0,true).c_str());
+    erreur("get_child_from_path(%s): no such child: %s, len = %d.",
             path.c_str(),
             root.name.c_str(),
             path.length());
@@ -2836,7 +2959,7 @@ const Node Node::get_child(const XPath &path) const
 
     if(!found)
     {
-      log.anomaly("get_child_from_path(%s: %s=%s): no such child.",
+      erreur("get_child_from_path(%s: %s=%s): no such child.",
               path.c_str(), root.att_name.c_str(), root.att_value.c_str());
       return res;
     }
@@ -2845,9 +2968,9 @@ const Node Node::get_child(const XPath &path) const
 
   if(instance >= (int) get_children_count(root.name))
   {
-    log.anomaly("get_child_from_path(%s): no such child instance: %s[%d].",
+    erreur("get_child_from_path(%s): no such child instance: %s[%d].",
             path.c_str(), root.name.c_str(), instance);
-    log.trace("model = %s\n", to_xml(0,true).c_str());
+    infos("model = %s\n", to_xml(0,true).c_str());
     return res;
   }
 
@@ -2864,7 +2987,7 @@ std::string Node::description() const
     for(unsigned int i = 0; i < get_children_count("description"); i++)
     {
       const Node &desc = get_child_at("description", i);
-      if(desc.get_attribute_as_string("lang").compare(langue.current_language) == 0)
+      if(desc.get_attribute_as_string("lang") == Localized::language_id(Localized::current_language))
       {
         return desc.get_attribute_as_string("content");
       }
@@ -2910,7 +3033,7 @@ Attribute *Node::get_attribute(const XPath &path)
     if(schema()->att_mapper.count(path[0].name) == 0)
     {
       string fpath = get_fullpath() + "/" + path[0].name;
-      log.anomaly("Attribute not found: %s. Current path = %s.", path.c_str(), fpath.c_str());
+      erreur("Attribute not found: %s. Current path = %s.", path.c_str(), fpath.c_str());
       return nullptr;
     }
     int index = schema()->att_mapper[path[0].name];
@@ -2922,7 +3045,7 @@ Attribute *Node::get_attribute(const XPath &path)
   if(owner.is_nullptr())
   {
     string fpath = get_fullpath();
-    log.anomaly("Attribute not found: %s. Current path = %s.", path.c_str(), fpath.c_str());
+    erreur("Attribute not found: %s. Current path = %s.", path.c_str(), fpath.c_str());
     return nullptr;
   }
 
@@ -2933,9 +3056,16 @@ const Attribute *Node::get_attribute(const XPath &path) const
 {
   if(path.length() == 1)
   {
+    if(schema() == nullptr)
+    {
+      auto s = path.to_string();
+      erreur("Schema null / get_att(%s)", s.c_str());
+      return nullptr;
+    }
     if(schema()->att_mapper.count(path[0].name) == 0)
     {
-      log.anomaly("Attribute not found: %s. Aborting...", path.c_str());
+      auto s = schema()->name.get_id();
+      erreur("Attribute not found: %s (in %s). Aborting...", path.c_str(), s.c_str());
       return nullptr;
     }
     int index = schema()->att_mapper[path[0].name];
@@ -2945,7 +3075,7 @@ const Attribute *Node::get_attribute(const XPath &path) const
   const Node owner = get_child(path.remove_last());
   if(owner.is_nullptr())
   {
-    log.anomaly("Attribute not found: %s. Aborting...", path.c_str());
+    erreur("Attribute not found: %s. Aborting...", path.c_str());
     return nullptr;
   }
 
@@ -3023,7 +3153,7 @@ const Attribute *RamNode::get_attribute_at(unsigned int i) const
 {
   if(i >= attributes.size())
   {
-    log.anomaly("%s: invalid att index:%d/%d", i, attributes.size());
+    erreur("%s: invalid att index:%d/%d", i, attributes.size());
     return nullptr;
   }
   return &attributes[i];
@@ -3033,7 +3163,7 @@ Attribute *RamNode::get_attribute_at(unsigned int i)
 {
   if(i >= attributes.size())
   {
-    log.anomaly("%s: invalid att index:%d/%d", __func__, i, attributes.size());
+    erreur("%s: invalid att index:%d/%d", __func__, i, attributes.size());
     return nullptr;
   }
   return &attributes[i];
@@ -3047,7 +3177,7 @@ std::string Node::get_identifier(bool disp_type, bool bold) const
 
   if(str_type.compare("?") == 0)
   {
-    log.anomaly("%s: schema name is not defined.", __func__);
+    erreur("%s: schema name is not defined.", __func__);
   }
 
   if(langue.has_item(str_type))
@@ -3079,10 +3209,9 @@ std::string Node::get_identifier(bool disp_type, bool bold) const
     for(auto lg: lgs)
     {
       auto id = Localized::language_id(lg);
-      //printf("Check: %s.\n", id.c_str());
-      if((langue.current_language.compare(id) == 0)
-	 && has_attribute(id) && (get_attribute_as_string(id).size() > 0))
-	return get_attribute_as_string(id);
+      if((lg == Localized::current_language)
+          && has_attribute(id) && (get_attribute_as_string(id).size() > 0))
+        return get_attribute_as_string(id);
     }
 
     // Default to english if available and no other translation available
@@ -3091,7 +3220,7 @@ std::string Node::get_identifier(bool disp_type, bool bold) const
     return get_attribute_as_string("name");
   }
 
-  if((langue.current_language.compare("fr") == 0))
+  if(Localized::current_language == Localized::LANG_FR)
   {
     std::string nm;
     if(has_attribute("fr"))
@@ -3121,7 +3250,7 @@ unsigned long RamNode::get_children_count(const string &type) const
 
   if(index >= (int) children.size())
   {
-    log.anomaly("get_children_count(%s): unitialized container.", type.c_str());
+    erreur("get_children_count(%s): unitialized container.", type.c_str());
     return 0;
   }
 
@@ -3132,7 +3261,7 @@ unsigned long RamNode::get_children_count(int type) const
 {
   if(type >= (int) children.size())
   {
-    log.anomaly("get_children_count(%d): unitialized container.", type);
+    erreur("get_children_count(%d): unitialized container.", type);
     return 0;
   }
 
@@ -3148,10 +3277,9 @@ std::string       Node::type() const
 
 NodeSchema *Node::schema() const
 {
-  if(data == nullptr)
+  if(__builtin_expect(data == nullptr, 0))
   {
-    printf("No schema.\n");
-    fflush(0);
+    erreur("Node::schema(): no schema.");
     return nullptr;
   }
   return data->schema;
@@ -3163,13 +3291,13 @@ const Node RamNode::get_child_at(const string &type, unsigned int instance) cons
 
   if(index < 0)
   {
-    log.anomaly("get_children_at(%s,%d): invalid type.", type.c_str(), instance);
+    erreur("get_children_at(%s,%d): invalid type.", type.c_str(), instance);
     return Node();
   }
 
   if(index >= (int) children[index].nodes.size())
   {
-    log.anomaly("get_children_at(%s,%d): invalid index.", type.c_str(), instance);
+    erreur("get_children_at(%s,%d): invalid index.", type.c_str(), instance);
     return Node();
   }
 
@@ -3180,13 +3308,13 @@ const Node RamNode::get_child_at(int type, unsigned int instance) const
 {
   if(type >= (int) children.size())
   {
-    log.anomaly("%s: invalid type.", __func__);
+    erreur("%s: invalid type.", __func__);
     return Node();
   }
 
   if(instance >= children[type].nodes.size())
   {
-    log.anomaly("get_children_at(%d,%d): invalid index.", type, instance);
+    erreur("get_children_at(%d,%d): invalid index.", type, instance);
     return Node();
   }
 
@@ -3197,13 +3325,13 @@ Node RamNode::get_child_at(int type, unsigned int instance)
 {
   if(type >= (int) children.size())
   {
-    log.anomaly("%s: invalid type.", __func__);
+    erreur("%s: invalid type.", __func__);
     return Node();
   }
 
   if(instance >= children[type].nodes.size())
   {
-    log.anomaly("get_children_at(%d,%d): invalid index.", type, instance);
+    erreur("get_children_at(%d,%d): invalid index.", type, instance);
     return Node();
   }
 
@@ -3216,20 +3344,20 @@ Node RamNode::get_child_at(const string &type, unsigned int instance)
 
   if(index < 0)
   {
-    log.anomaly("get_child_at(%s,%d): invalid type.", type.c_str(), instance);
+    erreur("get_child_at(%s,%d): invalid type.", type.c_str(), instance);
     return Node();
   }
 
   if(index >= (int) children.size())
   {
-    log.anomaly("get_child_at(%s,%d): Child container not ready.",
+    erreur("get_child_at(%s,%d): Child container not ready.",
             type.c_str(), instance);
     return Node();
   }
 
   if(instance >= children[index].nodes.size())
   {
-    log.anomaly("get_child_at(%s,%d): invalid index (max = %d).",
+    erreur("get_child_at(%s,%d): invalid index (max = %d).",
             type.c_str(), instance, ((int) children[index].nodes.size()) - 1);
     return Node();
   }
@@ -3242,7 +3370,7 @@ bool Node::has_child(const XPath &path) const
 {
   if(path.length() == 0)
   {
-    log.anomaly("has_child("")!");
+    erreur("has_child("")!");
     return true;
   }
   else if(path.length() == 1)
@@ -3268,6 +3396,13 @@ bool Node::has_child(const XPath &path) const
   }
 }
 
+Node Node::clone() const
+{
+  Node res = Node::create_ram_node(schema());
+  res.copy_from(*this);
+  return res;
+}
+
 
 void Node::copy_from(const Node e)
 {
@@ -3288,7 +3423,7 @@ void Node::copy_from(const Node e)
   {
     std::string name;
     Node ref = e.get_reference_at(i, name);
-    //trace("copy ref.");
+    //infos("copy ref.");
     set_reference(name, ref);
   }
 
@@ -3346,8 +3481,16 @@ std::string Node::get_localized_name() const
 {
   if(this->data == nullptr)
     return "null";
+
+  auto l = get_localized();
+  return l.get_localized();
+
+# if 0
   std::string res = this->type();
-  if(langue.current_language.compare("fr") == 0)
+
+
+
+  if(Localized::current_language == Localized::LANG_FR)
   {
     if(has_attribute("fr") && (get_attribute_as_string("fr").size() > 0))
       return get_attribute_as_string("fr");
@@ -3357,6 +3500,7 @@ std::string Node::get_localized_name() const
   if(has_attribute("name") && (name().size() > 0))
     return name();
   return res;
+# endif
 }
 
 int Node::load(const string &schema_file, const string &data_file)
@@ -3379,14 +3523,30 @@ void Node::load(const string &filename)
 int Node::save(const string &filename,
                bool store_default_values)
 {
-  log.trace("Saving to %s.", filename.c_str());
+  infos("Enregistrement noeud vers [%s]...", filename.c_str());
 
   string path, file;
   files::split_path_and_filename(filename, path, file);
 
-  return files::save_txt_file(filename,
-                                 std::string("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-                                 + to_xml(0, store_default_values, true, false, path));
+  infos("  conversion vers chaine de caracteres...");
+  auto s = to_xml(0, store_default_values, true, false, path);
+  infos("  enregistrement...");
+
+  int res = files::save_txt_file(filename,
+         std::string("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n") + s);
+
+  infos("Ok.");
+
+  return res;
+}
+
+Node::Node(NodeSchema *schema, const std::string &fichier_source)
+{
+  data = nullptr;
+  if(fichier_source.size() > 0)
+    *this = create_ram_node(schema, fichier_source);
+  else
+    *this = create_ram_node(schema);
 }
 
 Node::Node(const Node &e)
@@ -3409,7 +3569,7 @@ RamNode::~RamNode()
 
   if(nb_references > 0)
   {
-    log.anomaly("delete, but nref = %d.", nb_references);
+    erreur("delete, but nref = %d.", nb_references);
   }
 
   for(i = 0; i < attributes.size(); i++)
@@ -3424,9 +3584,9 @@ RamNode::~RamNode()
 
 void Node::setup_default_subs()
 {
-  if(schema() == nullptr)
+  if(__builtin_expect(schema() == nullptr, 0))
   {
-    log.anomaly("setup_default_subs: no schema.");
+    erreur("setup_default_subs: no schema.");
     return;
   }
 
@@ -3444,16 +3604,16 @@ void Node::setup_default_subs()
 
 void Node::check_min()
 {
-  if((data == nullptr) || (schema() == nullptr))
+  if(__builtin_expect((data == nullptr) || (schema() == nullptr), 0))
     return;
 
   for(SubSchema &ss: schema()->children)
   {
     NodeSchema *es = ss.ptr;
 
-    if(es == nullptr)
+    if(__builtin_expect(es == nullptr, 0))
     {
-      log.anomaly("Schema ptr is nullptr: %s.", ss.child_str.c_str());
+      erreur("Schema ptr is nullptr: %s.", ss.child_str.c_str());
     }
     else if(ss.has_min())
     {
@@ -3471,18 +3631,18 @@ void Node::setup_refs()
   for(i = 0; i < schema()->references.size(); i++)
   {
     RefSchema rs = schema()->references[i];
-    //trace("Search reference for %s...", rs.name.get_id().c_str());
+    //infos("Search reference for %s...", rs.name.get_id().c_str());
     XPath path = get_reference_path(rs.name.get_id());
-    //trace("Path = %s", path.to_string().c_str());
-    //trace("Root path = %s", rs.path.c_str());
+    //infos("Path = %s", path.to_string().c_str());
+    //infos("Root path = %s", rs.path.c_str());
 
     XPath full_path(rs.path + "/" + path.to_string());
-    //trace("Full path = %s", full_path.to_string().c_str());
+    //infos("Full path = %s", full_path.to_string().c_str());
 
     Node target = get_child(full_path);
     if(target.is_nullptr())
     {
-      log.anomaly("Referring node not found.");
+      erreur("Referring node not found.");
     }
     else
     {
@@ -3503,7 +3663,7 @@ XPath Node::get_reference_path(const string &name)
 {
   if(data == nullptr)
   {
-    log.anomaly("get_reference_path on nullptr node.");
+    erreur("get_reference_path on nullptr node.");
     return XPath();
   }
   return data->get_reference_path(name);
@@ -3526,17 +3686,17 @@ XPath RamNode::get_reference_path(const string &name)
 
 
         continue;
-        /*log.anomaly("get_ref_path: nullptr path returned.");
+        /*erreur("get_ref_path: nullptr path returned.");
         for(unsigned int j = 0; j < references.size(); j++)
         {
-          trace("ref[%d] = %s", j, references[i].name.c_str());
+          infos("ref[%d] = %s", j, references[i].name.c_str());
           }*/
       }
 
       return res;
     }
   }
-  log.warning("get_reference_path(%s): not found.", name.c_str());
+  avertissement("get_reference_path(%s): not found.", name.c_str());
   return XPath();
 }
 
@@ -3560,16 +3720,15 @@ void Node::setup_schema()
 {
   unsigned int i;
 
-  if(schema() == nullptr)
+  if(__builtin_expect(schema() == nullptr, 0))
     return;
 
-  for(i = 0; i < data->schema->references.size(); i++)
-  {
-    if(!this->has_reference(data->schema->references[i].name.get_id()))
-    {
-      this->set_reference(data->schema->references[i].name.get_id(), Node());
-    }
-  }
+  auto &rlist = data->schema->references;
+  auto nrefs = rlist.size();
+
+  for(i = 0; i < nrefs; i++)
+    if(!has_reference(rlist[i].name.get_id()))
+      set_reference(rlist[i].name.get_id(), Node());
 }
 
 RamNode::RamNode(NodeSchema *schema)
@@ -3577,9 +3736,9 @@ RamNode::RamNode(NodeSchema *schema)
   inhibit_event_raise = false;
   instance = 0;
   parent = nullptr;
-  if(schema == nullptr)
+  if(__builtin_expect(schema == nullptr, 0))
   {
-    log.anomaly("constructeur sans schema.");
+    erreur("constructeur sans schema.");
   }
   /* To manage dereferencing of elt. */
   {
@@ -3624,16 +3783,15 @@ RamNode::RamNode()
   nb_references = 0;
 }
 
-void Node::fromXml(const MXml &e, string root_path)
+void Node::fromXml(const MXml &e, const string &root_path)
 {
   data->type = e.name;
+  auto schem = schema();
 
   /* Special management of description which can
    * contain embedded HTML/XML content not to be analyzed here. */
-  if(e.name.compare("description") == 0)
-  {
-    this->set_attribute("content", e.dump_content());
-  }
+  if(e.name == "description")
+    set_attribute("content", e.dump_content());
 
   unsigned int n = e.attributes.size();
   for(unsigned int i = 0; i < n; i++)
@@ -3641,74 +3799,82 @@ void Node::fromXml(const MXml &e, string root_path)
     const XmlAttribute &xa = e.attributes[i];
 
     // check references
-    if(schema()->has_reference(xa.name))
+    if(__builtin_expect(schem->has_reference(xa.name), 0))
     {
       set_reference(xa.name, XPath(xa.to_string()));
+      continue;
     }
-    else
+
+    if(schem->att_mapper.count(xa.name) == 0)
     {
-      if(!schema()->has_attribute(xa.name))
-      {
-        log.warning("No such attribute: %s.", xa.name.c_str());
-        continue;
-      }
-
-
-      std::string s = xa.string_value;
-      char *tmp = (char *) malloc(s.size() + 1);
-
-      unsigned int ko = 0;
-      for(unsigned int k = 0; k < s.size(); k++)
-      {
-        if(s[k] != '\\')
-        {
-          tmp[ko++] = s[k];
-        }
-        else if((k + 1 < s.size()) && (s[k+1] == 'G'))
-        {
-          k++;
-          tmp[ko++] = '"';
-        }
-        else if((k + 1 < s.size()) && (s[k+1] == '\\'))
-        {
-          k++;
-          tmp[ko++] = '\\';
-        }
-        else
-        {
-          tmp[ko++] = s[k];
-        }
-      }
-      tmp[ko] = 0;
-
-      string value(tmp);
-      free(tmp);
-
-      refptr<AttributeSchema> as = schema()->get_attribute(xa.name);
-
-      if((as->type == TYPE_FILE) && (root_path.size() > 0))
-      {
-        // Convert relative path to absolute path.
-        string abs;
-        if(files::rel2abs(root_path, value, abs))
-        {
-          log.warning("Relative path to absolute path conversion failed.");
-        }
-        else
-        {
-          /*trace("Converted rel path to abs: ref = [%s], rel = [%s], abs = [%s].",
-                root_path.c_str(), value.c_str(), abs.c_str());*/
-          value = abs;
-        }
-      }
-
-      XPathItem xpi(xa.name);
-      XPath xp(xpi);
-      set_attribute(xp, value);
+      avertissement("No such attribute: %s.", xa.name.c_str());
+      continue;
     }
+
+    int index = schema()->att_mapper[xa.name];
+    Attribute *att = data->get_attribute_at(index);
+
+    std::string s = xa.string_value;
+    std::string value = s;
+
+    auto &as = att->schema;//schem->get_attribute(xa.name);
+
+      if((as->type == TYPE_STRING)
+          || (as->type == TYPE_FILE)
+          || (as->type == TYPE_FOLDER))
+      {
+        char *tmp = (char *) malloc(s.size() + 1);
+
+        unsigned int ko = 0;
+        for(unsigned int k = 0; k < s.size(); k++)
+        {
+          if(s[k] != '\\')
+          {
+            tmp[ko++] = s[k];
+          }
+          else if((k + 1 < s.size()) && (s[k+1] == 'G'))
+          {
+            k++;
+            tmp[ko++] = '"';
+          }
+          else if((k + 1 < s.size()) && (s[k+1] == '\\'))
+          {
+            k++;
+            tmp[ko++] = '\\';
+          }
+          else
+          {
+            tmp[ko++] = s[k];
+          }
+        }
+        tmp[ko] = 0;
+
+        value = std::string(tmp);
+        free(tmp);
+
+        if((as->type == TYPE_FILE) && (root_path.size() > 0))
+        {
+          // Convert relative path to absolute path.
+          string abs;
+          if(files::rel2abs(root_path, value, abs))
+          {
+            avertissement("Relative path to absolute path conversion failed.");
+          }
+          else
+          {
+            /*infos("Converted rel path to abs: ref = [%s], rel = [%s], abs = [%s].",
+                  root_path.c_str(), value.c_str(), abs.c_str());*/
+            value = abs;
+          }
+        }
+      }
+
+      //XPathItem xpi(xa.name);
+      //XPath xp(xpi);
+      //set_attribute(xp, value);
+      att->set_value(value);
   }
 
-  NodeSchema *schem = schema();
   for(const SubSchema &ss: schem->children)
   {
     std::string sname =  ss.name.get_id();
@@ -3717,20 +3883,27 @@ void Node::fromXml(const MXml &e, string root_path)
     e.get_children(sname, lst);
     unsigned int n1 = lst.size();
 
-    for(unsigned int k = 0; (k < n0) && (k < n1); k++)
-      this->get_child_at(sname, k).fromXml(*lst[k], root_path);
-
-    if(n1 > n0)
+    if((n1 > 0) && (n0 == 0))
     {
-      for(unsigned int k = 0; k < n1 - n0; k++)
-      {
-        Node nv = add_child(sname);
-        nv.fromXml(*lst[k + n0], root_path);
-      }
+      data->add_children(sname, lst);
     }
-    else if(n0 > n1)
+    else
     {
+      for(unsigned int k = 0; (k < n0) && (k < n1); k++)
+        get_child_at(sname, k).fromXml(*lst[k], root_path);
 
+      if(n1 > n0)
+      {
+        for(unsigned int k = 0; k < n1 - n0; k++)
+        {
+          Node nv = add_child(sname);
+          nv.fromXml(*lst[k + n0], root_path);
+        }
+      }
+      else if(n0 > n1)
+      {
+
+      }
     }
   }
 }
@@ -3746,14 +3919,14 @@ const Node Node::get_reference(const string &name) const
     if(ref_name.compare(name) == 0)
       return elt;
   }
-  log.anomaly(std::string("reference not found: ") + name);
-  log.trace("%d ref available:", n);
+  erreur(std::string("reference not found: ") + name);
+  infos("%d ref available:", n);
   for(unsigned int i = 0; i < n; i++)
   {
     std::string ref_name;
     Node elt;
     elt = get_reference_at(i, ref_name);
-    log.trace("ref #%d = %s.", i, ref_name.c_str());
+    infos("ref #%d = %s.", i, ref_name.c_str());
   }
   return Node();
 }
@@ -3783,7 +3956,7 @@ void RamNode::set_reference(const string &name, const XPath &xp)
   if(rs == nullptr)
   {
     Node n(this);
-    n.log.anomaly("set_ref: '%s' not found.", name.c_str());
+    erreur("set_ref: '%s' not found.", name.c_str());
     return;
   }
 
@@ -3805,7 +3978,7 @@ void RamNode::set_reference(const string &name, const XPath &xp)
 
   {
     Node tmp(this);
-    tmp.log.trace("set_ref(%s = %s).", name.c_str(), xp.to_string().c_str());
+    infos("set_ref(%s = %s).", name.c_str(), xp.to_string().c_str());
   }
 }
 
@@ -3826,7 +3999,7 @@ void RamNode::set_reference(const string &name, Node e)
     rf.ptr  = e;
     references.push_back(rf);
     Node elt(this);
-    elt.log.trace("Set ref ok (%s -> ...)", rf.name.c_str());
+    infos("Set ref ok (%s -> ...)", rf.name.c_str());
   }
   else
   {
@@ -3871,13 +4044,16 @@ std::string Node::to_xml_atts(unsigned int indent,
         if((a->schema->type == TYPE_FILE) && (root_path.size() > 0))
         {
           // Must get the relative path to the file from the root path.
-          string rel;
-          if(files::abs2rel(root_path, val, rel))
-            log.warning("Abs to rel path conversion failed.");
+          if((val.size() >= 2) && (val[1] != ':'))
+          {
+            string rel;
+            if(files::abs2rel(root_path, val, rel))
+              avertissement("Abs to rel path conversion failed.");
 
-          log.trace("Abs to relative: root = [%s], abs = [%s], rel = [%s].",
-                root_path.c_str(), val.c_str(), rel.c_str());
-          val = rel;
+            infos("Abs to relative: root = [%s], abs = [%s], rel = [%s].",
+                  root_path.c_str(), val.c_str(), rel.c_str());
+            val = rel;
+          }
         }
 
         // TODO: must protect against following characters: <, >, "
@@ -3913,7 +4089,7 @@ std::string Node::to_xml_atts(unsigned int indent,
     std::string ref_name;
     Node rs = get_reference_at(i, ref_name);
     if(rs.is_nullptr())
-      log.warning("Cannot save nullptr reference.");
+      avertissement("Cannot save nullptr reference.");
     else
     {
       XPath rel_path;
@@ -3924,19 +4100,19 @@ std::string Node::to_xml_atts(unsigned int indent,
       Node root = get_child(root_path);
       if(root.is_nullptr())
       {
-	log.anomaly("unable to retrieve root path for ref. %s.", ref_name.c_str());
+	erreur("unable to retrieve root path for ref. %s.", ref_name.c_str());
 	continue;
       }
 
       if(root.get_path_to(rs, rel_path))
       {
-	log.anomaly("to_xml(): unable to retrieve relative path for %s.", ref_name.c_str());
+	erreur("to_xml(): unable to retrieve relative path for %s.", ref_name.c_str());
 	continue;
       }
 
       ref_path = rel_path.to_string();
 
-      log.trace("Save ref %s = %s.", ref_name.c_str(), ref_path.c_str());
+      infos("Save ref %s = %s.", ref_name.c_str(), ref_path.c_str());
       attnames.push_back(ref_name);
       attvalues.push_back(ref_path);//rs.name());
     }
@@ -3997,7 +4173,7 @@ std::string Node::text_resume(int indent) const
 {
   if(schema() == nullptr)
   {
-    log.anomaly("text_resume(): schema is nullptr.");
+    erreur("text_resume(): schema is nullptr.");
     return "";
   }
   std::string s = "";
@@ -4067,7 +4243,7 @@ std::string Node::to_xml(unsigned int indent,
   {
     if(type().size() == 0)
     {
-      log.anomaly("Cannot save node without schema nor type.");
+      erreur("Cannot save node without schema nor type.");
       return "";
     }
   }
@@ -4199,7 +4375,7 @@ void AttributeSchema::get_valid_chars(std::vector<std::string> &cars)
 {
   unsigned int i;
 
-  log.trace("get_valid_chars()..");
+  infos("get_valid_chars()..");
 
   cars.clear();
   if(constraints.size() > 0)
@@ -4223,7 +4399,7 @@ void AttributeSchema::get_valid_chars(std::vector<std::string> &cars)
     RegExp re;
     if(re.from_string(regular_exp))
     {
-      log.anomaly("Failed to parse regexp: %s.", regular_exp.c_str());
+      erreur("Failed to parse regexp: %s.", regular_exp.c_str());
       return;
     }
     re.get_valid_chars(cars);
@@ -4247,9 +4423,9 @@ void AttributeSchema::get_valid_chars(std::vector<std::string> &cars)
   }
   else
   {
-    log.warning("get_vchars: unmanaged type %d.", type);
+    avertissement("get_vchars: unmanaged type %d.", type);
   }
-  log.trace("done.");
+  infos("done.");
 }
 
 bool AttributeSchema::is_valid(std::string s)
@@ -4260,7 +4436,7 @@ bool AttributeSchema::is_valid(std::string s)
 
   if((type == TYPE_STRING) && (is_ip))
   {
-    //trace("check ip(%s)", ss);
+    //infos("check ip(%s)", ss);
     if((s.compare("test") == 0) || (s.compare("localhost") == 0))
     {
 
@@ -4270,14 +4446,14 @@ bool AttributeSchema::is_valid(std::string s)
       std::vector<int> ilist;
       if(utils::str::parse_int_list(s, ilist))
       {
-        log.warning("set_value(\"%s\"): invalid ip.", ss);
+        avertissement("set_value(\"%s\"): invalid ip.", ss);
         return false;
       }
       else
       {
         if(ilist.size() != 4)
         {
-          log.warning("set_value(\"%s\"): invalid ip.", ss);
+          avertissement("set_value(\"%s\"): invalid ip.", ss);
           return false;
         }
         else
@@ -4286,7 +4462,7 @@ bool AttributeSchema::is_valid(std::string s)
           {
             if((ilist[i] < 0) || (ilist[i] > 255))
             {
-              log.warning("set_value(\"%s\"): invalid ip.", ss);
+              avertissement("set_value(\"%s\"): invalid ip.", ss);
               return false;
             }
           }
@@ -4303,7 +4479,7 @@ bool AttributeSchema::is_valid(std::string s)
     ByteArray ba(s);
     if(ba.size() != 3)
     {
-      log.warning("Invalid color spec: %s.", s.c_str());
+      avertissement("Invalid color spec: %s.", s.c_str());
       return false;
     }
     return true;
@@ -4312,7 +4488,7 @@ bool AttributeSchema::is_valid(std::string s)
   {
     if(s.size() == 0)
     {
-      log.warning("set_value(\"\"): invalid value for int.");
+      avertissement("set_value(\"\"): invalid value for int.");
       return false;
     }
 
@@ -4338,7 +4514,7 @@ bool AttributeSchema::is_valid(std::string s)
         {
           if(!utils::str::is_hexa(ss[i]))
           {
-            log.warning("set_value(\"%s\"): invalid character for hexa int.", ss);
+            avertissement("set_value(\"%s\"): invalid character for hexa int.", ss);
             return false;
           }
         }
@@ -4350,20 +4526,20 @@ bool AttributeSchema::is_valid(std::string s)
         {
           if(!utils::str::is_deci(ss[i]) && (ss[i] != '-'))
           {
-            log.warning("set_value(\"%s\"): invalid value for int.", ss);
+            avertissement("set_value(\"%s\"): invalid value for int.", ss);
             return false;
           }
         }
 
         if(has_min && (atoi(ss) < min))
         {
-          log.warning("set_value(\"%s\"): < min = %ld.", ss, min);
+          avertissement("set_value(\"%s\"): < min = %ld.", ss, min);
           return false;
         }
 
         if(has_max && (atoi(ss) > max))
         {
-          log.warning("set_value(\"%s\"): > max = %ld.", ss, max);
+          avertissement("set_value(\"%s\"): > max = %ld.", ss, max);
           return false;
         }
       }
@@ -4387,7 +4563,7 @@ int  Attribute::set_value(const ByteArray &ba)
     if(!schema->is_valid(ba))
     {
       string s = ba.to_string();
-      log.anomaly("%s(%s): Invalid value.", __func__, s.c_str());
+      avertissement("%s(%s): Invalid value.", __func__, s.c_str());
       return -1;
     }
 
@@ -4399,10 +4575,8 @@ int  Attribute::set_value(const ByteArray &ba)
       ce.path = XPath(XPathItem(schema->name.get_id()));
       dispatch(ce);
     }
-
     return 0;
   }
-
   return 0;
 }
 
@@ -4410,7 +4584,7 @@ int Attribute::set_value(const string &s)
 {
   if(!schema->is_valid(s))
   {
-    log.warning("set_value(%s): invalid value.", s.c_str());
+    avertissement("set_value(%s): invalid value.", s.c_str());
     if(!inhibit_event_dispatch)
     {
       ChangeEvent ce = ChangeEvent::create_att_changed(this);
@@ -4421,7 +4595,7 @@ int Attribute::set_value(const string &s)
   }
 
   ByteArray ba;
-  if(schema->serialize(ba, s))
+  if(__builtin_expect(schema->serialize(ba, s), 0))
     return -1;
   return set_value(ba);
 }
@@ -4470,6 +4644,48 @@ unsigned long     Node::get_children_count() const
   return res;
 }
 
+Node Node::get_child_at(unsigned int index)
+{
+  uint32_t i, cpt = 0;
+
+  if(data == nullptr)
+    return Node();
+
+  for(i = 0; i < schema()->children.size(); i++)
+  {
+    unsigned int k = data->get_children_count(i);
+
+    if((index >= cpt) && (index < cpt + k))
+    {
+      return data->get_child_at(i, index - cpt);
+    }
+
+    cpt += k;
+  }
+  return Node();
+}
+
+const Node Node::get_child_at(unsigned int index) const
+{
+  uint32_t i, cpt = 0;
+
+  if(data == nullptr)
+    return Node();
+
+  for(i = 0; i < schema()->children.size(); i++)
+  {
+    unsigned int k = data->get_children_count(i);
+
+    if((index >= cpt) && (index < cpt + k))
+    {
+      return data->get_child_at(i, index - cpt);
+    }
+
+    cpt += k;
+  }
+  return Node();
+}
+
 // GET CHILDREN, TYPE PRECISE
 unsigned long     Node::get_children_count(const string &type) const
 {
@@ -4480,7 +4696,7 @@ unsigned long     Node::get_children_count(const string &type) const
 
 Node           Node::get_child_at(const string &type, unsigned int i)
 {
-  //trace("get child %s %d", type.c_str(), i);
+  //infos("get child %s %d", type.c_str(), i);
   if(data == nullptr)
     return Node();
   return data->get_child_at(type, i);
@@ -4489,7 +4705,7 @@ const Node     Node::get_child_at(const string &type, unsigned int i) const
 {
   if(data == nullptr)
       return Node();
-  //trace("get child %s %d", type.c_str(), i);
+  //infos("get child %s %d", type.c_str(), i);
   return data->get_child_at(type, i);
 }
 
@@ -4497,7 +4713,7 @@ const Node     Node::get_child_at(const string &type, unsigned int i) const
 
 Node           Node::add_child(Node nv)
 {
-  if(data == nullptr)
+  if(__builtin_expect(data == nullptr, 0))
     return Node();
 
   Node res = data->add_child(nv.schema()->name.get_id());
@@ -4525,7 +4741,7 @@ Node           Node::add_child(NodeSchema *schema)
 
 Node           Node::add_child(const string &sub_name)
 {
-  if(data == nullptr)
+  if(__builtin_expect(data == nullptr, 0))
     return Node();
 
   //verbose("add_child(%s)...", sub_name.c_str());
@@ -4579,7 +4795,7 @@ bool Node::is_attribute_valid(const string &name)
 {
   if(!this->has_attribute(name))
   {
-    log.warning("is_att_valid: att %s not found.", name.c_str());
+    avertissement("is_att_valid: att %s not found.", name.c_str());
     return false;
   }
   Attribute *att = this->get_attribute(name);
@@ -4597,7 +4813,7 @@ bool Node::is_attribute_valid(const string &name)
 
   if(pos == std::string::npos)
   {
-    log.warning("Invalid requirement: '%s'.", rq.c_str());
+    avertissement("Invalid requirement: '%s'.", rq.c_str());
     return false;
   }
 
@@ -4639,11 +4855,11 @@ bool Node::is_attribute_valid(const string &name)
     if(i + 1 < constraints.size())
       s += " | ";
   }
-  //trace(s);
+  //infos(s);
 
   if(!has_attribute(attname))
   {
-    log.warning("%s attribute not found (in requirement).", attname.c_str());
+    avertissement("%s attribute not found (in requirement).", attname.c_str());
     return false;
   }
 
@@ -4653,11 +4869,11 @@ bool Node::is_attribute_valid(const string &name)
   {
     if(value.compare(constraints[i]) == 0)
     {
-      log.trace("att %s is available.", name.c_str());
+      //infos("att %s is available.", name.c_str());
       return true;
     }
   }
-  log.trace("att %s is not available.", name.c_str());
+  //infos("att %s is not available.", name.c_str());
   return false;
 }
 
@@ -4665,7 +4881,7 @@ bool Node::is_attribute_valid(const string &name)
 // REFERENCES
 unsigned int      Node::get_reference_count() const
 {
-  if(data != nullptr)
+  if(__builtin_expect(data != nullptr, 1))
     return data->get_reference_count();
   else
     return 0;
@@ -4686,7 +4902,7 @@ const Node     Node::get_reference_at(unsigned int i, std::string &name) const
   if(data != nullptr)
     return data->get_reference_at(i, name);
   else
-    return 0;
+    return Node();
 }
 
 
@@ -4695,20 +4911,25 @@ const Node     Node::get_reference_at(unsigned int i, std::string &name) const
 Node::Node(NodePatron *data)
 {
   this->data = data;
-  if(data != nullptr)
+  if(__builtin_expect(data != nullptr, 1))
     data->reference();
 }
 
 
+static utils::hal::Mutex mutex_refs;
 
 void NodePatron::reference()
 {
+  mutex_refs.lock();
   nb_references++;
+  mutex_refs.unlock();
 }
 
 void NodePatron::dereference()
 {
+  mutex_refs.lock();
   nb_references--;
+  mutex_refs.unlock();
 }
 
 std::string       NodePatron::class_name() const
@@ -4776,7 +4997,7 @@ void Node::unlock()
 
 Node Node::create_ram_node(NodeSchema *schema)
 {
-  if(schema == nullptr)
+  if(__builtin_expect(schema == nullptr, 0))
     return Node();
   Node res(new RamNode(schema));
   return res;
@@ -4788,16 +5009,16 @@ Node Node::create_ram_node()
   return res;
 }
 
-Node Node::create_ram_node_from_string(NodeSchema *schema, std::string content)
+Node Node::create_ram_node_from_string(NodeSchema *schema, const std::string &content)
 {
-  if(schema == nullptr)
+  if(__builtin_expect(schema == nullptr, 0))
     return Node();
   Node res(new RamNode(schema));
 
   MXml mx;
   if(mx.from_string(content))
   {
-    res.log.anomaly("Parse error while parsing:\n%s", content.c_str());
+    erreur("Parse error while parsing:\n%s", content.c_str());
     return res;
   }
   res.fromXml(mx);
@@ -4806,8 +5027,10 @@ Node Node::create_ram_node_from_string(NodeSchema *schema, std::string content)
 
 Node Node::create_ram_node(NodeSchema *schema, std::string filename)
 {
-  if(schema == nullptr)
+  if(__builtin_expect(schema == nullptr, 0))
     return Node();
+
+  utils::files::remplacement_motif(filename);
 
   //schema->verbose("create empty rnode..");
   RamNode *rn = new RamNode(schema);
@@ -4817,27 +5040,38 @@ Node Node::create_ram_node(NodeSchema *schema, std::string filename)
   {
     MXml mx;
 
-    schema->log.trace("Loading data tree from XML file [%s]...", filename.c_str());
+    infos("Chargement arbre de donnees a partir du fichier [%s]...", filename.c_str());
 
-    //schema->verbose("xml parsing..");
+
+    infos("  decodage xml..");
     if(mx.from_file(filename))
     {
-      res.log.anomaly("Parse error while parsing %s.", filename.c_str());
+      erreur("erreur de parsing dans [%s].", filename.c_str());
       return res;
     }
-    //schema->verbose("xml import..");
 
     string path, file;
     files::split_path_and_filename(filename, path, file);
 
+    infos("  conversion XML -> noeud...");
     res.fromXml(mx, path);
-    //schema->verbose("setup refs....");
+    infos("  setup refs...");
     res.setup_refs();
-    //schema->verbose("refs ok....");
+    infos("ok.");
   }
   else
-    res.log.anomaly("create_ram_node: file not found (%s).", filename.c_str());
+  {
+    avertissement("Fichier non trouve (%s) : utilisation des parametres par defaut.", filename.c_str());
+  }
   return res;
+}
+
+bool Node::est_egal(const Node &e) const
+{
+  ByteArray ba[2];
+  serialize(ba[0]);
+  e.serialize(ba[1]);
+  return ba[0] == ba[1];
 }
 
 bool Node::operator ==(const Node &e) const
@@ -4863,7 +5097,7 @@ void Node::operator =(const Node &e)
     if(old_data->nb_references <= 0)
     {
       old_data->discard();
-      //log.trace("VRAI DELETE (op=).");
+      //infos("VRAI DELETE (op=).");
       delete old_data; // ?
     }
   }
@@ -4873,14 +5107,14 @@ Node::~Node()
 {
   if(data == nullptr)
     return;
-  //log.trace("destruction.");
+  //infos("destruction.");
   data->dereference();
   if(data->nb_references <= 0)
   {
     data->discard();
     data->CProvider<ChangeEvent>::remove_all_listeners();
 
-    //log.trace("VRAI DELETE (des).");
+    //infos("VRAI DELETE (des).");
     delete data;
   }
   data = nullptr;
@@ -4922,12 +5156,12 @@ Node           Node::down(Node child)
 
   if(index == n)
   {
-    log.anomaly("down(): child not found.");
+    erreur("down(): child not found.");
     return child;
   }
   else if(index == n - 1)
   {
-    log.anomaly("down(): index = n - 1.");
+    erreur("down(): index = n - 1.");
     return child;
   }
 
@@ -4969,12 +5203,12 @@ Node           Node::up(Node child)
 
   if(index == n)
   {
-    log.anomaly("up(): child not found.");
+    erreur("up(): child not found.");
     return child;
   }
   else if(index == 0)
   {
-    log.anomaly("up(): index = 0.");
+    erreur("up(): index = 0.");
     return child;
   }
 
@@ -5002,12 +5236,12 @@ Node           Node::up(Node child)
 
 void NodePatron::get_vector(std::string name, uint32_t index, void *data, uint32_t n)
 {
-  log.anomaly("TODO: generic get_vector.");
+  erreur("TODO: generic get_vector.");
 }
 
 void NodePatron::add_vector(std::string name, void *data, uint32_t n)
 {
-  log.anomaly("TODO: add_vector.");
+  erreur("TODO: add_vector.");
 # if 0
   Node elt(this);
   /* Default implementation */
@@ -5069,7 +5303,7 @@ int XPath::from_string(const string &s_)
       pos = s.find(']', 0);
       if(pos == std::string::npos)
       {
-        //log.anomaly("xpath(\"%s\"): parse error.", s.c_str());
+        //erreur("xpath(\"%s\"): parse error.", s.c_str());
         return -1;
       }
 
@@ -5097,7 +5331,7 @@ int XPath::from_string(const string &s_)
 
     if(s[0] != '/')
     {
-      //log.anomaly("xpath(\"%s\"): parse error.", s.c_str());
+      //erreur("xpath(\"%s\"): parse error.", s.c_str());
       return -1;
     }
 
@@ -5605,12 +5839,12 @@ void DotTools::build_graphic(Node &schema, const std::string &output_filename)
       std::string("tmp-") + schema.name()
       + ".dot";
 
-    log.trace("Building graphics from model =\n%s\n", schema.to_xml(0).c_str());
+    infos("Building graphics from model =\n%s\n", schema.to_xml(0).c_str());
 
     FILE *tmp = fopen(fn.c_str(), "wt");
     if(tmp == nullptr)
     {
-      log.anomaly("Failed to create [%s].", fn.c_str());
+      erreur("Failed to create [%s].", fn.c_str());
       return;
     }
 
@@ -5623,12 +5857,12 @@ void DotTools::build_graphic(Node &schema, const std::string &output_filename)
 
     std::string img_fmt = "png";
 
-    log.trace("calling twopi..");
+    infos("calling twopi..");
 
     std::string dotpath = "dot";
     #ifdef WIN
     dotpath = "\"C:\\Program Files\\graphviz 2.28\\bin\\dot.exe\"";
-    log.trace_major("Win32 dot: %s.", dotpath.c_str());
+    trace_majeure("Win32 dot: %s.", dotpath.c_str());
     #endif
 
 
@@ -5646,7 +5880,7 @@ std::string DotTools::complete_dot_graph(Node section, int level)
   std::string fillcolor = fcols[level];
 
 
-  //section.log.trace("complete_dot_graph(level %d)..", level);
+  //section.infos("complete_dot_graph(level %d)..", level);
   // margin=0 : marge horizontale
   //res += "node [shape=box, fontsize=9, fillcolor=\"#" + fillcolor + "\", style=filled];\n";
   //res += "node [shape=none, fontsize=9];\n";
@@ -5761,7 +5995,7 @@ std::string DotTools::complete_dot_graph(Node section, int level)
 	res += complete_dot_graph(sub, level + 1);
   }
 
-  //section.log.trace("complete_dot_graph(level %d): done.", level);
+  //section.infos("complete_dot_graph(level %d): done.", level);
 
   return res;
 }
@@ -5962,7 +6196,7 @@ string Node::to_html(unsigned int level) const
 }
 
 
-Logable LatexWrapper::log("libcutil");
+
 
 int LatexWrapper::export_att_table(string &res, const Node &schema)
 {

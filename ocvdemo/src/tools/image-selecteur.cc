@@ -93,7 +93,7 @@ void ImageSelecteur::maj_selection()
                                          3 * bigmat.cols);
   gtk_image.set(pixbuf);
                        
-  journal.verbose("reshow...");
+  trace_verbeuse("reshow...");
   //this->gtk_image.show();
   gtk_image.queue_draw();
 }
@@ -108,7 +108,7 @@ void ImageSelecteur::maj_mosaique()
     return;
 
 
-  journal.trace("maj_mosaique");
+  infos("maj_mosaique");
   int width, height;
   width = gtk_image.get_allocated_width();
   height = gtk_image.get_allocated_height();
@@ -118,7 +118,7 @@ void ImageSelecteur::maj_mosaique()
 
   if((width != bigmat.cols) || (height != bigmat.rows))
   {
-    journal.trace("if((width != bigmat.cols) || (height != bigmat.rows))");
+    infos("if((width != bigmat.cols) || (height != bigmat.rows))");
 
     bigmat = cv::Mat::zeros(cv::Size(width,height), CV_8UC3);
     pixbuf = Gdk::Pixbuf::create_from_data(bigmat.data,
@@ -156,8 +156,8 @@ void ImageSelecteur::maj_mosaique()
   img_width = col_width - 6;
   img_height = row_height - 6 - txt_height;
 
-  journal.verbose("nrows=%d, ncols=%d.", nrows, ncols);
-  //journal.verbose("bigmat: %d * %d.")
+  trace_verbeuse("nrows=%d, ncols=%d.", nrows, ncols);
+  //trace_verbeuse("bigmat: %d * %d.")
 
   unsigned int row = 0, col = 0;
   for(auto i = 0u; i < n; i++)
@@ -168,7 +168,7 @@ void ImageSelecteur::maj_mosaique()
     im.px = im.ix * col_width + 3;
     im.py = im.iy * row_height + 3;
 
-    journal.verbose("resize(%d,%d,%d,%d,%d,%d)",
+    trace_verbeuse("resize(%d,%d,%d,%d,%d,%d)",
         im.px, im.py, col_width, row_height, col_width, row_height);
 
     cv::Mat tmp;
@@ -299,7 +299,7 @@ void ImageSelecteur::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& conte
    {
      Glib::ustring path = Glib::filename_from_uri(file_list[i]);
      std::string s = path;
-     journal.trace("DnD: %s.", s.c_str());
+     infos("DnD: %s.", s.c_str());
 
      if(this->images.size() == 0)
      {
@@ -364,7 +364,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
   if(s.size() == 0)
     return;
 
-  journal.verbose("set [#%d <- %s]...", idx, s.c_str());
+  trace_verbeuse("set [#%d <- %s]...", idx, s.c_str());
   Image &img = images[idx];
   img.spec.chemin = s;
   std::string dummy;
@@ -380,7 +380,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 
     if(!vc.isOpened())
     {
-      utils::mmi::dialogs::show_error("Error",
+      utils::mmi::dialogs::affiche_erreur("Error",
                 "Error while loading video",
                 "Maybe the video format is not supported.");
             return;
@@ -402,7 +402,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
 
     if(!vc.isOpened())
     {
-      utils::mmi::dialogs::show_error("Error",
+      utils::mmi::dialogs::affiche_erreur("Error",
                 "Error while connecting to webcam",
                 "Maybe the webcam is not supported or is already used in another application.");
             return;
@@ -419,7 +419,7 @@ void ImageSelecteur::set_fichier(int idx, std::string s)
     img.spec.img = cv::imread(s);
     if(img.spec.img.data == nullptr)
     {
-      utils::mmi::dialogs::show_error("Error",
+      utils::mmi::dialogs::affiche_erreur("Error",
           "Error while loading image",
           "Maybe the image format is not supported.");
       return;
@@ -452,7 +452,7 @@ void ImageSelecteur::ajoute_fichier(std::string s)
   if(s.size() == 0)
     return;
 
-  journal.verbose("Ajout [%s]...", s.c_str());
+  trace_verbeuse("Ajout [%s]...", s.c_str());
 
   images.resize(images.size() + 1);
 
@@ -502,7 +502,7 @@ std::string ImageSelecteur::media_open_dialog(utils::model::Node mod)
 
 void ImageSelecteur::on_b_add()
 {
-  journal.verbose("on b add...");
+  trace_verbeuse("on b add...");
   auto mod = create_default_model();
   ajoute_fichier(media_open_dialog(mod));
   maj_actif();
@@ -510,7 +510,7 @@ void ImageSelecteur::on_b_add()
 
 void ImageSelecteur::on_b_open()
 {
-  journal.verbose("on b open...");
+  trace_verbeuse("on b open...");
   if(this->csel != -1)
   {
     set_fichier(this->csel, media_open_dialog(images[csel].modele));
@@ -522,10 +522,10 @@ void ImageSelecteur::on_b_open()
 
 void ImageSelecteur::on_b_del()
 {
-  journal.verbose("on b del().");
+  trace_verbeuse("on b del().");
   if(csel != -1)
   {
-    journal.verbose("del %d...", csel);
+    trace_verbeuse("del %d...", csel);
     images.erase(csel + images.begin(), 1 + csel + images.begin());
     if(csel >= (int) images.size())
       csel--;
@@ -536,7 +536,7 @@ void ImageSelecteur::on_b_del()
 
 void ImageSelecteur::on_b_del_tout()
 {
-  journal.verbose("on b del tout().");
+  trace_verbeuse("on b del tout().");
   images.clear();
   maj_mosaique();
   maj_actif();
@@ -544,7 +544,7 @@ void ImageSelecteur::on_b_del_tout()
 
 void ImageSelecteur::on_b_maj()
 {
-  journal.verbose("on b maj.");
+  trace_verbeuse("on b maj.");
   ImageSelecteurRefresh evt;
   utils::CProvider<ImageSelecteurRefresh>::dispatch(evt);
 }
@@ -562,7 +562,7 @@ void ImageSelecteur::raz()
 bool ImageSelecteur::on_b_pressed(GdkEventButton *event)
 {
   unsigned int x = event->x, y = event->y;
-  journal.verbose("bpress %d, %d", x, y);
+  trace_verbeuse("bpress %d, %d", x, y);
 
   csel = -1;
   for(auto i = 0u; i < images.size(); i++)
@@ -584,7 +584,7 @@ bool ImageSelecteur::on_b_pressed(GdkEventButton *event)
 
 bool ImageSelecteur::on_b_released(GdkEventButton *event)
 {
-  journal.verbose("brel");
+  trace_verbeuse("brel");
 
   evt_box.grab_focus();
 
@@ -612,14 +612,14 @@ bool ImageSelecteur::on_k_released(GdkEventKey *event)
   }
   else if(event->keyval == GDK_KEY_Up)
   {
-    journal.trace("Key up.");
+    infos("Key up.");
     if(csel >= (int) ncols)
     {
       csel -= ncols;
       maj_selection();
     }
     else
-      journal.trace("Refu: csel = %d, ncols = %d.", csel, ncols);
+      infos("Refu: csel = %d, ncols = %d.", csel, ncols);
     return true;
   }
   else if(event->keyval == GDK_KEY_Left)

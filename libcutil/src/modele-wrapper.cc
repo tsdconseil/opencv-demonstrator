@@ -1,6 +1,8 @@
 #include "modele.hpp"
 #include <string>
 
+using namespace std;
+
 namespace utils
 {
 namespace model
@@ -75,7 +77,6 @@ string NodeCppWrapper::format_comment(int indent, const Localized &l)
 
 NodeCppWrapper::NodeCppWrapper()
 {
-  log.setup("model/wrapper");
 }
 
 
@@ -83,13 +84,13 @@ int NodeCppWrapper::gen_ccp_wrapper(NodeSchema *schema, const string &path_c, co
 {
   if(files::check_and_build_directory(path_c))
   {
-    log.anomaly("unable to create output source folder.");
+    erreur("unable to create output source folder.");
     return -1;
   }
 
   if(files::check_and_build_directory(path_h))
   {
-    log.anomaly("unable to create output include folder.");
+    erreur("unable to create output include folder.");
     return -1;
   }
 
@@ -370,7 +371,7 @@ string NodeCppWrapper::gen_class_impl(NodeSchema *schema)
       }
       break;
     default:
-      log.anomaly("unmanaged att type!");
+      erreur("unmanaged att type!");
       break;
     }
 
@@ -667,7 +668,7 @@ std::string NodeCppWrapper::gen_attribute_type(const AttributeSchema &as) {
     return "float";
     break;
   default:
-    log.warning("type unknown.");
+    avertissement("type unknown.");
     return "int";
     break;
   }
@@ -708,7 +709,7 @@ std::string NodeCppWrapper::gen_get_attribute_as(const AttributeSchema &as) {
     break;
     
   default:
-    log.anomaly("unmanaged att type!");
+    erreur("unmanaged att type!");
     break;
   }
 

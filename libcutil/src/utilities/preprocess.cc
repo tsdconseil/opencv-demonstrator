@@ -8,7 +8,7 @@
 #include <fstream>
 
 //FILE *os, *toc_os;
-static utils::Logable log("lcutil", "preprocess");
+
 
 
 
@@ -60,14 +60,14 @@ void handle_element(const MXml &mx)
     std::string fn = mx.get_attribute("path").to_string();
 
     MXml xinc;
-    log.trace("Loading included file: %s...", fn.c_str());
+    infos("Loading included file: %s...", fn.c_str());
     int ret = xinc.from_file(fn);
-    log.trace("Done.");
+    infos("Done.");
     if(ret == 0)
       handle_element(xinc);
     else
     {
-      log.anomaly("Unable to open %s.\n", fn.c_str());
+      erreur("Unable to open %s.\n", fn.c_str());
     }
     return;
   }
@@ -92,7 +92,7 @@ void handle_element(const MXml &mx)
     else
     {
       lname = name;
-      log.warning("Section without label: '%s'.\n", lname.c_str());
+      avertissement("Section without label: '%s'.\n", lname.c_str());
     }
     sprintf(current_section, "%s", lname.c_str());
     toc_os <<// "  <toc-section label=\"%s\" name=\"%s\"/>\n", lname.c_str(), name.c_str());
@@ -108,7 +108,7 @@ void handle_element(const MXml &mx)
       else
       {
         lname = name;
-        log.warning("Sub-section without label: '%s'.\n", lname.c_str());
+        avertissement("Sub-section without label: '%s'.\n", lname.c_str());
       }
       toc_os << // "  <toc-sub-section label=\"%s\" name=\"%s\" section=\"%s\"/>\n",
           //lname.c_str(), name.c_str(), current_section);
@@ -124,7 +124,7 @@ void handle_element(const MXml &mx)
     else
     {
       lname = name;
-      log.warning("Part without label: '%s'.\n", lname.c_str());
+      avertissement("Part without label: '%s'.\n", lname.c_str());
     }
     sprintf(current_part, "%s", lname.c_str());
     toc_os << //"<toc-part label=\"%s\" name=\"%s\"/>\n", lname.c_str(), name.c_str());
@@ -180,9 +180,9 @@ int main(int argc, char **argv)
 
 
 
-  log.trace("Loading %s...", argv[1]);
+  infos("Loading %s...", argv[1]);
   mx.from_file(argv[1]);
-  log.trace("Done.");
+  infos("Done.");
 
   os.open(argv[2], std::ofstream::out);
   toc_os.open("./toc.xml", std::ofstream::out);

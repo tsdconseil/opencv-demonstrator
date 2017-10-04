@@ -25,7 +25,6 @@
 
 #include "mxml.hpp"
 #include "slots.hpp"
-#include "trace.hpp"
 #include "bytearray.hpp"
 #include "cutil.hpp"
 
@@ -33,6 +32,7 @@
 #include <string>
 #include <map>
 #include <stdint.h>
+#include "journal.hpp"
 
 
 namespace utils
@@ -42,8 +42,7 @@ namespace utils
 namespace model
 {
 
-using namespace std;
-using namespace utils;
+
 
 class FileSchema;
 class NodeSchema;
@@ -59,25 +58,25 @@ class XPathItem
 {
 public:
   XPathItem();
-  XPathItem(const string &name, int instance = -1);
-  XPathItem(const string &name, 
-            const string &att_name, 
-            const string &att_value);
+  XPathItem(const std::string &name, int instance = -1);
+  XPathItem(const std::string &name,
+            const std::string &att_name,
+            const std::string &att_value);
   virtual ~XPathItem();
 
   /** Node type */
-  string name;
+  std::string name;
 
   /** Optionnal instance number (-1 if unspecified) */
   int         instance;
 
   /** Optionnal attribute value ("" if unspecified) */
-  string att_name, att_value;
+  std::string att_name, att_value;
 };
 
 
 /** @brief An XPath defines a path from a root Node to a sub node or attribute
- *  XPath can be built from a string with the following format:
+ *  XPath can be built from a std::string with the following format:
  *  - xpath to an attribute: "subname/subname/attname"
  *  - xpath to a sub-node: "subname"
  *
@@ -92,17 +91,17 @@ class XPath
 public:
   XPath();
   XPath(const XPathItem &xpi);
-  XPath(const string &s);
+  XPath(const std::string &s);
   XPath(const char *s);
   XPath(const XPath &xp);
-  XPath(const XPath &root, const string &leaf, int instance = 0);
+  XPath(const XPath &root, const std::string &leaf, int instance = 0);
   virtual ~XPath();
   void clear();
-  int from_string(const string &s);
+  int from_string(const std::string &s);
   void operator =(const XPath &xp);
   bool operator ==(const XPath &xp) const;
   XPath operator+(const XPath &xp) const;
-  string to_string() const;
+  std::string to_string() const;
   const char *c_str() const;
   bool is_valid()         const;
   XPathItem root()        const;
@@ -115,16 +114,16 @@ public:
   XPath remove_last() const;
   void add(const XPathItem &xpi);
 
-  string get_last() const;
+  std::string get_last() const;
   XPath get_first() const;
 
   static XPath null;
 
-  operator string const () const {return to_string();}
+  operator std::string const () const {return to_string();}
 private:
-  string full_string;
+  std::string full_string;
   bool valid;
-  vector<XPathItem> items;
+  std::vector<XPathItem> items;
 };
 
 /** @brief A change occurred in the source node.
@@ -158,7 +157,7 @@ public:
   /** Path to the element at the origin of the event */
   XPath  path;
 
-  string to_string() const;
+  std::string to_string() const;
 
   ChangeEvent();
 
@@ -166,11 +165,11 @@ public:
   // DEPRECATED : to remove
   static ChangeEvent create_att_changed(Attribute *source);
   // DEPRECATED : to remove
-  static ChangeEvent create_child_removed(string type, uint32_t instance);
+  static ChangeEvent create_child_removed(std::string type, uint32_t instance);
   // DEPRECATED : to remove
-  static ChangeEvent create_child_added(string type, uint32_t instance);
+  static ChangeEvent create_child_added(std::string type, uint32_t instance);
   // DEPRECATED : to remove
-  static ChangeEvent create_command_exec(Node *source, string name);
+  static ChangeEvent create_command_exec(Node *source, std::string name);
 }; 
 
 
@@ -213,13 +212,13 @@ public:
   Localized name;
 
   /** Value */
-  string value;
+  std::string value;
 
   /** Optionnal schema (can be nullptr) */
   NodeSchema *schema;
 
   /** Optionnal schema name */
-  string schema_str;
+  std::string schema_str;
 };
 
 
@@ -236,15 +235,15 @@ public:
   AttributeSchema(const AttributeSchema &c);
   ~AttributeSchema();
   void operator =(const AttributeSchema &c);
-  string type2string() const;
-  string to_string() const;
-  string get_default_value() const;
-  string get_ihm_value(string val) const;
+  std::string type2string() const;
+  std::string to_string() const;
+  std::string get_default_value() const;
+  std::string get_ihm_value(std::string val) const;
   void serialize(ByteArray &ba) const;
   int  unserialize(ByteArray &ba);
-  bool is_valid(string s);
+  bool is_valid(std::string s);
   bool is_valid(const ByteArray &ba) const;
-  void get_valid_chars(vector<string> &cars);
+  void get_valid_chars(std::vector<std::string> &cars);
 
   void make_default_default_value(ByteArray &res) const;
 
@@ -272,14 +271,16 @@ public:
   /** Is it some formatted long text (for strings only) */
   bool formatted_text;
 
+  bool is_error;
+
   /** Optionnal unit specification, e.g. Hz, second, etc. */
-  string unit;
+  std::string unit;
 
   /** Possible extensions, for TYPE_FILE only */
-  string extension;
+  std::string extension;
 
   /** This specify the condition of validity of the attribute */
-  string requirement;
+  std::string requirement;
 
   ///////////////////////////////////////////////
   /// DEFAULT MMI BEHAVIOUR
@@ -297,6 +298,9 @@ public:
   /** Must this attribute be saved? */
   bool is_volatile;
 
+  /** Nombre de digits à afficher */
+  int digits;
+
   bool has_unit() const {return (unit.size() > 0);}
   long int min;
   long int max;
@@ -305,10 +309,10 @@ public:
   long int get_max();
   bool has_constraints() const;
 
-  string regular_exp;
+  std::string regular_exp;
 
-  vector<string> constraints;
-  vector<Enumeration> enumerations;
+  std::vector<std::string> constraints;
+  std::vector<Enumeration> enumerations;
   
   ByteArray default_value;
   
@@ -325,15 +329,15 @@ public:
   int    get_int    (const ByteArray &ba) const;
   bool   get_boolean(const ByteArray &ba) const;
   float  get_float  (const ByteArray &ba) const;
-  string get_string (const ByteArray &ba) const;
+  std::string get_string (const ByteArray &ba) const;
 
   int    serialize(ByteArray &ba, int value)    const;
   int    serialize(ByteArray &ba, bool value)   const;
   int    serialize(ByteArray &ba, float value)  const;
-  int    serialize(ByteArray &ba, string value) const;
+  int    serialize(ByteArray &ba, const std::string &value) const;
 
 private:
-  static Logable log;
+  static journal::Logable log;
 };
 
 /** @brief Schema for a container of a list of nodes */
@@ -342,7 +346,7 @@ class SubSchema
 public:
   SubSchema();
   void operator =(const SubSchema &ss);
-  string to_string() const;
+  std::string to_string() const;
 
   /** Minimum and maximum number of nodes (-1 = unspecified) */
   int min, max;
@@ -354,12 +358,12 @@ public:
   NodeSchema *ptr;
 
   /** Name of the schema of the children node */
-  string child_str;
+  std::string child_str;
 
   int default_count;
 
   /** Default key for indexing */
-  string default_key;
+  std::string default_key;
 
   ///////////////////////////////////////////////
   /// DEFAULT MMI BEHAVIOUR
@@ -384,9 +388,9 @@ public:
   bool show_header;
 
   /** List of attributes to display into the table (if display_tab) */
-  vector<string> resume;
-  bool has_max() const {return (max > 0);}
-  bool has_min() const {return (min > 0);}
+  std::vector<std::string> resume;
+  inline bool has_max() const {return (max > 0);}
+  inline bool has_min() const {return (min > 0);}
 };
 
 /** @brief Schema of the reference to another node */
@@ -396,8 +400,8 @@ public:
   RefSchema();
   Localized   name;
   NodeSchema *ptr;
-  string path;
-  string child_str;
+  std::string path;
+  std::string child_str;
   bool is_hidden;
 };
 
@@ -430,13 +434,13 @@ public:
   friend class RamNode;
   friend class FileSchema;
   NodeSchema(){}
-  NodeSchema(const Node &elmt, FileSchema *root = nullptr, const string &name = "");
+  NodeSchema(const Node &elmt, FileSchema *root = nullptr, const std::string &name = "");
   NodeSchema(const MXml &mx);
   NodeSchema(const NodeSchema &c);
   ~NodeSchema();
 
   void operator =(const NodeSchema &c);
-  string to_string();
+  std::string to_string();
   bool has_description() const {return name.has_description();}
 #ifndef TESTCLI  
   bool has_key_attribute() const;
@@ -445,34 +449,35 @@ public:
   void do_inherits();
   bool has_editable_props();
   
-  bool has_reference(string name) const;
-  RefSchema *get_reference(string name);
+  bool has_reference(std::string name) const;
+  RefSchema *get_reference(std::string name);
   bool has_icon() const {return (icon_path.size() > 0);}
 
   void update_size_info();
-  bool has_attribute(string name) const;
-  refptr<AttributeSchema> get_attribute(string name);
-  bool has_child(string name) const;
+  bool has_attribute(std::string name) const;
+  refptr<AttributeSchema> get_attribute(std::string name);
+  bool has_child(std::string name) const;
 
-  string get_localized() const;
+  std::string get_localized() const;
 
-  NodeSchema *get_sub(string name);
+  NodeSchema *get_sub(std::string name);
   void serialize(ByteArray &ba);
   int  unserialize(ByteArray &ba);
 
-  CommandSchema *get_command(string name);
+  CommandSchema *get_command(std::string name);
 
   /** @brief Import specifications from a XML node */
   void from_xml(const MXml &mx);
 
-  SubSchema *get_child(string name);
+  SubSchema *get_child(std::string name);
 
 
   /** Return the index of the child */
-  int get_sub_index(const string &name) const;
+  int get_sub_index(const std::string &name) const;
 
   void add_attribute(refptr<AttributeSchema> schema);
   void add_sub_node(const SubSchema &schema);
+  void ajoute_enfant(NodeSchema *enfant, unsigned int min = 1, unsigned int max = 1);
 
   /* @returns true if nothing is configurable in this schema */
   bool is_empty() const;
@@ -482,30 +487,30 @@ public:
   bool children_fixed_size;
 
   /** Sub-node specifications */
-  deque<SubSchema>       children;
+  std::deque<SubSchema>       children;
 
   /** Attributes list */
-  deque<refptr<AttributeSchema> > attributes;
+  std::deque<refptr<AttributeSchema> > attributes;
 
-  deque<CommandSchema> commands;
+  std::deque<CommandSchema> commands;
 
-  deque<RefSchema>       references;
+  std::deque<RefSchema>       references;
   NodeSchema *inheritance;
-  string icon_path;
+  std::string icon_path;
 
   /** Name, translations and descriptions */
   Localized name;
 
   /** A mapper from the sub id to the sub index */
-  map<string, int> mapper;
+  std::map<std::string, int> mapper;
 
   /** A mapper from the att id to the att index */
-  map<string, int> att_mapper;
+  std::map<std::string, int> att_mapper;
 
-  static Logable log;
+  static journal::Logable log;
 private:
   // ??
-  string inheritance_name;
+  std::string inheritance_name;
 };
 
 
@@ -518,18 +523,18 @@ public:
   ~FileSchema();
 
   /** @brief Construit un sch�ma � partir d'un fichier xml */
-  FileSchema(string filename);
-  int from_file(string filename);
-  int from_string(const string &s);
+  FileSchema(std::string filename);
+  int from_file(std::string filename);
+  int from_string(const std::string &s);
   int from_xml(const MXml &mx);
   void from_element(const Node &e);
   /** @param name name of the schema if not specified in the node */
-  void add_schema(const Node &e, const string &name = "");
+  void add_schema(const Node &e, const std::string &name = "");
   FileSchema(const FileSchema &c);
   void operator =(const FileSchema &c);
-  NodeSchema *get_schema(string name);
+  NodeSchema *get_schema(std::string name);
   NodeSchema *root;
-  string to_string();
+  std::string to_string();
   /** Check if the schema is complete: returns -1 if not the case, 0 if ok. */
   int check_complete();
 private:
@@ -539,8 +544,7 @@ private:
 
   void build_references();
 
-  vector<refptr<NodeSchema> > schemas;
-  Logable log;
+  std::vector<refptr<NodeSchema> > schemas;
 };
 
 /** @brief Attribute value for a node
@@ -557,7 +561,7 @@ public:
   virtual ~Attribute(){}
 
   /** @returns Non-zero value if failed to set the new value */
-  virtual int set_value(const string &s);
+  virtual int set_value(const std::string &s);
   void  set_value(int i);
   void  set_value(float f);
   void  set_value(bool b);
@@ -566,7 +570,7 @@ public:
   bool   get_boolean() const;
   int    get_int() const;
   float  get_float() const;
-  string get_string() const;
+  std::string get_string() const;
 
   void  serialize(ByteArray &ba) const;
   void  unserialize(ByteArray &ba);
@@ -582,7 +586,7 @@ private:
   Node *node;
   NodePatron *parent;
 
-  static Logable log;
+  static journal::Logable log;
 protected:
   virtual void value_changed(){}
 };
@@ -666,6 +670,7 @@ public:
   friend class ConstNodeList;
   friend class ChangeEvent;
 
+  Node(NodeSchema *schema, const std::string &fichier_source = "");
   Node(const Node &e);
   Node(Node &e);
 
@@ -677,6 +682,8 @@ public:
 
   /** True if different references */
   bool operator !=(const Node &e) const;
+
+  bool est_egal(const Node &e) const;
 
   /** Uninitialized or invalid tree node ? */
   bool is_nullptr() const;
@@ -691,14 +698,15 @@ public:
   Node           up(Node child);
 
   // GET CHILDREN, TYPE PRECISE
-  NodeList       children(const string &type);
-  ConstNodeList  children(const string &type) const;
-  unsigned long  get_children_count(const string &type) const;
-  Node           get_child_at(const string &type, unsigned int i);
-  const Node     get_child_at(const string &type, unsigned int i) const;
+  NodeList       children(const std::string &type);
+  ConstNodeList  children(const std::string &type) const;
+  unsigned long  get_children_count(const std::string &type) const;
+  Node           get_child_at(const std::string &type, unsigned int i);
+  const Node     get_child_at(const std::string &type, unsigned int i) const;
 
 
   void           copy_from(const Node e);
+  Node           clone() const;
 
   void           add_listener(CListener<ChangeEvent> *lst);
   void           remove_listener(CListener<ChangeEvent> *lst);
@@ -706,13 +714,13 @@ public:
   /// (1) Gestion des attributs
   bool           has_attribute(const XPath &path) const;
 
-  bool           get_attribute_as_boolean(const string &name) const;
-  int            get_attribute_as_int(const string &name) const;
-  float          get_attribute_as_float(const string &name) const;
-  string         get_attribute_as_string(const string &name) const;
-  ByteArray      get_attribute_as_raw(const string &name) const;
+  bool           get_attribute_as_boolean(const std::string &name) const;
+  int            get_attribute_as_int(const std::string &name) const;
+  float          get_attribute_as_float(const std::string &name) const;
+  std::string         get_attribute_as_string(const std::string &name) const;
+  ByteArray      get_attribute_as_raw(const std::string &name) const;
 
-  int            set_attribute(const XPath &path, const string &value);
+  int            set_attribute(const XPath &path, const std::string &value);
   int            set_attribute(const XPath &path, int value);
   int            set_attribute(const XPath &path, bool value);
   int            set_attribute(const XPath &path, float value);
@@ -721,7 +729,7 @@ public:
 
   Node           add_child(Node nv);
   Node           add_child(NodeSchema *schema);
-  Node           add_child(const string &sub_name);
+  Node           add_child(const std::string &sub_name);
 
   Node           get_child(const XPath &path);
   const Node     get_child(const XPath &path) const;
@@ -738,13 +746,13 @@ public:
   /** @param root_path If not empty, a path from which all file paths will be stored
    *                   as relative paths.
    *                   If not specified, all file paths are stored as absolute paths. */
-  string         to_xml(unsigned int indent = 0,
+  std::string         to_xml(unsigned int indent = 0,
                         bool display_default_values = false,
                         bool display_spaces = true,
                         bool charset_latin = false,
-                        const string root_path = "") const;
+                        const std::string root_path = "") const;
 
-  string         to_html(unsigned int level = 0) const;
+  std::string         to_html(unsigned int level = 0) const;
 
 
   void           serialize(ByteArray &res) const;
@@ -753,22 +761,23 @@ public:
 
   static Node create_ram_node();
   static Node create_ram_node(NodeSchema *schema);
-  static Node create_ram_node_from_string(NodeSchema *schema, string content);
-  static Node create_ram_node(NodeSchema *schema, string filename);
+  static Node create_ram_node_from_string(NodeSchema *schema, const std::string &content);
+  static Node create_ram_node(NodeSchema *schema, std::string filename);
 
-  int save(const string &filename, bool store_default_values = false);
+  int save(const std::string &filename, bool store_default_values = false);
 
-  int load(const string &schema_file, const string &data_file);
+  int load(const std::string &schema_file, const std::string &data_file);
 
   // ????? to deprecate
-  void load(const string &filename);
+  void load(const std::string &filename);
 
   /** @returns the schema describing the structure of this node */
-  virtual NodeSchema *schema() const;
+  //virtual
+  NodeSchema *schema() const;
 
   bool contains(const Node &elt);
 
-  void get_children_recursive(const string &type, deque<Node> &res);
+  void get_children_recursive(const std::string &type, std::deque<Node> &res);
 
   ///////////////////////////////////////////////////////////////////
   // BELOW ARE DEPRECATED METHODS TO BE REMOVED
@@ -789,18 +798,20 @@ public:
   // GET CHILDREN, TYPE NON PRECISE
   /** @deprecated */
   unsigned long  get_children_count() const;
+  Node    get_child_at(unsigned int index);
+  const Node    get_child_at(unsigned int index) const;
 
   // REFERENCES
   // @deprecated
   unsigned int      get_reference_count() const;
   // @deprecated
-  void              set_reference(const string &name, Node e);
+  void              set_reference(const std::string &name, Node e);
   // @deprecated
-  void              set_reference(const string &name, const XPath &path);
+  void              set_reference(const std::string &name, const XPath &path);
   // @deprecated
-  XPath             get_reference_path(const string &name);
+  XPath             get_reference_path(const std::string &name);
   // @deprecated
-  const Node        get_reference_at(unsigned int i, string &name) const;
+  const Node        get_reference_at(unsigned int i, std::string &name) const;
 
 
   /* to deprecate ? (ideally mask the Attribute class) */
@@ -810,36 +821,36 @@ public:
   const Attribute          *get_attribute(const XPath &path) const;
 
   /* to deprecate! */
-  string name() const {return get_attribute_as_string("name");}
+  std::string name() const {return get_attribute_as_string("name");}
 
   /* to deprecate! */
-  string description() const;
+  std::string description() const;
 
   /* to deprecate! */
-  string get_identifier(bool disp_type = true, bool bold = false) const;
+  std::string get_identifier(bool disp_type = true, bool bold = false) const;
 
   /* to deprecate! */
-  string get_localized_name() const;
+  std::string get_localized_name() const;
 
   // @deprecated
-  bool                      has_reference(const string &name) const;
+  bool                      has_reference(const std::string &name) const;
 
   // @deprecated
-  const Node                get_reference(const string &name) const;
+  const Node                get_reference(const std::string &name) const;
 
   // @deprecated
-  string               text_resume(int indent = 0) const;
+  std::string               text_resume(int indent = 0) const;
 
 
 
   // @deprecated
-  virtual string class_name() const;
+  virtual std::string class_name() const;
 
   // @deprecated
-  virtual string       type() const;
+  virtual std::string       type() const;
 
   // ?
-  bool is_attribute_valid(const string &name);
+  bool is_attribute_valid(const std::string &name);
 
   virtual ~Node();
   Node();
@@ -847,20 +858,16 @@ public:
   Localized get_localized() const;
 
   /* To move another place */
-  string format_c_comment(int indent);
+  std::string format_c_comment(int indent);
 
   void dispatch_event(const ChangeEvent &ce);
 
   /** @returns Full path to this node */
-  string get_fullpath() const;
-
-  static Logable log;
+  std::string get_fullpath() const;
 
 protected:
   void setup_refs();
 
-  //refptr<NodePatron> data;
-  //Node(refptr<NodePatron> data);
   NodePatron *data;
   Node(NodePatron *data);
 
@@ -871,11 +878,11 @@ protected:
 
 private:
   // Should be private!
-  void fromXml(const MXml &e, string root_path = "");
-  string to_xml_atts(unsigned int indent = 0,
+  void fromXml(const MXml &e, const std::string &root_path = "");
+  std::string to_xml_atts(unsigned int indent = 0,
                      bool display_default_values = false,
                      bool charset_latin = false,
-                     string root_path = "") const;
+                     std::string root_path = "") const;
   void   check_min();
   void  setup_schema();
   void  setup_default_subs();
@@ -889,27 +896,25 @@ class DotTools
 public:
   DotTools();
 
-  int export_html_att_table(string &res, const Node &schema);
+  int export_html_att_table(std::string &res, const Node &schema);
 
   /** @brief Build a graphic representation of the schema using dots */
-  void build_graphic(Node &schema, const string &output_filename);
+  void build_graphic(Node &schema, const std::string &output_filename);
 private:
-  string complete_dot_graph(Node section, int level);
-  string get_name(const Node &e);
-  string get_attribute_type_description(const Node &e);
-  string get_attribute_long_description(const Node &e);
-  Logable log;
+  std::string complete_dot_graph(Node section, int level);
+  std::string get_name(const Node &e);
+  std::string get_attribute_type_description(const Node &e);
+  std::string get_attribute_long_description(const Node &e);
 };
 
 class LatexWrapper
 {
 public:
-  int export_att_table(string &res, const Node &schema);
+  int export_att_table(std::string &res, const Node &schema);
 private:
-  string get_name(const Node &e);
-  string get_attribute_type_description(const Node &e);
-  string get_attribute_long_description(const Node &e);
-  static Logable log;
+  std::string get_name(const Node &e);
+  std::string get_attribute_type_description(const Node &e);
+  std::string get_attribute_long_description(const Node &e);
 };
 
 
@@ -920,23 +925,21 @@ class NodeCppWrapper
 public:
   NodeCppWrapper();
 
-  int gen_ccp_wrapper(NodeSchema *schema, const string &path_c, const string &path_h);
+  int gen_ccp_wrapper(NodeSchema *schema, const std::string &path_c, const std::string &path_h);
 
   /** @brief Generate a class definition. */
-  string gen_class(NodeSchema *schema, int indent = 0);
+  std::string gen_class(NodeSchema *schema, int indent = 0);
 
-  string gen_class_impl(NodeSchema *schema);
+  std::string gen_class_impl(NodeSchema *schema);
 private:
 
-  string gen_attribute_comment(const AttributeSchema &as, int indent);
+  std::string gen_attribute_comment(const AttributeSchema &as, int indent);
 
-  string format_comment(int indent, const Localized &l);
+  std::string format_comment(int indent, const Localized &l);
 
-  string gen_attribute_type(const AttributeSchema &as);
-  string gen_indent(size_t indent);
-  string gen_get_attribute_as(const AttributeSchema &as);
-
-  Logable log;
+  std::string gen_attribute_type(const AttributeSchema &as);
+  std::string gen_indent(size_t indent);
+  std::string gen_get_attribute_as(const AttributeSchema &as);
 };
 
 

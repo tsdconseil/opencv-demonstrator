@@ -24,21 +24,23 @@ PROJECT= libcutil
 RPATH = ..
 
 # Definition of individual files to compiled
-SOURCES_BASE =  cutil  crc trace bytearray serial fdserial \
+SOURCES_BASE =  cutil  crc journal bytearray serial fdserial \
          serial-enumeration serial-session socket iostreams \
-         hal pugixml mxml modele modele-wrapper 
+         hal pugixml mxml modele modele-wrapper erreurs misc theme
 
 SOURCES_EXT = 
 
 # (Optionnal) Sources requiring a graphic toolkit -> will not be included in the reduced library
-SOURCES_GTK= gtkutil stdview ColorCellEditable2 ColorCellRenderer2 renderers field-view
+SOURCES_GTK= gtkutil stdview ColorCellEditable2 ColorCellRenderer2 renderers field-view mmi-gen docking
+
+SOURCES_GTK += 
 
 # (Optionnal) Executable targets to be build (each one must have an associated source file)
 EXECS:=   model-editor rcgene schema2doc preprocess
 
 # (Optionnal) Special directories to locate the source files 
 # (not counting src and include) 
-ADDITIONNAL_SRC_DIRS = src/utilities src/mmi src/comm
+ADDITIONNAL_SRC_DIRS = src/utilities src/mmi src/comm src/img
 
 ADDITIONNAL_INC_DIRS= 
 
@@ -50,7 +52,13 @@ FIRST_TARGETS =
 
 ADDITIONNAL_OBJS = 
 
-
+ifeq ($(OCVIPATH),)
+ # OCVIPATH not defined, assume that OpenCV is installed in default directories (e.g. /usr/include/, etc.)
+else
+ # OCVIPATH is defined: it should be the path where opencv was builded
+ADDITIONNAL_INC_DIRS += -I$(OCVIPATH)
+ADDITIONNAL_LOPT     += -L$(OCVLPATH) -lopencv_core310 -lopencv_imgproc310 -lopencv_highgui310 -lopencv_videoio310 -lopencv_imgcodecs310 -march=i486
+endif
 
 # Common definitions for Makefiles and build rules
 include $(RPATH)/libcutil/data/std-makefile-defs

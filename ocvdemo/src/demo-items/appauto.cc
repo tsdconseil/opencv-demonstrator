@@ -46,7 +46,7 @@ Ptr<StatModel> creation_classifieur_svm(utils::model::Node &model)
   int kernel = model.get_attribute_as_int("svm/kernel");
   int degre = model.get_attribute_as_int("svm/svm-poly/degre");
 
-  //journal.verbose("Gamma = %f, C = %f, kernel = %d.", gamma, C, kernel);
+  //trace_verbeuse("Gamma = %f, C = %f, kernel = %d.", gamma, C, kernel);
 
   // A FAIRE : créer un classifieur SVM avec noyau RBF
   Ptr<SVM> svm = SVM::create();
@@ -115,13 +115,13 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
 
   uint16_t dl = (5 * 512) / sx;
 
-  journal.trace("Generation jeu de donnees (n = %d, nclasses = %d)...", n, nclasses);
+  infos("Generation jeu de donnees (n = %d, nclasses = %d)...", n, nclasses);
 
 
   int n1 = std::floor(std::sqrt(nclasses));
   int n2 = std::ceil(nclasses / n1);
 
-  journal.verbose("Partition du plan : %d * %d.", n1, n2);
+  trace_verbeuse("Partition du plan : %d * %d.", n1, n2);
 
 # define MAX_CLASSES 4
   Scalar couleurs[MAX_CLASSES];
@@ -172,7 +172,7 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
     //mat_entrainement.at<float>(i,1) = y;
     *ptr++ = classe;
   }
-  journal.verbose("ok.");
+  trace_verbeuse("ok.");
 
   // (2) Entrainement SVM
 
@@ -186,7 +186,7 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
   int kernel = input.model.get_attribute_as_int("svm/kernel");
   int degre = input.model.get_attribute_as_int("svm/svm-poly/degre");
 
-  journal.verbose("Gamma = %f, C = %f, kernel = %d.", gamma, C, kernel);
+  trace_verbeuse("Gamma = %f, C = %f, kernel = %d.", gamma, C, kernel);
 
   Ptr<SVM> svm = SVM::create();
   svm->setTermCriteria(TermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 1000, 1e-3));
@@ -208,11 +208,11 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
   else
     smodel = creation_classifieur_adaboost(input.model);
 
-  journal.verbose("Entrainement...");
+  trace_verbeuse("Entrainement...");
   smodel->train(mat_entrainement, ROW_SAMPLE, labels);
-  journal.verbose("Ok.");
+  trace_verbeuse("Ok.");
 
-  journal.verbose("Echantillonnage du plan...");
+  trace_verbeuse("Echantillonnage du plan...");
   Vec3b *o2ptr = O2.ptr<Vec3b>();
   Vec3b c[MAX_CLASSES];
   for(auto i = 0u; i < MAX_CLASSES; i++)
@@ -232,7 +232,7 @@ int DemoAppAuto::proceed(OCVDemoItemInput &entree, OCVDemoItemOutput &sortie)
       *o2ptr++ = c[res];
     }
   }
-  journal.verbose("Ok.");
+  trace_verbeuse("Ok.");
 
   sortie.nout = 2;
   sortie.images[0] = O;

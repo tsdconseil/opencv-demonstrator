@@ -26,7 +26,7 @@
 #include <cstddef>
 using std::ptrdiff_t;
 
-
+#include <gtkmm/grid.h>
 #include <gtkmm/button.h>
 #include <gtkmm/window.h>
 #include <gtkmm/frame.h>
@@ -73,11 +73,12 @@ using std::ptrdiff_t;
 
 #include <glibmm/dispatcher.h>
 #include <gdkmm/cursor.h>
+#include <cairomm/surface.h>
 
 
 
 #include "cutil.hpp"
-#include "trace.hpp"
+#include "../journal.hpp"
 #include "modele.hpp"
 
 namespace utils
@@ -105,18 +106,32 @@ extern Gtk::Window *mainWindow;
 
 namespace dialogs
 {
-  extern string save_dialog(string title, string filter, string filter_name,
-                              string default_name = "", string default_dir = "");
-  extern string open_dialog(string title, string filter, string filter_name,
-                              string default_name = "", string default_dir = "");
-  extern string new_dialog(string title, string filter, string filter_name,
-                             string default_name = "", string default_dir = "");
-  extern bool check_dialog(string title,
-                             string short_description = "",
-                             string description = "");
-  extern void show_info(string title, string short_description = "", string description = "");
-  extern void show_error(string title, string short_description = "", string description = "");
-  extern void show_warning(string title, string short_description = "", string description = "", bool blocking = true);
+  extern std::string enregistrer_fichier(std::string title, std::string filter, std::string filter_name,
+                              std::string default_name = "", std::string default_dir = "");
+  extern std::string ouvrir_fichier(std::string title, std::string filter, std::string filter_name,
+                              std::string default_name = "", std::string default_dir = "");
+  extern std::string selection_dossier(const std::string &titre);
+  extern std::string nouveau_fichier(std::string title, std::string filter, std::string filter_name,
+                             std::string default_name = "", std::string default_dir = "");
+  extern bool check_dialog(std::string title,
+                             std::string short_description = "",
+                             std::string description = "");
+  extern void affiche_infos(std::string titre, std::string description_courte = "", std::string description = "");
+  extern void affiche_erreur(std::string title, std::string short_description = "", std::string description = "");
+  extern void affiche_avertissement(std::string title, std::string short_description = "", std::string description = "", bool blocking = true);
+
+
+  extern void affiche_infos_localisee(const std::string &id_locale);
+  extern void affiche_avertissement_localise(const std::string &id_locale);
+  extern void affiche_erreur_localisee(const std::string &id_locale);
+
+  extern std::string enregistrer_fichier_loc(const std::string &id_locale,
+      const std::string filtre, const std::string &id_filtre,
+      const std::string &default_dir = "");
+
+  extern std::string ouvrir_fichier_loc(const std::string &id_locale,
+                      const std::string &filtre, const std::string &id_filtre,
+                      std::string default_dir = "");
 }
 
 
@@ -125,32 +140,7 @@ namespace dialogs
 //////////////////////////////////////////////////
 
 
-class VideoView: public Gtk::DrawingArea
-{
-public:
-  VideoView(uint16_t dx = 150, uint16_t dy = 100);
-  void update(void *img, uint16_t sx, uint16_t sy);
 
-private:
-  ///////////////////////////////////
-  // Data protected by a mutex.
-  void *new_img;
-  uint16_t new_sx, new_sy;
-  ///////////////////////////////////
-
-  Logable log;
-  bool realized;
-  uint16_t csx, csy;
-  Cairo::RefPtr<Cairo::ImageSurface> image_surface;
-  Glib::Dispatcher signal_video_update;
-  utils::hal::Mutex mutex_video_update;
-
-  void change_dim(uint16_t sx, uint16_t sy);
-  void on_video_update();
-  void do_update_view();
-  virtual bool on_draw(const Cairo::RefPtr<Cairo::Context> &cr);
-  void on_the_realisation();
-};
 
 
 class GColor
@@ -290,6 +280,8 @@ public:
   void set_yellow();
   void set_sensitive(bool sensistive);
   void set_mutable(bool is_mutable);
+protected:
+  bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) /*override*/;
 private:
   bool is_sensitive;
   unsigned int size;
@@ -297,11 +289,11 @@ private:
   bool is_red, is_yellow;
   bool realized;
   bool is_lighted;
-  Glib::RefPtr<Gdk::Window> wnd;
-  Cairo::RefPtr<Cairo::Context> gc;
-  bool on_expose_event(GdkEventExpose* event);
-  void on_the_realisation();
-  Glib::RefPtr<Pango::Layout> lay;
+  //Glib::RefPtr<Gdk::Window> wnd;
+  //Cairo::RefPtr<Cairo::Context> gc;
+  //bool on_expose_event(GdkEventExpose* event);
+  //void on_the_realisation();
+  //Glib::RefPtr<Pango::Layout> lay;
   bool on_mouse(GdkEventButton *event );
 };
 
@@ -343,7 +335,6 @@ private:
     bool clicking;
     bool toggle;
     bool sensitive;
-    static Logable log;
 };
 
 class VirtualKeyboard
@@ -364,7 +355,6 @@ public:
 private:
   bool maj_on;
   bool currently_active;
-  static Logable log;
   bool on_key(GdkEventKey *event);
   void on_event(const KeyChangeEvent &kce);
   unsigned long cx, cy;
@@ -402,7 +392,7 @@ public:
   Wizard() : wizlab("./img/wiznew.png"){}
   virtual ~Wizard(){}
   std::string title;
-  void set_icon(const string &ipath);
+  void set_icon(const std::string &ipath);
   void start();
   void update_view();
   virtual void on_next_step(std::string current) = 0;
@@ -483,7 +473,6 @@ private:
 
   int current_page;
   std::deque<Page *> pages;
-  Logable log;
   std::string class_name() const {return "notebook-manager";}
   void on_switch_page(Gtk::Widget *page, int page_num);
   void on_b_close(Page *page);
@@ -531,6 +520,7 @@ class TreeManager
 {
 public:
   TreeManager();
+  void set_liste_noeuds_affiches(const std::vector<std::string> &ids);
   void set_model(Node model);
   TreeManager(Node model);
   Node get_selection();
@@ -539,11 +529,14 @@ public:
   template<class A>
     int add_action_listener(std::string action, A *target, int (A:: *fun)(Node target));
 private:
-  Glib::RefPtr<Gdk::Pixbuf> get_pics(NodeSchema *schema);
-  bool has_pic(NodeSchema *schema);
-  void load_pics(NodeSchema *sc);
+  bool a_enfant_visible(const utils::model::Node noeud);
+  bool verifie_type_gere(const std::string &id);
+  std::vector<std::string> ids;
+  Glib::RefPtr<Gdk::Pixbuf> get_pics(const NodeSchema *schema);
+  bool has_pic(const NodeSchema *schema);
+  void load_pics(const NodeSchema *sc);
   void populate();
-  void populate(Node m, Gtk::TreeModel::Row row);
+  void populate(Node m, const Gtk::TreeModel::Row *row);
   void update_view();
   void clear_table();
   void on_selection_changed();
@@ -574,7 +567,6 @@ private:
         TreeManager *parent;
   };
 
-  static Logable log;
   Node model;
   bool lock;
   Gtk::ScrolledWindow scroll;
@@ -582,8 +574,8 @@ private:
   Glib::RefPtr<Gtk::TreeStore> tree_model;
   ModelColumns columns;
   Gtk::Menu popup_menu;
-  std::deque<std::pair<Glib::RefPtr<Gdk::Pixbuf>, NodeSchema *> > pics;
-  std::deque<NodeSchema *> pics_done;
+  std::deque<std::pair<Glib::RefPtr<Gdk::Pixbuf>, const NodeSchema *> > pics;
+  std::deque<const NodeSchema *> pics_done;
   std::deque<VarEventFunctor *> menu_functors;
 };
 
@@ -602,7 +594,7 @@ int TreeManager::add_action_listener(std::string action, A *target,
  *  of a window / dialog, decide whether this window should use
  *  scroll bars (screen too small), and the position of the
  *  virtual keyboard if necessary (touch screen mode). */
-class DialogManager: private Logable
+class DialogManager
 {
 public:
 
@@ -624,8 +616,7 @@ private:
 };
 
 
-class ColorRectangle: public Gtk::DrawingArea,
-                      private Logable
+class ColorRectangle: public Gtk::DrawingArea
 {
 public:
   ColorRectangle(const GColor &col, uint16_t width, uint16_t height);
@@ -644,7 +635,6 @@ private:
 };
 
 class ColorButton: public Gtk::Button,
-                   private Logable,
                    private CListener<ChangeEvent>
 {
 public:
@@ -662,7 +652,6 @@ private:
 
 /** Dialog with custom toolbar in touchscreen mode */
 class GenDialog: public Gtk::Dialog,
-                 protected Logable,
                  public DialogManager::Placable
 {
 public:
@@ -719,7 +708,7 @@ private:
   GColor selected;
 };
 
-class ColorPalette: public Gtk::DrawingArea, private Logable
+class ColorPalette: public Gtk::DrawingArea
 {
 public:
   ColorPalette(const std::vector<GColor> &colors, uint32_t initial_color = 0);
@@ -763,16 +752,33 @@ template<class A>
 class GtkDispatcher: public CListener<A>, public CProvider<A>
 {
 public:
-  GtkDispatcher(uint32_t fifo_capacity = 4): fifo(4)
+  GtkDispatcher(uint32_t fifo_capacity = 4): fifo(fifo_capacity)
   {
     gtk_dispatcher.connect(sigc::mem_fun(*this, &GtkDispatcher::on_dispatcher));
   }
 
   void on_event(const A &a)
   {
+    if(fifo.full())
+    {
+      //avertissement("GtkDispatcher : la fifo est pleine (%d elements).", fifo.size());
+      clear();
+      //utils::erreur("GtkDispatcher : la fifo est pleine (%d elements).", fifo.size());
+    }
     fifo.push(a);
     gtk_dispatcher();
   }
+
+  void clear()
+  {
+    fifo.clear();
+  }
+
+  bool is_full()
+  {
+    return fifo.full();
+  }
+
 
 private:
   Glib::Dispatcher gtk_dispatcher;
@@ -780,17 +786,56 @@ private:
 
   void on_dispatcher()
   {
-    if(fifo.empty())
-    {
-      /* spurious dispatch ! */
-    }
-    else
+    while(!fifo.empty())
     {
       A a = fifo.pop();
       CProvider<A>::dispatch(a);
     }
   }
 private:
+};
+
+class VideoView: public Gtk::DrawingArea
+{
+public:
+  VideoView(uint16_t dx = 150, uint16_t dy = 100, bool dim_from_parent = true);
+  void get_dim(uint16_t &sx, uint16_t &sy);
+  void update(void *img, uint16_t sx, uint16_t sy);
+  void change_dim(uint16_t sx, uint16_t sy);
+
+
+private:
+
+  struct Trame
+  {
+    void *img;
+    uint16_t sx, sy;
+  };
+
+  GtkDispatcher<Trame> dispatcher;
+
+  ///////////////////////////////////
+  // Data protected by a mutex.
+  void *new_img;
+  uint16_t new_sx, new_sy;
+  ///////////////////////////////////
+
+  bool dim_from_parent;
+  bool realise;
+  uint16_t csx, csy;
+  Cairo::RefPtr<Cairo::ImageSurface> image_surface;
+  Cairo::RefPtr<Cairo::Context> cr;
+  Glib::Dispatcher signal_video_update;
+  utils::hal::Mutex mutex_video_update;
+
+
+  int on_event(const Trame &t);
+
+  void do_update_view();
+  virtual bool on_draw(const Cairo::RefPtr<Cairo::Context> &cr);
+  void on_the_realisation();
+  void draw_all();
+  bool on_expose_event(GdkEventExpose* event);
 };
 
 
@@ -892,11 +937,18 @@ public:
   ProgressDialog();
   ~ProgressDialog();
 
+
+
   /* To be called from IHM thread */
   template<class A>
     void start_progress(std::string title, std::string text,
                         A *target_class,
                         void (A:: *target_function)());
+
+  void set_widget(Gtk::Widget *wid);
+
+  void maj_texte(const std::string &s);
+
 private:
 
 
@@ -906,6 +958,7 @@ private:
     EXIT,
   };
 
+  Gtk::Widget *wid;
   utils::hal::Fifo<Event> event_fifo;
 
   void setup(std::string title, std::string text);
@@ -925,8 +978,8 @@ private:
   Gtk::ToolButton bt;
   Gtk::Toolbar toolbar;
   bool canceled;
+  Gtk::Frame iframe;
   Gtk::SeparatorToolItem sep;
-  utils::Logable log;
   bool in_progress;
 };
 
@@ -939,6 +992,11 @@ void ProgressDialog::start_progress(std::string title, std::string text,
   functor = new SpecificNullFunctor<A>(target_class, target_function);
   setup(title, text);
 }
+
+
+extern int verifie_dernier_demarrage();
+
+extern int termine_appli();
 
 
 }

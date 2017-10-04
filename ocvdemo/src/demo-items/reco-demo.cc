@@ -22,13 +22,11 @@
 
 #include "demo-items/reco-demo.hpp"
 
+#ifdef USE_CONTRIB
 #include "opencv2/face.hpp"
-
-#ifdef OCV240
-# include "opencv2/stitching/stitcher.hpp"
-#else
-# include "opencv2/stitching.hpp"
 #endif
+
+#include "opencv2/stitching.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
 
@@ -53,7 +51,7 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
     /*if(imgs[0].size() != imgs[1].size())
     {
-      journal.warning("imgs[0].size() != imgs[1].size(): %d*%d, %d*%d",
+      avertissement("imgs[0].size() != imgs[1].size(): %d*%d, %d*%d",
           imgs[0].cols, imgs[0].rows,
           imgs[1].cols, imgs[1].rows);
       output.nout = 0;
@@ -138,7 +136,7 @@ int MatchDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     if(good_matches.size() > 0)
       cv::drawMatches(imgs[0], kpts[0], imgs[1], kpts[1], good_matches, output.images[0]);
 
-    journal.trace("draw match ok: %d assoc, %d ok.",
+    infos("draw match ok: %d assoc, %d ok.",
         matches.size(), good_matches.size());
 
 #   if 0
@@ -224,11 +222,11 @@ int PanoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 //    output.vrai_sortie = pano; // to deprecate
     output.names[0] = "Panorama";
 
-    journal.verbose("%.2lf sec\n",  t0 / getTickFrequency());
+    trace_verbeuse("%.2lf sec\n",  t0 / getTickFrequency());
 
     if (status != Stitcher::OK)
     {
-     journal.warning("échec pano.");
+     avertissement("échec pano.");
      return -1;
     }
     lock = false;
@@ -300,18 +298,18 @@ int CornerDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   Mat gris;
   //GoodFeaturesToTrackDetector harris_detector(1000, 0.01, 10, 3, true );
-  vector<KeyPoint> keypoints;
+  std::vector<KeyPoint> keypoints;
   cvtColor(input.images[0], gris, CV_BGR2GRAY);
 
-  journal.trace("detection...");
+  infos("detection...");
   detector->detect(gris, keypoints);
 
   //if(keypoints.size() > max_pts)
     //keypoints.resize(max_pts);
   output.images[0] = input.images[0].clone();
-  journal.trace("drawK");
+  infos("drawK");
   drawKeypoints(input.images[0], keypoints, output.images[0], Scalar(0, 0, 255));
-  journal.trace("ok");
+  infos("ok");
   return 0;
 }
 
@@ -324,12 +322,12 @@ VisageDemo::VisageDemo(): rng(12345)
   //-- 1. Load the cascades
   if(!face_cascade.load(face_cascade_name))
   {
-    journal.anomaly("--(!)Error loading\n");
+    erreur("--(!)Error loading\n");
     return;
   }
   if(!eyes_cascade.load(eyes_cascade_name))
   {
-    journal.anomaly("--(!)Error loading\n");
+    erreur("--(!)Error loading\n");
     return;
   }
   output.names[0] = " ";
@@ -352,7 +350,7 @@ int VisageDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   //int maxsizey = model.get_attribute_as_int("maxsizey");
 
   //-- Detect faces
-  journal.verbose("Détection visages...");
+  trace_verbeuse("Détection visages...");
   face_cascade.detectMultiScale(frame_gray, faces,
                                 1.1, // scale factor
                                 2,   // min neighbors
@@ -361,7 +359,7 @@ int VisageDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
                                 Size()); // Maximum size
 
 
-  journal.trace("Détecté %d visages.", faces.size());
+  infos("Détecté %d visages.", faces.size());
   for(size_t i = 0; i < faces.size(); i++ )
   {
     Point center( faces[i].x + faces[i].width * 0.5, faces[i].y + faces[i].height * 0.5 );
@@ -369,10 +367,10 @@ int VisageDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     Mat faceROI = frame_gray(faces[i]);
     std::vector<Rect> eyes;
     //-- In each face, detect eyes
-    journal.verbose("Détection yeux...");
+    trace_verbeuse("Détection yeux...");
     eyes_cascade.detectMultiScale(faceROI, eyes, 1.05, 2,
                                   CV_HAAR_SCALE_IMAGE);//, Size(5, 5) );
-    journal.verbose("%d trouvés.\n", eyes.size());
+    trace_verbeuse("%d trouvés.\n", eyes.size());
     for(size_t j = 0; j < eyes.size(); j++)
     {
       Point center( faces[i].x + eyes[j].x + eyes[j].width * 0.5, faces[i].y + eyes[j].y + eyes[j].height * 0.5 );
@@ -412,7 +410,7 @@ CascGenDemo::CascGenDemo(std::string id): rng(12345)
     cnames.push_back("./data/cascades/haarcascade_russian_plate_number.xml");
   else
   {
-    journal.warning("Cascade inconnue: %s.", id.c_str());
+    avertissement("Cascade inconnue: %s.", id.c_str());
     return;
   }
 
@@ -428,13 +426,13 @@ CascGenDemo::CascGenDemo(std::string id): rng(12345)
   {
     if(!cascade[i++].load(cname))
     {
-      journal.warning("Erreur chargement cascade: %s.", cname.c_str());
+      avertissement("Erreur chargement cascade: %s.", cname.c_str());
       return;
     }
   }
   catch(...)
   {
-    journal.warning("Exception loading cascade");
+    avertissement("Exception loading cascade");
     return;
   }
   }
@@ -475,7 +473,7 @@ int CascGenDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   output.images[0] = I.clone();
 
-  journal.trace("Détecté %d objets.", rdi.size());
+  infos("Détecté %d objets.", rdi.size());
   for(size_t i = 0; i < rdi.size(); i++ )
   {
     Point center( rdi[i].x + rdi[i].width * 0.5, rdi[i].y + rdi[i].height * 0.5 );
@@ -501,7 +499,7 @@ int DemoHog::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   cv::Mat img;
   cvtColor(input.images[0], img, CV_BGR2GRAY);
 
-  journal.trace("img.size = %d * %d.", img.cols, img.rows);
+  infos("img.size = %d * %d.", img.cols, img.rows);
 
   hog.nbins             = input.model.get_attribute_as_int("nbins");
   hog.nlevels           = 64;
@@ -521,7 +519,7 @@ int DemoHog::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   // Théoriquement, 512 * 512 / (16 * 16) = 1024 cellules
   // Chaque cellule = 16 bins => 16 k elements
-  journal.trace("ders.size = %d.", ders.size());
+  infos("ders.size = %d.", ders.size());
 
   // Dessin HOG
   uint16_t sx = img.cols, sy = img.rows;
@@ -604,6 +602,7 @@ DemoFaceRecognizer::DemoFaceRecognizer()
 
 int DemoFaceRecognizer::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
+# ifdef USE_CONTRIB
   uint16_t sx = 0, sy = 0;
   unsigned int nclasses = 40;
   unsigned int nex = 10;
@@ -633,7 +632,7 @@ int DemoFaceRecognizer::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outp
     }
   }
 
-  journal.verbose("Sx = %d, sy = %d.", sx, sy);
+  trace_verbeuse("Sx = %d, sy = %d.", sx, sy);
 
   int algo = input.model.get_attribute_as_int("algo");
 
@@ -671,7 +670,7 @@ int DemoFaceRecognizer::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outp
         nfaux++;
     }
     float taux = ((float) (ntests - nfaux)) / ntests;
-    journal.trace("Ntests = %d, nfaux = %d, taux de réussite = %.2f %%.", ntests, nfaux, taux * 100);
+    infos("Ntests = %d, nfaux = %d, taux de réussite = %.2f %%.", ntests, nfaux, taux * 100);
 
     output.nout = 0;
 
@@ -679,7 +678,7 @@ int DemoFaceRecognizer::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outp
     {
       cv::face::BasicFaceRecognizer *model2 = (cv::face::BasicFaceRecognizer *) model.get();
       Mat ev = model2->getEigenVectors();
-      journal.trace("Eigen vectors = %d * %d.", ev.cols, ev.rows);
+      infos("Eigen vectors = %d * %d.", ev.cols, ev.rows);
       // 80 * 10304 = numcompos * (nbdims total)
 
       output.nout = ev.cols;//ncompos;
@@ -690,7 +689,7 @@ int DemoFaceRecognizer::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outp
         cv::Mat mat = ev.col(i).t();
         mat = mat.reshape(1, sy);
 
-        //journal.verbose("nv taille = %d * %d.", mat.cols, mat.rows);
+        //trace_verbeuse("nv taille = %d * %d.", mat.cols, mat.rows);
         mat.convertTo(mat, CV_32F);
         cv::normalize(mat, mat, 0, 1.0, NORM_MINMAX);
         mat.convertTo(mat, CV_8U, 255);
@@ -703,7 +702,9 @@ int DemoFaceRecognizer::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outp
     output.errmsg = "Algorithme non supporté.";
     return -1;
   }
-
+# else
+  output.nout = 0;
+# endif
   return 0;
 }
 

@@ -54,7 +54,7 @@ std::string OCVDemo::export_demos(utils::model::Node &cat, Localized::Language l
     else
     {
       s += "<td></td>";
-      journal.warning("Pas de schema / description pour %s.", id.c_str());
+      avertissement("Pas de schema / description pour %s.", id.c_str());
     }
 
     s += "</tr>";
@@ -107,7 +107,7 @@ void OCVDemo::export_captures(utils::model::Node &cat)
     if(!demo.get_attribute_as_boolean("export"))
       continue;
 
-    journal.trace_major("Export démo [%s]...", id.c_str());
+    trace_majeure("Export démo [%s]...", id.c_str());
 
     // Arrête tout
     setup_demo(tdm.get_child_at("cat", 0));
@@ -115,7 +115,7 @@ void OCVDemo::export_captures(utils::model::Node &cat)
 
     // Démarre nouvelle démo
     setup_demo(demo);
-    journal.trace("Attente fin traitement...");
+    infos("Attente fin traitement...");
 
     // Il n'y a qu'un seul thread GTK => doit laisser la main
     // aux autres tâches
@@ -126,7 +126,7 @@ void OCVDemo::export_captures(utils::model::Node &cat)
         Gtk::Main::iteration();
     }
 
-    journal.trace("Fin traitement ok.");
+    infos("Fin traitement ok.");
 
     std::string s = "../../site/data/log/opencv/demo/list/imgs/";
 
@@ -136,17 +136,17 @@ void OCVDemo::export_captures(utils::model::Node &cat)
 
     if(A.data == nullptr)
     {
-      journal.warning("A.data == nullptr");
+      avertissement("A.data == nullptr");
       continue;
     }
 
     cv::pyrDown(A, A);
     cv::pyrDown(A, A);
 
-    journal.verbose("taille finale = %d * %d.", A.cols, A.rows);
+    trace_verbeuse("taille finale = %d * %d.", A.cols, A.rows);
     imwrite(s, A);
     if(!utils::files::file_exists(s))
-      journal.warning("Echec lors de la sauvegarde du fichier.");
+      avertissement("Echec lors de la sauvegarde du fichier.");
   }
 }
 

@@ -33,7 +33,7 @@ DemoVideoStab::DemoVideoStab()
 
 int DemoVideoStab::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
-
+  return 0;
 }
 
 
@@ -53,16 +53,16 @@ void CamShiftDemo::set_roi(const cv::Mat &I, const cv::Rect &new_roi)
 
   if(input.roi.width * input.roi.height < 4)
   {
-    journal.warning("set_roi: aire trop petite.");
+    avertissement("set_roi: aire trop petite.");
     return;
   }
 
   /* Calcul de l'histogramme et backprojection */
-  journal.trace_major("set roi(%d,%d,%d,%d): calc bp...",
+  trace_majeure("set roi(%d,%d,%d,%d): calc bp...",
       input.roi.x, input.roi.y, input.roi.width, input.roi.height);
-  journal.verbose("img dim = %d * %d.", I.cols, I.rows);
+  trace_verbeuse("img dim = %d * %d.", I.cols, I.rows);
   calc_hist(I, input.roi, hist);
-  journal.verbose("fait.");
+  trace_verbeuse("fait.");
   bp_init_ok = true;
 }
 
@@ -73,7 +73,7 @@ int CamShiftDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   if(!bp_init_ok)
   {
     auto sx = I.cols, sy = I.rows;
-    journal.verbose("SX %d SY %d.", sx, sy);
+    trace_verbeuse("SX %d SY %d.", sx, sy);
     set_roi(I, Rect(sx/2-50,sy/3,20,20));//Rect(100,300,50,50));
   }
   if(bp_init_ok)
@@ -97,13 +97,13 @@ int CamShiftDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     }
     cvtColor(backproj, output.images[1], CV_GRAY2BGR);
 
-    journal.verbose("camshift, %d...", trackwindow.width);
+    trace_verbeuse("camshift, %d...", trackwindow.width);
     cv::Rect tw3;
     tw3.width = trackwindow.width;
     tw3.height = trackwindow.height;
     RotatedRect trackbox = CamShift(backproj, trackwindow,
         TermCriteria(TermCriteria::EPS | TermCriteria::COUNT, 10, 1 ));
-    journal.verbose("camshift ok, %d.", trackwindow.width);
+    trace_verbeuse("camshift ok, %d.", trackwindow.width);
     auto tw2 = trackbox.boundingRect();
 
     // Meme centre que tw2, mais meme largeur que tw1
@@ -116,12 +116,12 @@ int CamShiftDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     if(trackwindow.width * trackwindow.height > 0)
     {
       cv::rectangle(I, trackwindow, Scalar(255,255,0), 3);
-      journal.verbose("trackwindow: %d, %d, %d, %d.",
+      trace_verbeuse("trackwindow: %d, %d, %d, %d.",
 		      trackwindow.x, trackwindow.y,
 		      trackwindow.width, trackwindow.height);
     }
     else
-      journal.warning("tracwindow: aire nulle.");
+      avertissement("tracwindow: aire nulle.");
   }
   return 0;
 }
@@ -198,7 +198,7 @@ int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &out
     mhi = Mat::zeros(mask.size(), CV_32F);
 
   int maxhist = model.get_attribute_as_int("max-hist");
-  journal.trace("updateMotionHistory...");
+  infos("updateMotionHistory...");
   updateMotionHistory(mask, mhi, nframes - 5, maxhist);
 
   Mat segmask = Mat::zeros(mask.size(), CV_32F);
@@ -206,10 +206,10 @@ int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &out
   int seuil = model.get_attribute_as_int("seuil");
 
   std::vector<Rect> brects;
-  journal.trace("segmentMotion...");
+  infos("segmentMotion...");
   segmentMotion(mhi, segmask, brects, nframes - 5, seuil);
 
-  journal.trace("rects...");
+  infos("rects...");
   images[1] = tmp.clone();
   for(auto r: brects)
     cv::rectangle(images[1], r, Scalar(0,255,0));
@@ -219,7 +219,7 @@ int SousArrierePlanDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &out
   this->names[2] = "Segmentation";
 # endif
 
-  journal.trace("fin.");
+  infos("fin.");
   return 0;
 }
 
@@ -271,7 +271,7 @@ int OptFlowDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.images[1] = Mat(hsv.size(), CV_8UC3);
   cvtColor(hsv, output.images[1], cv::COLOR_HSV2BGR);
   output.images[1].convertTo(output.images[1], CV_8UC3, 255);
-  journal.verbose("fait: %d * %d, depth = %d.", output.images[0].cols, output.images[0].rows, output.images[0].depth());
+  trace_verbeuse("fait: %d * %d, depth = %d.", output.images[0].cols, output.images[0].rows, output.images[0].depth());
   return 0;
 }
 

@@ -28,13 +28,13 @@
 void OCVDemo::on_event(const OCVMouseEvent &me)
 {
   mutex.lock();
-  //journal.trace("ocvdemo mouse callback img = %d, x = %d, y = %d.",
+  //infos("ocvdemo mouse callback img = %d, x = %d, y = %d.",
 	//	me.image, me.x, me.y);
   switch (me.event)
   {
     case CV_EVENT_LBUTTONDOWN:
     {
-      //journal.verbose("LB DOWN x = %d, y = %d.", me.x, me.y);
+      //trace_verbeuse("LB DOWN x = %d, y = %d.", me.x, me.y);
       rdi0.x = me.x;
       rdi0.y = me.y;
       rdi1 = rdi0;
@@ -60,13 +60,13 @@ void OCVDemo::on_event(const OCVMouseEvent &me)
 
         compute_Ia();
         update_Ia();
-        journal.trace("updated ia.");
+        infos("updated ia.");
       }
       break;
     }
     case CV_EVENT_LBUTTONUP:
     {
-      //journal.verbose("LB UP x = %d, y = %d.", me.x, me.y);
+      //trace_verbeuse("LB UP x = %d, y = %d.", me.x, me.y);
       if(etat_souris == 1)
       {
         rdi1.x = me.x;
@@ -82,7 +82,7 @@ void OCVDemo::on_event(const OCVMouseEvent &me)
             int maxx = max(rdi0.x, rdi1.x);
             int maxy = max(rdi0.y, rdi1.y);
             Rect rdi(minx, miny, maxx - minx, maxy - miny);
-            journal.trace_major("Set rdi(%d,%d,%d,%d).",
+            trace_majeure("Set rdi(%d,%d,%d,%d).",
                                 rdi.x, rdi.y, rdi.width, rdi.height);
             demo_en_cours->set_roi(I0, rdi);
             update();

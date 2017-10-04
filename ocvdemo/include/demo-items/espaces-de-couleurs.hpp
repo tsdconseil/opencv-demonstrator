@@ -32,12 +32,6 @@ public:
   int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
 };
 
-class DFTDemo: public OCVDemoItem
-{
-public:
-  DFTDemo();
-  int proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output);
-};
 
 class DemoBalleTennis: public OCVDemoItem
 {

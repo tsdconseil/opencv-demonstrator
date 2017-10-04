@@ -1,6 +1,8 @@
 #include "demo-items/segmentation.hpp"
 #include <iostream>
+#ifdef USE_CONTRIB
 #include "opencv2/ximgproc.hpp"
+#endif
 
 
 DemoSuperpixels::DemoSuperpixels()
@@ -10,6 +12,7 @@ DemoSuperpixels::DemoSuperpixels()
 
 int DemoSuperpixels::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
+#ifdef USE_CONTRIB
   auto slic = cv::ximgproc::createSuperpixelSLIC(
       input.images[0], cv::ximgproc::SLICO,
       input.model.get_attribute_as_int("taille"),
@@ -24,6 +27,9 @@ int DemoSuperpixels::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   O.setTo(Scalar(0,0,0), masque);
 
   output.images[0] = O;
+# else
+  output.images[0] = input.images[0];
+# endif
   return 0;
 }
 
@@ -45,14 +51,14 @@ int DemoMahalanobis::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   if(input.roi.area() == 0)
   {
     output.images[1] = I.clone();
-    journal.trace("RDI invalide.");
+    infos("RDI invalide.");
     return 0;
   }
 
   cv::Mat ILab;
   cvtColor(I, ILab, CV_BGR2Lab);
 
-  journal.trace("Compute covar samples...");
+  infos("Compute covar samples...");
   auto M = ILab(input.roi);
 # if 0
   Mat samples(M.rows*M.cols,2,CV_32F);
@@ -83,7 +89,7 @@ int DemoMahalanobis::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     }
   }
 
-  journal.trace("Compute covar matrix...");
+  infos("Compute covar matrix...");
   Mat covar, covari, mean;
   cv::calcCovarMatrix(samples, covar, mean,
         CV_COVAR_NORMAL | CV_COVAR_SCALE | CV_COVAR_ROWS);
@@ -97,7 +103,7 @@ int DemoMahalanobis::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   mean.convertTo(mean, CV_32F);
   covari.convertTo(covari, CV_32F);
 
-  journal.trace("  Mahalanobis...");
+  infos("  Mahalanobis...");
   const Vec3b *iptr = ILab.ptr<Vec3b>();
   Mat v(1,3,CV_32F);
   Mat fmask(I.size(), CV_32F);
@@ -120,7 +126,7 @@ int DemoMahalanobis::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     *optr++ = dst;
   }
 
-  journal.trace(" normalize...");
+  infos(" normalize...");
 
   cv::normalize(fmask, fmask, 0, 255, cv::NORM_MINMAX);
   //fmask = 255.0 - fmask;
@@ -165,8 +171,8 @@ int WShedDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   //imshow("Thresholded Distance Transformation",distTransformed);
 
 
-  vector<vector<Point> > contours;
-  vector<Vec4i> hierarchy;
+  std::vector<std::vector<Point> > contours;
+  std::vector<Vec4i> hierarchy;
   findContours(distTransformed, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
 
   if(contours.empty())
@@ -179,7 +185,7 @@ int WShedDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   for(idx = 0; idx >= 0; idx = hierarchy[idx][0], compCount++)
     drawContours(markers, contours, idx, Scalar::all(compCount+1), -1, 8, hierarchy, INT_MAX);
 
-  vector<Vec3b> colorTab;
+  std::vector<Vec3b> colorTab;
   for(auto i = 0; i < compCount; i++ )
   {
     int b = theRNG().uniform(0, 255);
@@ -192,7 +198,7 @@ int WShedDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   watershed(input.images[0], markers);
 
   output.images[3] = Mat(markers.size(), CV_8UC3);
-  journal.trace("paint the watershed image...");
+  infos("paint the watershed image...");
   for(auto i = 0; i < markers.rows; i++)
   {
     for(auto j = 0; j < markers.cols; j++)
@@ -225,7 +231,7 @@ int GrabCutDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   Mat mask, bgmodel, fgmodel;
   Mat I = input.images[0];
   mask = Mat::zeros(I.size(), CV_8UC1);
-  journal.verbose("grabcut...");
+  trace_verbeuse("grabcut...");
   Mat Id;
   cv::pyrDown(I, Id);
   cv::Rect roi2;
@@ -236,7 +242,7 @@ int GrabCutDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   cv::grabCut(Id, mask, roi2, bgmodel, fgmodel, 1, GC_INIT_WITH_RECT);
   //cv::pyrUp(mask, mask);
 
-  journal.verbose("masque...");
+  trace_verbeuse("masque...");
   output.nout = 2;
   output.images[0] = I.clone();
   output.images[1] = I.clone();
@@ -257,7 +263,7 @@ int GrabCutDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
       }
     }
   }
-  journal.verbose("terminé.");
+  trace_verbeuse("terminé.");
 
   return 0;
 }

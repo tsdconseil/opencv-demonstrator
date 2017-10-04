@@ -40,7 +40,7 @@ int InpaintDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     cv::inpaint(I, input.mask, output.images[1], 3, CV_INPAINT_TELEA);
   else
   {
-    journal.trace("Le masque n'est pas défini.");
+    infos("Le masque n'est pas défini.");
     output.images[1] = I.clone();
   }
   return 0;
@@ -100,9 +100,9 @@ int DTransDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   cvtColor(input.images[0], Ig, CV_BGR2GRAY);
   threshold(Ig, output.images[0], 0 /* non utilisé */,
                 255, THRESH_BINARY_INV | THRESH_OTSU);
-  journal.trace("dtrans...");
+  infos("dtrans...");
   cv::distanceTransform(output.images[0], tmp, CV_DIST_L2, 3);
-  journal.trace("ok.");
+  infos("ok.");
   normalize(tmp, output.images[0], 0, 255, NORM_MINMAX, CV_8UC1);
   return 0;
 }

@@ -37,7 +37,7 @@
 #include <malloc.h>
 
 #define DBG(aaa)
-//aaa
+
 
 namespace utils
 {
@@ -63,7 +63,7 @@ void FDSerial::putc(char c)
 {
   if(!serial_is_connected)
   {
-    log.anomaly("putc while not connected.");
+    erreur("putc while not connected.");
     return;
   }
 
@@ -104,52 +104,72 @@ unsigned int FDSerial::nb_rx_available()
 
 void FDSerial::discard_rx_buffer()
 {
+  infos("Vidange de la FIFO de réception...");
   mutex_input.lock();
-  while(input_buffer_size > 0)
+
+  if(input_buffer_size > 0)
+  {
+    input_buffer_offset = (input_buffer_offset + input_buffer_size) % FD_BUFFER_SIZE;
+    input_buffer_size = 0;
+  }
+
+  /*while(input_buffer_size > 0)
   {
     input_buffer_offset = (input_buffer_offset + input_buffer_size) % FD_BUFFER_SIZE;
     input_buffer_size = 0;
     mutex_input.unlock();
     hal::sleep(100);
     mutex_input.lock();
-  }
+  }*/
   mutex_input.unlock();
+  infos("Ok.");
+}
+
+void FDSerial::debloquer_reception()
+{
+  trace_verbeuse("FDSerial::%s", __func__);
+  signal_debloquer_reception.raise();
 }
 
 int FDSerial::getc(int timeout)
 {
   if(!serial_is_connected)
   {
-    log.trace("Read suspended until serial port is opened.");
+    infos("Read suspended until serial port is opened.");
     while(!serial_is_connected)
     {
       hevt_connection.wait();
       hevt_connection.clear();
-      log.trace("+");
+      infos("+");
     }
-    log.trace("Read enabled.");
+    infos("Read enabled.");
   }
+
+  std::vector<utils::hal::Signal *> sigs;
+  sigs.push_back(&hevt_rx_available);
+  sigs.push_back(&signal_debloquer_reception);
+
   mutex_input.lock();
   while(input_buffer_size == 0)
   {
     mutex_input.unlock();
-    if(timeout == 0)
+
+    //utils::verbose("GETC WAIT %d ms...", timeout);
+    int res = utils::hal::Signal::wait_multiple(timeout, sigs);
+    //utils::verbose("GETC RES = %d.", res);
+
+    if((res == 1) || (signal_debloquer_reception.is_raised()))
     {
-      //if(WaitForSingleObject(hevt_rx_available, INFINITE) == WAIT_OBJECT_0)
-      //  ::ResetEvent(hevt_rx_available);
-      //else
-      //  printf("Unable to wait on hevt_rx_available\n");
-      hevt_rx_available.wait();
+      trace_verbeuse("FDSerial::getc: reception annulee sur ordre.");
+      return -1;
     }
-    else
-    {
-      /*if(WaitForSingleObject(hevt_rx_available, timeout) == WAIT_OBJECT_0)
-	::ResetEvent(hevt_rx_available);
-      else
-	return -1;*/
-      if(hevt_rx_available.wait(timeout))
-        return -1;
-    }
+
+    if(res != 0)
+      return -1;
+
+    //if(hevt_rx_available.wait(timeout))
+    // return -1;
+
     mutex_input.lock();
   }
   char c = input_buffer[input_buffer_offset];
@@ -164,33 +184,6 @@ int FDSerial::getc(int timeout)
 
 
 
-/*if(input_buffer_size > 0)
-  {
-    //printf("Input data already available.\n");
-    char c = input_buffer[input_buffer_offset];
-    input_buffer_offset = (input_buffer_offset + 1) % FD_BUFFER_SIZE;
-    input_buffer_size--;
-    LeaveCriticalSection(&mutex_input);
-    return c;
-  }
-  LeaveCriticalSection(&mutex_input);
-  if(WaitForSingleObject(hevt_rx_available, INFINITE) == WAIT_OBJECT_0)
-  {
-    DBG(printf("EVT RX.\n"));
-    ::ResetEvent(hevt_rx_available);
-    EnterCriticalSection(&mutex_input);
-    char c = input_buffer[input_buffer_offset];
-    input_buffer_offset = (input_buffer_offset + 1) % FD_BUFFER_SIZE;
-    input_buffer_size--;
-    LeaveCriticalSection(&mutex_input);
-    return c;
-  }
-  else
-  {
-    printf("Unable to wait on hevt_rx_available\n");
-    }*/
-// return 0xff;
-//}
 
 int  FDSerial::connect(std::string port_name,
                        int baudrate,
@@ -202,7 +195,7 @@ int  FDSerial::connect(std::string port_name,
 # else
   try
   {
-    log.trace("Connection %s @ %d bauds, ctrl de flux = %s...",
+    infos("Connection %s @ %d bauds, ctrl de flux = %s...",
               port_name.c_str(), baudrate, flow_control ? "oui" : "non");
 
     char port[50];
@@ -211,12 +204,12 @@ int  FDSerial::connect(std::string port_name,
     if(strlen(port) > 4)
     {
       sprintf(port, "%s%s", "\\\\.\\", port_name.c_str());
-      log.trace("Added prefix.");
+      infos("Added prefix.");
     }
 
     if(serial_is_connected)
     {
-      log.anomaly("Already connected.");
+      erreur("Already connected.");
       return 0;
     }
 
@@ -239,28 +232,40 @@ int  FDSerial::connect(std::string port_name,
         0);
 
 
-
     if(hfile == nullptr)
     {
-      log.anomaly("CreateFile error.");
+      erreur("CreateFile error.");
       return -1;
     }
 
-    log.trace("CreateFile ok.");
+    if(hfile == INVALID_HANDLE_VALUE)
+    {
+      int err = ::GetLastError();
+      avertissement("Erreur CreateFile (erreur = %d = 0x%x).", err, err);
+      return -1;
+    }
 
-    SetCommMask(hfile,EV_RXCHAR);
+    infos("CreateFile ok.");
 
-    log.trace("Set Comm mask ok.");
+    if(!::SetCommMask(hfile, EV_RXCHAR))
+    {
+      int err = ::GetLastError();
+      avertissement("Erreur SetCommMask (erreur = %d = 0x%x).", err, err);
+      return -1;
+    }
+
+    infos("Set Comm mask ok.");
 
     COMMTIMEOUTS cto = { 0, 0, 0, 0, 0 };
 
-    if(!SetCommTimeouts(hfile,&cto))
+    if(!SetCommTimeouts(hfile, &cto))
     {
-      log.anomaly("Unable to set comm timeouts.");
+      int err = ::GetLastError();
+      avertissement("Unable to set comm timeouts (erreur = %d = 0x%x).", err, err);
       return -1;
     }
 
-    log.trace("Set Comm timeouts ok.");
+    infos("Set Comm timeouts ok.");
 
     DCB dcb;
     memset(&dcb,0,sizeof(dcb));
@@ -312,12 +317,12 @@ int  FDSerial::connect(std::string port_name,
     // set DCB
     if(!SetCommState(hfile,&dcb))
     {
-      log.anomaly("Error while setting comm state.");
+      erreur("Error while setting comm state.");
       CloseHandle(hfile);
       return -1;
     }
 
-    log.trace("Set DCB ok.");
+    infos("Set DCB ok.");
 
     HANDLE	h_evt_overlapped;
     h_evt_overlapped = ::CreateEvent(0,true,false,0);
@@ -350,29 +355,35 @@ bool FDSerial::is_connected()
   return serial_is_connected;
 }
 
+
+
 void FDSerial::disconnect()
 {
   if(serial_is_connected)
   {
+    infos("Arret thread de reception fdserial...");
     hevt_stop.raise();
     hevt_stopped.wait();
+    infos("Thread arrete.");
 #   ifdef LINUX
 #   else
+    infos("Vidange des tampons rx/tx...");
     ::FlushFileBuffers(hfile);
+    infos("Fermeture handle...");
     CloseHandle(hfile);
 #   endif
     serial_is_connected = false;
-    log.trace("Disconnected ok.");
+    infos("Deconnexion terminee.");
   }
 }
 
 void FDSerial::com_thread(void)
 {
-  log.trace("Com thread started.");
+  infos("Com thread started.");
 
   hevt_start.wait();
 
-  log.trace("Com thread resumed.");
+  infos("Com thread resumed.");
 
 # ifdef LINUX
 # else
@@ -398,7 +409,7 @@ void FDSerial::com_thread(void)
       mutex_input.lock();
       if(input_buffer_size >= FD_BUFFER_SIZE)
       {
-        log.anomaly("Input buffer overflow.");
+        erreur("Input buffer overflow.");
       }
       else
       {
@@ -428,7 +439,7 @@ void FDSerial::com_thread(void)
         fflush(stdout);)
         DWORD nb_readen;
         if(!::GetOverlappedResult(hfile,&ov,&nb_readen,FALSE))
-          log.anomaly("Error %d\n", GetLastError());
+          erreur("Error %d\n", GetLastError());
         else
         {
           if(nb_readen > 0)
@@ -436,7 +447,7 @@ void FDSerial::com_thread(void)
             mutex_input.lock();
             if(input_buffer_size >= FD_BUFFER_SIZE)
             {
-              log.anomaly("Input buffer overflow.");
+              erreur("Input buffer overflow.");
             }
             else
             {
@@ -444,7 +455,7 @@ void FDSerial::com_thread(void)
               input_buffer_size++;
               if(nb_readen > 1)
               {
-                log.anomaly("nb readen = %d.", nb_readen);
+                erreur("nb readen = %d.", nb_readen);
               }
             }
             mutex_input.unlock();
@@ -459,7 +470,7 @@ void FDSerial::com_thread(void)
         DWORD nb_wrote;
         if(!::GetOverlappedResult(hfile,&ov,&nb_wrote,FALSE))
         {
-          log.anomaly("Error gor write n�=%d\n", GetLastError());
+          erreur("Error write %d\n", GetLastError());
         }
         else
         {
@@ -489,18 +500,19 @@ void FDSerial::com_thread(void)
     }
     case WAIT_OBJECT_0+1:
   {
-    log.trace("Received Stop\n");
-    ::FlushFileBuffers(hfile);
     hevt_stop.clear();
+    infos("Recu stop: PurgeComm...");
     ::PurgeComm(hfile, PURGE_RXABORT | PURGE_RXCLEAR | PURGE_TXABORT | PURGE_TXCLEAR);
-    assert(CancelIo(hfile));
-    hal::sleep(100);
+    //assert(CancelIo(hfile));
+    //hal::sleep(100);
+    infos("Cancel io...");
+    CancelIo(hfile);
     hevt_stopped.raise();
 
-    log.trace("Serial port stopped.");
+    infos("Serial port stopped.");
 
     hevt_start.wait();
-    log.trace("Received Start\n");
+    infos("Received Start");
 
     break;
   }
@@ -527,13 +539,13 @@ void FDSerial::com_thread(void)
         {
           mutex_input.lock();
           if(input_buffer_size >= FD_BUFFER_SIZE)
-            log.anomaly("Input buffer overflow.");
+            erreur("Input buffer overflow.");
           else
           {
             input_buffer[(input_buffer_offset+input_buffer_size)%FD_BUFFER_SIZE] = c;
             input_buffer_size++;
             if(nb_readen > 1)
-              log.anomaly("nb readen = %d.", nb_readen);
+              erreur("nb readen = %d.", nb_readen);
           }
           mutex_input.unlock();
           hevt_rx_available.raise();
@@ -592,7 +604,7 @@ void FDSerial::com_thread(void)
   }
     default:
     {
-      log.anomaly("Evt inconnu\n");
+      erreur("Evt inconnu");
       break;
     }
     }

@@ -1,3 +1,4 @@
+
 /** @file ocvdemo-mmi.cc
 
     Copyright 2015 J.A. / http://www.tsdconseil.fr
@@ -26,7 +27,7 @@
 
 void OCVDemo::setup_menu()
 {
-  journal.trace("menu setup-ocvdemo-mmi");
+  infos("menu setup-ocvdemo-mmi");
   agroup = Gtk::ActionGroup::create();
   agroup->add( Gtk::Action::create("MenuMain", "_Menu") );
   agroup->add( Gtk::Action::create("Input", langue.get_item("menu-entree")),
@@ -58,18 +59,18 @@ void OCVDemo::setup_menu()
       "  </menubar>"
       "</ui>";
 
-  journal.trace("add-ui ocvdemo-mmi");
+  infos("add-ui ocvdemo-mmi");
 
   m_refUIManager->add_ui_from_string(ui_info);
   Gtk::Widget *pMenuBar = m_refUIManager->get_widget("/MenuBar");
   vbox.pack_start(*pMenuBar, Gtk::PACK_SHRINK);
-  journal.trace("After add-ui ocvdemo-mmi");
+  infos("After add-ui ocvdemo-mmi");
 
 }
 
 void OCVDemo::on_menu_entree()
 {
-  journal.trace("on menu entree. ocvdemo-mmi");
+  infos("on menu entree. ocvdemo-mmi");
 
   auto cp = utils::model::Node::create_ram_node(modele_global.schema());
 
@@ -92,7 +93,7 @@ bool OCVDemo::on_delete_event(GdkEventAny *event)
 
 void OCVDemo::on_b_infos()
 {
-  journal.trace("on_b_infos ocvdemo-mmi");
+  infos("on_b_infos ocvdemo-mmi");
   Gtk::AboutDialog ad;
   ad.set_copyright("(C) 2015 - 2017 TSD Conseil / J.A.");
   Glib::RefPtr<Gdk::Pixbuf>  pix = Gdk::Pixbuf::create_from_file(utils::get_img_path() + "/logo.png");
@@ -152,10 +153,10 @@ void OCVDemo::on_b_open()
 
 void OCVDemo::on_b_save()
 {
-  journal.trace("Save.");
+  infos("Save.");
   if(!has_output())
   {
-    journal.warning("Pas de sortie dispo.");
+    avertissement("Pas de sortie dispo.");
     return;
   }
   //auto s = utils::mmi::dialogs::save_dialog(langue.get_item("title-save"),
@@ -254,7 +255,7 @@ void OCVDemo::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context, int
 
      std::string s = path;//file_list[0];//path;
 
-     journal.trace("DnD: %s.", s.c_str());
+     infos("DnD: %s.", s.c_str());
 
      utils::model::Node new_model = utils::model::Node::create_ram_node(modele_global.schema());
      new_model.copy_from(modele_global);
@@ -273,13 +274,18 @@ void OCVDemo::on_dropped_file(const Glib::RefPtr<Gdk::DragContext>& context, int
 
 void OCVDemo::on_b_exit()
 {
-  journal.trace_major("Fin normale de l'application ocvdemo-mmi.");
+  trace_majeure("Fin normale de l'application ocvdemo-mmi.");
   ODEvent evt;
   evt.type = ODEvent::FIN;
   event_fifo.push(evt);
   
   utils::files::delete_file(lockfile);
   wnd.hide();
+
+
+  OCVDemoFinAppli odfa;
+  dispatch(odfa);
+
   exit(0);
 }
 
@@ -287,20 +293,17 @@ void OCVDemo::on_b_exit()
 
 void OCVDemo::maj_langue_systeme()
 {
-  journal.trace_major("maj_langue_systeme() ocvdemo-mmi.");
+  trace_majeure("maj_langue_systeme() ocvdemo-mmi.");
 
   int sel = modele_global.get_attribute_as_int("langue");
-
-  // TODO: remove this stupid redondance
-  utils::current_language = (Localized::LanguageEnum) (sel + Localized::LANG_FR);
-  langue.current_language = Localized::language_id(utils::current_language);
+  utils::model::Localized::current_language = (Localized::LanguageEnum) (sel + Localized::LANG_FR);
 }
 
 void OCVDemo::maj_langue()
 {
-  journal.trace_major("maj_langue() ocvdemo-mmi.");
+  trace_majeure("maj_langue() ocvdemo-mmi.");
 
-  auto prev_lg = langue.current_language;
+  auto prev_lg = utils::model::Localized::current_language;
   maj_langue_systeme();
 
   b_save.set_label(langue.get_item("save"));
@@ -323,9 +326,12 @@ void OCVDemo::maj_langue()
   titre_principal = langue.get_item("resultats");
 #endif
 
-  wnd.set_title(langue.get_item("main-title"));
+  char bf[500];
+  sprintf(bf, " [version %d.%d.%d]", VMAJ, VMIN, VPATCH);
 
-  if(langue.current_language != prev_lg)
+  wnd.set_title(langue.get_item("main-title") + std::string(bf));
+
+  if(utils::model::Localized::current_language != prev_lg)
   {
     lock = true;
     vue_arbre.maj_langue();

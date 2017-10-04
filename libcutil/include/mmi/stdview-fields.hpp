@@ -12,11 +12,11 @@ namespace mmi
 namespace fields
 {
 
-class DecimalSpinView: public AttributeView 
+class VueDecimal: public AttributeView 
 {
 public:
-  DecimalSpinView(Attribute *model, int compatibility_mode = 0);
-  virtual ~DecimalSpinView() {}
+  VueDecimal(Attribute *model, int compatibility_mode = 0);
+  virtual ~VueDecimal() {}
   bool is_valid();
   void set_sensitive(bool b);
 
@@ -44,10 +44,10 @@ private:
   bool valid;
 };
 
-class FloatView: public AttributeView {
+class VueFloat: public AttributeView {
 public:
-  FloatView(Attribute *model);
-  virtual ~FloatView() {
+  VueFloat(Attribute *model);
+  virtual ~VueFloat() {
   }
 
   void set_sensitive(bool b);
@@ -69,11 +69,11 @@ private:
   Gtk::Label label, label_unit;
 };
 
-class StringView: public AttributeView
+class VueChaine: public AttributeView
 {
 public:
-  StringView(Attribute *model, bool small_ = false);
-  virtual ~StringView();
+  VueChaine(Attribute *model, bool small_ = false);
+  virtual ~VueChaine();
 
   void set_sensitive(bool b);
   unsigned int get_nb_widgets();
@@ -94,11 +94,11 @@ private:
   Gtk::Entry entry;
 };
 
-class FixedStringView: public AttributeView
+class VueChaineConstante: public AttributeView
 {
 public:
-  FixedStringView(Attribute *model);
-  virtual ~FixedStringView()
+  VueChaineConstante(Attribute *model);
+  virtual ~VueChaineConstante()
   {
   }
 
@@ -121,10 +121,10 @@ private:
   Gtk::Label entry;
 };
 
-class TxtView: public AttributeView {
+class VueTexte: public AttributeView {
 public:
-  TxtView(Attribute *model, bool small_);
-  virtual ~TxtView() {
+  VueTexte(Attribute *model, bool small_);
+  virtual ~VueTexte() {
   }
 
   void set_sensitive(bool b);
@@ -144,10 +144,10 @@ private:
   Gtk::Frame frame;
 };
 
-class FolderView: public AttributeView {
+class VueDossier: public AttributeView {
 public:
-  FolderView(Attribute *model);
-  virtual ~FolderView() {
+  VueDossier(Attribute *model);
+  virtual ~VueDossier() {
   }
 
   void set_sensitive(bool b);
@@ -164,38 +164,55 @@ private:
     return "folder-view";
   }
   Gtk::Label label;
-  Gtk::FileChooserButton *button;
+  Gtk::FileChooserButton *bouton;
   Gtk::FileChooserDialog *fcd;
 };
 
-class FileView: public AttributeView {
+class VueFichier: public AttributeView
+{
 public:
-  FileView(Attribute *model);
-  virtual ~FileView(); 
+  VueFichier(Attribute *model, bool fichier_existant = true);
+  virtual ~VueFichier(); 
 
 
   void set_sensitive(bool b);
   unsigned int get_nb_widgets();
   Gtk::Widget *get_widget(int index);
   Gtk::Widget *get_gtk_widget();
-  void update_langue();
+  void maj_langue();
 private:
+
+  bool fichier_existant;
+
+  class BoutonFichier: public Gtk::Button//Gtk::FileChooserButton
+  {
+  public:
+    BoutonFichier(Gtk::FileChooserDialog *fcd, VueFichier *parent);
+  private:
+    void gere_clic();
+    //bool on_button_press_event(GdkEventButton* event);
+    Gtk::FileChooserDialog *fcd;
+    VueFichier *parent;
+  };
+
+
+  bool gere_bouton(GdkEventButton *non_ut);
+  void maj_chemin(const std::string &s);
   bool on_focus_in(GdkEventFocus *gef);
   bool on_frame_event(GdkEvent *gef);
   void on_event(const ChangeEvent &ce);
-  void on_file_changed();
-  std::string class_name() const {
-    return "file-view";
-  }
+  void gere_changement_fichier();
+
   Gtk::Label label;
-  Gtk::FileChooserButton *button;
+  BoutonFichier *bouton;
   Gtk::FileChooserDialog *fcd;
+  friend class BoutonFichier;
 };
 
-class HexaView: public AttributeView {
+class VueHexa: public AttributeView {
 public:
-  HexaView(Attribute *model);
-  virtual ~HexaView() {
+  VueHexa(Attribute *model);
+  virtual ~VueHexa() {
   }
 
   void set_sensitive(bool b);
@@ -214,10 +231,10 @@ private:
   bool valid;
 };
 
-class BytesView: public AttributeView {
+class VueOctets: public AttributeView {
 public:
-  BytesView(Attribute *model);
-  virtual ~BytesView() {
+  VueOctets(Attribute *model);
+  virtual ~VueOctets() {
   }
 
   void set_sensitive(bool b);
@@ -236,10 +253,10 @@ private:
   bool valid;
 };
 
-class BooleanView: public AttributeView {
+class VueBouleen: public AttributeView {
 public:
-  BooleanView(Attribute *model);
-  virtual ~BooleanView();
+  VueBouleen(Attribute *model);
+  virtual ~VueBouleen();
 
   void set_sensitive(bool b);
   unsigned int get_nb_widgets();
@@ -258,10 +275,10 @@ private:
   }
 };
 
-class LedView: public AttributeView {
+class VueLed: public AttributeView {
 public:
-  LedView(Attribute *model);
-  virtual ~LedView();
+  VueLed(Attribute *model);
+  virtual ~VueLed();
 
   void set_sensitive(bool b);
   unsigned int get_nb_widgets();
@@ -281,10 +298,10 @@ private:
   }
 };
 
-class ComboView: public AttributeView {
+class VueCombo: public AttributeView {
 public:
-  ComboView(Attribute *model);
-  virtual ~ComboView() {
+  VueCombo(Attribute *model);
+  virtual ~VueCombo() {
   }
 
   void set_sensitive(bool b);
@@ -318,10 +335,10 @@ private:
   Glib::RefPtr<Gtk::ListStore> tree_model;
 };
 
-class SerialView: public AttributeView {
+class VueSelPortCOM: public AttributeView {
 public:
-  SerialView(Attribute *model);
-  virtual ~SerialView() {
+  VueSelPortCOM(Attribute *model);
+  virtual ~VueSelPortCOM() {
   }
 
   void set_sensitive(bool b);
@@ -356,10 +373,10 @@ private:
   Glib::RefPtr<Gtk::ListStore> tree_model;
 };
 
-class ColorView: public AttributeView {
+class VueChoixCouleur: public AttributeView {
 public:
-  ColorView(Attribute *model);
-  virtual ~ColorView() {
+  VueChoixCouleur(Attribute *model);
+  virtual ~VueChoixCouleur() {
   }
 
   void set_sensitive(bool b);
@@ -378,10 +395,10 @@ private:
   ColorButton *cb;
 };
 
-class DateView: public AttributeView {
+class VueDate: public AttributeView {
 public:
-  DateView(Attribute *model);
-  virtual ~DateView() {
+  VueDate(Attribute *model);
+  virtual ~VueDate() {
   }
 
   void set_sensitive(bool b);
@@ -404,10 +421,10 @@ private:
   bool valid;
 };
 
-class ChoiceView: public AttributeView, private CListener<KeyPosChangeEvent> {
+class VueChoix: public AttributeView, private CListener<KeyPosChangeEvent> {
 public:
-  ChoiceView(Attribute *model, Node parent, NodeViewConfiguration config);
-  virtual ~ChoiceView();
+  VueChoix(Attribute *model, Node parent, NodeViewConfiguration config);
+  virtual ~VueChoix();
   void update_langue();
   Gtk::Widget *get_widget(int index);
   Gtk::Widget *get_gtk_widget();
@@ -420,7 +437,7 @@ private:
   }
   void update_sub_view();
   void on_event(const ChangeEvent &ce);
-  void on_radio_activate();
+  void on_radio_activate(unsigned int num);
   std::string class_name() const {
     return "choice-view";
   }

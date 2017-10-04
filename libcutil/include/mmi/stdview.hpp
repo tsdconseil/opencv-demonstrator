@@ -7,8 +7,8 @@
  * 
  * (C) J A 2008-2009 */
 
+#include "../journal.hpp"
 #include "modele.hpp"
-#include "trace.hpp"
 #include "cutil.hpp"
 #include "mmi/gtkutil.hpp"
 
@@ -20,20 +20,30 @@ namespace mmi
 
 using namespace model;
 
-class Controler
+class Controleur
 {
 public:
   // Get dynamic content at the specified path in the view model
-  virtual std::string get_dyn_content(const std::string &action_path,
+  virtual std::string genere_contenu_dynamique(const std::string &action_path,
                                       Node node,
                                       Gtk::Widget **widget) = 0;
-  virtual void on_action(const std::string &action, Node node) = 0;
+  virtual void gere_action(const std::string &action, Node node) = 0;
+};
+
+class GenericView;
+
+class FabriqueWidget
+{
+public:
+  virtual GenericView *fabrique(Node modele_donnees, Node modele_vue, Controleur *controleur) = 0;
 };
 
 class GenericView
 {
 public:
-  static GenericView *factory(Node data_model, Node view_model, Controler *controler = nullptr);
+  static GenericView *fabrique(Node data_model, Node view_model, Controleur *controler = nullptr);
+
+  static int enregistre_widget(std::string id, FabriqueWidget *frabrique);
 
   virtual Gtk::Widget *get_gtk_widget() = 0;
   GenericView();
@@ -42,55 +52,66 @@ public:
   typedef enum widget_type_enum
   {
     /** Automatic widget type determination according to the model schema */
-    WIDGET_AUTO                 = 0,
-    WIDGET_nullptr              = 1,
-    WIDGET_FIELD                = 2,
-    WIDGET_FIELD_LIST           = 3,
-    WIDGET_INDICATOR            = 4,
-    WIDGET_BUTTON               = 5,
-    WIDGET_BORDER_LAYOUT        = 6,
-    WIDGET_GRID_LAYOUT          = 7,
-    WIDGET_FIXED_LAYOUT         = 8,
-    WIDGET_TRIG_LAYOUT          = 9,
-    WIDGET_NOTEBOOK             = 10,
-    WIDGET_PANE                 = 11,
-    WIDGET_IMAGE                = 12,
-    WIDGET_LABEL                = 13,
-    WIDGET_CUSTOM               = 14,
-    WIDGET_COMBO                = 15,
-    WIDGET_DECIMAL_ENTRY        = 16,
-    WIDGET_HEXA_ENTRY           = 17,
-    WIDGET_FLOAT_ENTRY          = 18,
-    WIDGET_RADIO                = 19,
-    WIDGET_SWITCH               = 20,
-    WIDGET_PANEL                = 21,
-    WIDGET_CHOICE               = 22,
-    WIDGET_BYTES                = 23,
-    WIDGET_TEXT                 = 24,
-    WIDGET_STRING               = 25,
-    WIDGET_COLOR                = 26,
-    WIDGET_DATE                 = 27,
-    WIDGET_FOLDER               = 28,
-    WIDGET_FILE                 = 29,
-    WIDGET_SERIAL               = 30,
-    WIDGET_LIST_LAYOUT          = 31,
-    WIDGET_VBOX                 = 32,
-    WIDGET_HBOX                 = 33,
-    WIDGET_BUTTON_BOX           = 34
+    WIDGET_AUTO = 0,
+    WIDGET_NULL,
+    WIDGET_FIELD,
+    WIDGET_FIELD_LIST,
+    WIDGET_INDICATOR,
+    WIDGET_BUTTON,
+    WIDGET_BORDER_LAYOUT,
+    WIDGET_GRID_LAYOUT,
+    WIDGET_FIXED_LAYOUT,
+    WIDGET_TRIG_LAYOUT,
+    WIDGET_NOTEBOOK,
+    WIDGET_PANNEAU,
+    WIDGET_IMAGE,
+    WIDGET_LABEL,
+    WIDGET_COMBO,
+    WIDGET_DECIMAL_ENTRY,
+    WIDGET_HEXA_ENTRY,
+    WIDGET_FLOAT_ENTRY,
+    WIDGET_RADIO,
+    WIDGET_SWITCH,
+    WIDGET_PANEL,
+    WIDGET_CHOICE,
+    WIDGET_BYTES,
+    WIDGET_TEXT,
+    WIDGET_STRING,
+    WIDGET_COLOR,
+    WIDGET_DATE,
+    WIDGET_FOLDER,
+    WIDGET_FILE,
+    WIDGET_SERIAL,
+    WIDGET_LIST_LAYOUT,
+    WIDGET_VBOX,
+    WIDGET_HBOX,
+    WIDGET_BUTTON_BOX,
+    WIDGET_VUE_SPECIALE,
+    WIDGET_SEP_H,
+    WIDGET_SEP_V,
+    WIDGET_INVALIDE
   } WidgetType;
 
-  static const unsigned int WIDGET_MAX = 34;
+  static const unsigned int WIDGET_MAX = ((int) WIDGET_INVALIDE);
 
-  static WidgetType type_from_string(const string &s);
-  static string     type_to_string(WidgetType type);
+  static WidgetType type_from_string(const std::string &s);
+  static std::string     type_to_string(WidgetType type);
 
-private:
-protected:
   Node data_model;
   Node view_model;
-  Logable log;
+private:
+protected:
+
+};
 
 
+class SubPlot: public GenericView
+{
+public:
+  SubPlot(Node &data_model, Node &view_model, Controleur *controler);
+  Gtk::Widget *get_gtk_widget();
+private:
+  Gtk::Grid grille;
 };
 
 class TrigLayout: public GenericView
@@ -109,7 +130,7 @@ private:
 class BoxLayout: public GenericView
 {
 public:
-  BoxLayout(int vertical, Node &data_model, Node &view_model, Controler *controler);
+  BoxLayout(int vertical, Node &data_model, Node &view_model, Controleur *controler);
   Gtk::Widget *get_gtk_widget();
   ~BoxLayout();
 private:
@@ -123,7 +144,7 @@ private:
 class NoteBookLayout: public GenericView
 {
 public:
-  NoteBookLayout(Node &data_model, Node &view_model, Controler *controler);
+  NoteBookLayout(Node &data_model, Node &view_model, Controleur *controler);
   Gtk::Widget *get_gtk_widget();
   ~NoteBookLayout();
 private:
@@ -135,11 +156,11 @@ private:
 class HButtonBox: public GenericView
 {
 public:
-  HButtonBox(Node &data_model, Node &view_model, Controler *controler = nullptr);
+  HButtonBox(Node &data_model, Node &view_model, Controleur *controler = nullptr);
   Gtk::Widget *get_gtk_widget();
 private:
   utils::model::Node data_model, view_model;
-  Controler *controler;
+  Controleur *controler;
   Gtk::HButtonBox hbox;
   struct Action
   {
@@ -156,11 +177,11 @@ private:
 class CustomWidget: public GenericView
 {
 public:
-  CustomWidget(Node &data_model, Node &view_model, Controler *controler = nullptr);
+  CustomWidget(Node &data_model, Node &view_model, Controleur *controler = nullptr);
   Gtk::Widget *get_gtk_widget();
 private:
   Node data_model, view_model;
-  Controler *controler;
+  Controleur *controler;
   //Gtk::Widget *widget;
   std::string id;
 };
@@ -168,10 +189,12 @@ private:
 class ListLayout: public GenericView, private CListener<ChangeEvent>
 {
 public:
-  ListLayout(Node &data_model, Node &view_model, Controler *controler = nullptr);
+  ListLayout(Node &data_model, Node &view_model, Controleur *controler = nullptr);
   ~ListLayout();
   Gtk::Widget *get_gtk_widget();
 private:
+
+
 
   void on_event(const ChangeEvent &ce);
 
@@ -183,22 +206,23 @@ private:
 
   int current_selection;
 
-  Controler *controler;
-  Gtk::VBox vbox;
+  Controleur *controler;
+  Gtk::VBox vbox, vbox_ext;
   Gtk::Table table;
   Gtk::VSeparator vsep;
   Gtk::HButtonBox hbox;
   struct Elem
   {
     Node model;
-
+    int id;
     Gtk::VBox *vbox;
     Gtk::Widget *widget;
     SensitiveLabel *label;
-    //Gtk::EventBox *event_box;
     Gtk::Frame *frame;
     Gtk::Alignment *align, *align2;
+    Gtk::EventBox *evt_box;
   };
+  bool on_button_press_event(GdkEventButton *evt, Elem *elt);
   std::vector<Elem> elems;
   struct Action
   {
@@ -208,6 +232,7 @@ private:
     bool is_default;
   };
   std::vector<Action> actions;
+  Gtk::ScrolledWindow scroll;
 };
 
 
@@ -264,7 +289,6 @@ private:
   bool lock;
   SubSchema sub_schema;
   bool can_remove;
-  static Logable log;
   bool is_valid();
   
   void update_langue();
@@ -336,19 +360,18 @@ public:
   virtual unsigned int get_nb_widgets()       = 0;
   virtual Gtk::Widget *get_widget(int index)  = 0;
   virtual void set_sensitive(bool b)          = 0;
-  virtual void update_langue()                = 0;
+  virtual void update_langue() {}
+  virtual void maj_langue() {update_langue();}
   virtual bool is_valid();
   bool on_focus_in(GdkEventFocus *gef);
 protected:
-  static Logable log;
-  virtual std::string class_name() const;
+
   Attribute *model;
   std::string tp;
   virtual void on_event(const ChangeEvent &ce) = 0;
   bool lock;
   friend class AttributeListView;
 private:
-
   /** Choose the best appropriate view type for the given attribute schema */
   static GenericView::WidgetType choose_view_type(refptr<AttributeSchema> as);
 
@@ -363,7 +386,7 @@ class FieldListView: public GenericView,
                      private CListener<KeyPosChangeEvent>
 {
 public:
-  FieldListView(Node &data_model, Node &view_model, Controler *controler = nullptr);
+  FieldListView(Node &data_model, Node &view_model, Controleur *controler = nullptr);
   Gtk::Widget *get_gtk_widget();
   ~FieldListView();
 
@@ -374,7 +397,7 @@ private:
   void update_langue();
 
   Gtk::Table table;
-  Controler *controler;
+  Controleur *controler;
   struct FieldCtx
   {
     Gtk::Label label, label_unit;
@@ -414,7 +437,6 @@ private:
   void on_event(const ChangeEvent &ce);
   void on_b_command(std::string name);
 
-  static Logable log;
 
   Gtk::ScrolledWindow scroll;
   Gtk::VBox           the_vbox;
@@ -492,7 +514,6 @@ private:
   Gtk::TreeView tree_view;
   Glib::RefPtr<Gtk::TreeStore> tree_model;
   ModelColumns columns;
-  static Logable log;
 };
 
 
@@ -506,7 +527,8 @@ public:
 class NodeView: private CListener<ChangeEvent>,
                 public  CProvider<EVSelectionChangeEvent>,
                 private CListener<KeyPosChangeEvent>,
-                public  CProvider<KeyPosChangeEvent>
+                public  CProvider<KeyPosChangeEvent>,
+                public GenericView
 {
 public:
   NodeView(Node model);
@@ -514,14 +536,17 @@ public:
   NodeView(Gtk::Window *mainWin, Node model,
            const NodeViewConfiguration &config);
   ~NodeView();
+  Gtk::Widget *get_gtk_widget(){return get_widget();}
   Gtk::Widget *get_widget();
   void update_langue();
   void set_sensitive(bool sensitive);
   bool is_valid();
   void set_selection(Node reg);
 
-  static string mk_label(const Localized &l);
-  static string mk_label_colon(const Localized &l);
+  void maj_langue();
+
+  static std::string mk_label(const Localized &l);
+  static std::string mk_label_colon(const Localized &l);
 
 protected:
   
@@ -581,7 +606,6 @@ private:
   private:
     NodeView *parent;
     ModelColumns *cols;
-    static Logable log;
   };
 
   void populate();
@@ -617,7 +641,6 @@ private:
   NodeView *rp;
   SelectionView *option_view;
   std::vector<NodeView *> sub_views;
-  static Logable log;
 };
 
 class NodeChangeEvent
@@ -638,12 +661,14 @@ public:
   static int display_modal(Node model, bool fullscreen = false, Gtk::Window *parent_window = nullptr);
   static NodeDialog *display(Node model);
   ~NodeDialog();
+  void maj_langue();
 private:
   void on_event(const KeyPosChangeEvent &kpce);
   void on_event(const ChangeEvent &ce);
   NodeDialog(Node model, bool modal, Gtk::Window *parent_window = nullptr);
   void on_b_close();
   void on_b_apply();
+  void on_b_valid();
   void update_view();
   bool on_focus_in(GdkEventFocus *gef);
   bool on_focus_out(GdkEventFocus *gef);
@@ -683,7 +708,6 @@ private:
   bool exposed;
   int lastx, lasty;
   Gtk::Alignment kb_align;
-  static Logable log;
 };
 
 class AppliViewPrm

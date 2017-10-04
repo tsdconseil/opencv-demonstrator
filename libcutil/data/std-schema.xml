@@ -19,6 +19,28 @@
 
 <schema name="wp6-model" root="schema">
 
+
+  <node name = "erreur" inherits="localized">
+    <attribute name="id" type="int" size="4" hexa="true"/>
+  </node>
+  
+  <node name = "erreurs">
+    <sub type="erreur"/>
+    <subnode name="charge">
+      <attribute name="fichier" type="string"/>
+    </subnode>
+  </node>
+
+  <node name = "localized">
+      <attribute type="string" name="name" fr="Nom"/>
+      <attribute type="string" name="fr" fr="En français"/>
+      <attribute type="string" name="en" en="name" fr="En anglais" hidden="false"/>
+      <attribute type="string" name="de"/>
+      <attribute type="string" name="ru"/>
+      <attribute type="string" name="es" fr="Espagnol" en="Spanish"/>
+      <sub type="description"/>
+  </node>
+
 <node name="schema" fr="Schéma" icon="mod16.png">
   <description lang="en">Self-schema of schemas.</description>
   <sub type="node"/>
@@ -27,6 +49,7 @@
   <attribute type="string" name="fr" fr="En français" hidden="true"/>
   <attribute type="string" name="ru"/>
   <attribute type="string" name="de"/>
+  <attribute type="string" name="es"/>
   <attribute type="string" name="filename" hidden="true" volatile="true"/>
 </node>
 
@@ -37,6 +60,7 @@
   <attribute type="string" name="en" en="In english" fr="En anglais"/>
   <attribute type="string" name="ru"/>
   <attribute type="string" name="de"/>
+  <attribute type="string" name="es"/>
   <attribute type="string" name="icon" fr="Icône" hidden="true"/>
   <sub type="attribute"/>
   <sub type="sub"/>
@@ -131,16 +155,18 @@
   <attribute type="boolean" name="signed"  fr="Signé" require="type=int|float" default="false"/>
   <attribute type="boolean" name="hexa"    require="type=int" fr="Affichage en hexadécimal" default="false"/>
   <attribute type="string"  name="require" fr="Condition de validité"/>
+  <attribute type="string"  name="extension" fr="Extension de fichier"/>
   <attribute type="boolean" name="hidden"  default="false" hidden="true"/> 
   <attribute type="boolean" name="formatted-text" default="false" hidden="true"/>
   
   <sub type="match" display-tree="true"        display-tab="false" display-resume="value,name"/>
   <sub type="description"/>
   <!--<attribute type="string" name="callback" hidden="true"/>-->
+  <attribute type="boolean" name="error"    require="type=boolean" default="false"/>
   <attribute type="boolean" name="readonly" default="false" fr="En lecture seule"/>
   <attribute type="boolean" name="bytes" default="false" require="type=int" fr="Affichage sous la forme de plusieurs octets"/>
   <attribute type="boolean" name="instrument"  fr="Instrument de mesure" default="false"/>
-  <attribute type="int" name="digits"  require="instrument=true" fr="Nombre de digits à afficher" default="0"/>
+  <attribute type="int" name="digits"  fr="Nombre de digits à afficher" default="0"/>
 </node>
 
 <node name="command" fr="Commande">
@@ -185,6 +211,8 @@
   <attribute type="string" name="lang" fr="Langue" en="Language" constraints="en|fr|de" default="fr">
     <match value="en" name="en" fr="Anglais" en="English"/>
     <match value="fr" name="fr" fr="Français" en="French" de="Françösich"/>
+    <match value="es" name="es"/>
+    <match value="ru" name="ru"/>
     <match value="de" name="de" fr="Allemand" en="German" de="Deutsch"/> 
   </attribute>
   <attribute type="string" name="content" fr="Contenu" en="Content" formatted-text="true"/>
@@ -202,5 +230,23 @@
   <attribute type="int" name="hour"   min="0" max="23"/>
 </node>
 
+
+<node name = "mmi-gen" inherits="localized">
+  <attribute name="version" type="string" default="1.00"/>
+  <attribute name="largeur-par-defaut" type="int" size="2" default="1000"/>
+  <attribute name="hauteur-par-defaut" type="int" size="2" default="750"/>
+  <attribute name="ncolonnes" type="int" default="2"/>
+  <sub type="mmi-gen-section"/>
+  <sub type="mmi-gen-action"/>
+</node>
+
+<node name = "mmi-gen-section" inherits="node">
+  <attribute name="colonne" default="0"/>
+  <attribute name="modele" type="string"/>
+</node>
+
+<node name = "mmi-gen-action" inherits="node">
+  <attribute name="icone" type="string"/>
+</node>
 
 </schema>

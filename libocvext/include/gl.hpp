@@ -6,8 +6,10 @@
 #ifndef GL_HPP
 #define GL_HPP
 
-#include "opencv2/core/core.hpp"
+#include "opencv2/core.hpp"
 
+namespace ocvext
+{
 
 /** @brief Garcia-Lorca filtering
  *  @param I input image
@@ -37,5 +39,7 @@ extern int Deriche_gradient(const cv::Mat &I,
 extern int Deriche_gradient(const cv::Mat &I,
                            cv::Mat &O,
                            float gamma);
+
+}
 
 #endif

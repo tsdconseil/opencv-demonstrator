@@ -21,20 +21,24 @@
  **/
 
 #include "ocvdemo.hpp"
+#include "mmi/theme.hpp"
 
 
 int main(int argc, char **argv)
 {
   utils::CmdeLine cmdeline(argc, argv);
   utils::init(cmdeline, "ocvdemo", "ocvdemo");
-  utils::TraceManager::set_global_min_level(TraceManager::TraceTarget::TRACE_TARGET_FILE, TraceLevel::AL_VERBOSE);
+  utils::journal::set_global_min_level(utils::journal::TRACE_TARGET_FILE, utils::journal::AL_VERBOSE);
   //utils::TraceManager::set_global_min_level(TraceManager::TraceTarget::TRACE_TARGET_STD, TraceLevel::AL_NONE);
   std::string dts = utils::get_current_date_time();
-  utils::TraceManager::trace(utils::TraceLevel::AL_MAJOR, 0,
-      "\nFichier journal pour l'application OCVDEMO, version %d.%02d\nDate / heure lancement application : %s\n**************************************\n**************************************\n**************************************",
+  trace_majeure("\nFichier journal pour l'application OCVDEMO, version %d.%02d\nDate / heure lancement application : %s\n**************************************\n**************************************\n**************************************",
       VMAJ, VMIN, dts.c_str());
-  langue.load("./data/lang.xml");
+  langue.load("./data/odemo-lang.xml");
   Gtk::Main kit(argc, argv);
+
+  utils::mmi::charge_themes();
+  utils::mmi::installe_theme("dark");
+
   OCVDemo demo(cmdeline);
   demo.demarre_interface();
   return 0;

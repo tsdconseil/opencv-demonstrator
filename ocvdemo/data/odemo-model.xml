@@ -25,14 +25,52 @@
     <demo name = "redim"
           fr   = "Redimensionnement d'image"
           en   = "Image resizing"/>
+          
+    <cat name="fourier"
+         fr  = "Traitements dans le domaine fréquentiel"
+         en  = "Frequential domain processing">
+         
+         
+    <demo name = "dft"
+          fr   = "Transformée de Fourier"
+          en   = "Fourier transform">
+    </demo>
     
+    <demo name = "ift"
+          fr   = "Transformée de Fourier inverse"
+          en   = "Inverse Fourier transform">
+                 <img path="data/img/noir.png"/>
+    </demo>
+
     <demo name  = "sous-spect"
           fr    = "Soustraction spectrale"
           en    = "Spectral substraction">
        <img path="data/img/Axode-Test256-4.png"/>
     </demo>
-
     
+    <demo name  = "detection-translation"
+          fr    = "Détection translation"
+          en    = "Translation detection">
+       <img path="data/img/tpol.png"/>
+    </demo>
+          
+
+    <demo name  = "detection-rotation"
+          fr    = "Détection rotation / échelle"
+          en    = "Rotation / scale detection">
+       <img path="data/img/tpol.png"/>
+    </demo>
+    
+    <demo name  = "detection-periode"
+          fr    = "Détection période"
+          en    = "Period detection">
+       <img path="data/img/doigt.png"/>
+    </demo>
+         
+    </cat>
+         
+    
+
 
 
     <cat  name = "derivation"
@@ -181,10 +219,11 @@
          <img path="./data/img/jouets.jpg"/>
       </demo>
       
+   <!--     
       <demo name = "superpixels" fr="Superpixels">
         <img path="./data/img/dog.png"/>
       </demo>
-
+-->
 
     </cat>
 
@@ -205,16 +244,14 @@
 
     </cat>
 
-    <demo name = "dft"
-          fr   = "Transformée de Fourier"
-          en   = "Fourier transform">
-    </demo>
-    
+
+    <!-- 
     <demo name = "ocr"
           fr   = "Reconnaissance de caractères (OCR)"
           en   = "Optical caracter recognition (OCR)">
           <img path="./data/img/logo2.png"/>
     </demo>
+     -->
 
   </cat>
 
@@ -274,10 +311,10 @@
     <demo name  = "corner-match"
           fr    = "Mise en correspondance"
           en    = "Matching">
-         <img path = "0"/>
-         <img path = "2"/>
-        <!-- <img path="data/img/lac1.jpg"/>
-       <img path="data/img/lac2.jpg"/>-->
+  <!--        <img path = "1"/>
+         <img path = "2"/> -->
+        <img path="data/img/lac1.jpg"/>
+       <img path="data/img/lac2.jpg"/>
     </demo>
     </cat>
     

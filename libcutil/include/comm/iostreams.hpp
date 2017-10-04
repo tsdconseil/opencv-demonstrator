@@ -59,6 +59,9 @@ public:
   int read(model::ByteArray &ba, uint32_t length, int timeout);
 
   virtual void discard_rx_buffer();
+
+  // Débloque un appelant de la fonction read
+  virtual void debloquer_reception() {}
 protected:
 private:
 };

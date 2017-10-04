@@ -3,8 +3,9 @@
 
 
 #include <glibmm/property.h>
+
+#include "../journal.hpp"
 #include "modele.hpp"
-#include "trace.hpp"
 #include "cutil.hpp"
 #include "mmi/gtkutil.hpp"
 
@@ -17,8 +18,7 @@ namespace mmi
 
 class RefCellEditable:
   public Gtk::EventBox, 
-  public Gtk::CellEditable,
-  private Logable
+  public Gtk::CellEditable
 {
 public:
   // Ctor/Dtor
@@ -70,8 +70,7 @@ protected:
 };
 
 class RefCellRenderer
-  : public Gtk::CellRenderer,
-    private Logable
+  : public Gtk::CellRenderer
 {
 public:
   RefCellRenderer();//Node model, std::string ref_name);
@@ -147,7 +146,6 @@ private:
   Node model;
   std::string ref_name;
   bool valid;
-  Logable log;
   bool init_done;
 };
 

@@ -33,7 +33,6 @@ ImageMosaique::ImageMosaique()
 {
   preserve_ratio_aspet = false;
   callback_init_ok = false;
-  journal.setup("ocvdemo", "image-mosaic");
 }
 
 void mouse_callback(int event, int x, int y, int flags, void *param)
@@ -43,7 +42,7 @@ void mouse_callback(int event, int x, int y, int flags, void *param)
 
 void ImageMosaique::mouse_callback(int event, int x, int y, int flags)
 {
-  //journal.trace("imosaic mouse callback x = %d, y = %d.", x, y);
+  //infos("imosaic mouse callback x = %d, y = %d.", x, y);
 
   // Conversion vers coordoonnées image i
   for(auto j = 0u; j < img_pos.size(); j++)
@@ -66,7 +65,7 @@ void ImageMosaique::mouse_callback(int event, int x, int y, int flags)
 
 void ImageMosaique::update_image(int index, const cv::Mat &img)
 {
-  journal.verbose("ImageMosaique::update_image");
+  trace_verbeuse("ImageMosaique::update_image");
   mutex.lock();
   cv::Rect rect(img_pos[index].x, img_pos[index].y,
       img_pos[index].width, img_pos[index].height);
@@ -113,14 +112,14 @@ int ImageMosaique::show_multiple_images(std::string title,
 
   /*if(nimages < 0)
   {
-    journal.anomaly("%s: Number of arguments too small.", __func__);
+    erreur("%s: Number of arguments too small.", __func__);
     mutex.unlock();
     return -1;
   }*/
 
   if((nimages > 0) && (lst[0].cols <= 0))
   {
-    journal.anomaly("%s: First image empty.", __func__);
+    erreur("%s: First image empty.", __func__);
     mutex.unlock();
     return -1;
   }
@@ -184,7 +183,7 @@ int ImageMosaique::show_multiple_images(std::string title,
     H = sizey;
   }
 
-  journal.trace("show_multiple_images (sizex = %d, sizey = %d, w = %d, h = %d, W = %d, H = %d)",
+  infos("show_multiple_images (sizex = %d, sizey = %d, w = %d, h = %d, W = %d, H = %d)",
       sizex, sizey, w, h, W, H);
 
   // Create a new 3 channel image
@@ -222,7 +221,7 @@ int ImageMosaique::show_multiple_images(std::string title,
     // Set the image ROI to display the current image
     cv::Rect rect(m, n, (int)(x/scale), (int)(y/scale));
 
-    //journal.verbose("di: %d*%d, r:%d,%d,%d,%d.", disp_img.cols, disp_img.rows, rect.x, rect.y, rect.width, rect.height);
+    //trace_verbeuse("di: %d*%d, r:%d,%d,%d,%d.", disp_img.cols, disp_img.rows, rect.x, rect.y, rect.width, rect.height);
     cv::Mat roi(disp_img, rect);
 
     if(nimages > 1)
@@ -264,13 +263,13 @@ int ImageMosaique::show_multiple_images(std::string title,
 
   // Create a new window, and show the Single Big Image
 
-  journal.verbose("namedWindow...");
+  trace_verbeuse("namedWindow...");
 
   auto model = OCVDemo::get_instance()->get_modele_global();
 
   if(model.get_attribute_as_boolean("force-taille-sortie"))
   {
-    journal.verbose("Forçage taille...");
+    trace_verbeuse("Forçage taille...");
     cv::namedWindow(title.c_str(), CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL);
     cv::resizeWindow(title.c_str(),
                      model.get_attribute_as_int("sortie-sx"),
@@ -278,10 +277,10 @@ int ImageMosaique::show_multiple_images(std::string title,
   }
   else
   {
-    journal.verbose("Taille auto...");
+    trace_verbeuse("Taille auto...");
     if(nimages == 1)
     {
-      journal.trace_major("KEEP RATIO");
+      trace_majeure("KEEP RATIO");
       cv::namedWindow(title.c_str(), CV_WINDOW_KEEPRATIO | CV_WINDOW_NORMAL);
       cv::resizeWindow(title.c_str(), lst[0].cols, lst[0].rows);
     }
@@ -292,9 +291,9 @@ int ImageMosaique::show_multiple_images(std::string title,
     //cv::moveWindow(title.c_str(), 0,0);
   }
 
-  journal.verbose("imwrite");
+  trace_verbeuse("imwrite");
   //cv::imwrite("./essai.jpg", disp_img); // OK
-  journal.verbose("imshow: [%s], %d * %d", title.c_str(), disp_img.cols, disp_img.rows);
+  trace_verbeuse("imshow: [%s], %d * %d", title.c_str(), disp_img.cols, disp_img.rows);
   cv::imshow(title.c_str(), disp_img);
 
   //cv::moveWindow(title.c_str(), 0, 0);
@@ -302,13 +301,13 @@ int ImageMosaique::show_multiple_images(std::string title,
 
   if(!callback_init_ok)
   {
-    journal.verbose("cbinit");
+    trace_verbeuse("cbinit");
     setMouseCallback(title, ::mouse_callback, this);
     callback_init_ok = true;
   }
 
 
-  journal.trace("done.");
+  infos("done.");
   mutex.unlock();
   return 0;
 }

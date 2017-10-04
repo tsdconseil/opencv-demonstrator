@@ -20,19 +20,22 @@
 #   You should have received a copy of the GNU Lesser General Public License
 #   along with OCVDemo.  If not, see <http://www.gnu.org/licenses/>.
 
+UNAME := $(shell uname)
+
+
+# Path to repository root directy
+
+
+ifeq ($(UNAME), MINGW32_NT-6.2)
+	T := WIN
+else
+	T := LINUX
+endif
+
 all:
-	@echo "Please specify a build target. Try one of:"
-	@echo "    make windows"
-	@echo "    make linux"
-	@echo "    make clean"
-
-windows:
-	cd libcutil && make && cd ../ocvext && make && cd ../ocvdemo && make
-
-linux:
-	cd libcutil; export TARGET=LINUX; make
-	cd ocvext; export TARGET=LINUX; make
-	cd ocvdemo; export TARGET=LINUX; make
+	cd libcutil; export TARGET=$(T); make
+	cd ocvext; export TARGET=$(T); make
+	cd ocvdemo; export TARGET=$(T); make
 
 clean:
 	rm -rf libcutil/build

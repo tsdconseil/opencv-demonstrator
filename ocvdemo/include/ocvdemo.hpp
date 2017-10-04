@@ -48,21 +48,21 @@ using namespace cv;
 /** Current software revision */
 #ifndef VMAJ
 # define VMAJ    1
-# define VMIN    1
+# define VMIN    3
 # define VPATCH  0
 #endif
 
 #ifndef OCV_VPATCH
 # define OCV_VMAJ     3
-# define OCV_VMIN     0
+# define OCV_VMIN     2
 # define OCV_VPATCH   0
 #endif
 
 // TODO: remove this ugly hack
-namespace utils
+/*namespace utils
 {
   extern Localized::Language current_language;
-}
+}*/
 
 
 
@@ -71,6 +71,9 @@ namespace utils
   bool forcer_taille_fenetre_sortie;
   uint16_t fenetre_sortie_sx, fenetre_sortie_sy;
 };*/
+
+
+struct OCVDemoFinAppli{};
 
 ////////////////////////////////////////////////////////////////////////////
 /** @brief Classe principale pour le démonstrateur OpenCV */
@@ -89,11 +92,17 @@ class OCVDemo:
     private CListener<OCVMouseEvent>,
 
     // Demande de rafraichissement de la part d'une démo
-    private CListener<OCVDemoItemRefresh>
+    private CListener<OCVDemoItemRefresh>,
+
+    public CProvider<OCVDemoFinAppli>
 {
 public:
   /** Constructeur (devrait être privé !) */
   OCVDemo(utils::CmdeLine &cmdeline);
+
+  //void ajoute_bouton(Gtk::ToolButton *bouton);
+
+  OCVDemoItem *recherche_demo(const std::string &nom);
 
   /** Démarrage interface graphique */
   void demarre_interface();
@@ -112,6 +121,8 @@ public:
   void add_demo(OCVDemoItem *demo);
 
   utils::model::Node get_modele_global() {return this->modele_global;}
+
+  Gtk::Frame frame_menu;
 
 private:
   void thread_calcul();
@@ -194,6 +205,7 @@ private:
   Gtk::Window wnd;
   // Conteneur principal
   Gtk::VBox vbox;
+
   // Séparateur paneaux de gauche et droite
   Gtk::HPaned hpaned;
   // Modèles
@@ -201,8 +213,6 @@ private:
   utils::model::Node modele_demo; // Modèle dans la TOC
   // Configuration de la démo en cours
   utils::mmi::NodeView *rp;
-  // Logs
-  utils::Logable journal;
   // Arbre de sélection à gauche
   TreeManager vue_arbre;
   // Cadre autour de la config

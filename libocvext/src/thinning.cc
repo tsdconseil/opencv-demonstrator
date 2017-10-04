@@ -2,6 +2,8 @@
 #include <opencv2/highgui.hpp>
 
 
+namespace ocvext {
+
 /////////////////////////////////////////////////////////////
 // (1) Algorithme de ZHANG-SUEN                           ///
 // D'après https://web.archive.org/web/20160322113207/    ///
@@ -176,4 +178,8 @@ void thinning_Guo_Hall(const cv::Mat& I, cv::Mat &O)
 
   O *= 255;
 }
+
+}
+
+
 

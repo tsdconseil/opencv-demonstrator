@@ -8,9 +8,12 @@
 #ifndef HOUGH_E_HPP
 #define HOUGH_E_HPP
 
-#include "opencv2/core/core.hpp"
+#include "opencv2/core.hpp"
 #include <vector>
 #include <cmath>
+
+namespace ocvext
+{
 
 //////////////////////////////////////////////////////
 // Generic function to compute the Hough transform  //
@@ -62,5 +65,6 @@ extern void Hough_lines_with_gradient_dir(const cv::Mat &img,
                                       float gamma = 0.6,
                                       float seuil = 0.4);
 
+}
 
 #endif

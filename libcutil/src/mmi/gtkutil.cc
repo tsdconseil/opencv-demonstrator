@@ -7,12 +7,27 @@
 #include <stdlib.h>
 #include <iostream>
 #include <ctime>
+#include <stdio.h>
 
 #ifdef WIN
 # include <windows.h>
 # include <stdio.h>
 #else
 # include <sys/stat.h> 
+#endif
+
+#define DEBOGUE_VUE_IMAGE(AA)
+
+using namespace std;
+
+#if 0
+static uint32_t grayer(uint32_t val)
+{
+  /*int32_t diff = 32768 - val;
+  diff = diff / 3;
+  return 32768 - diff;*/
+  return val / 3;
+}
 #endif
 
 namespace utils
@@ -23,33 +38,33 @@ namespace mmi
 using namespace utils;
 
 Gtk::Window *mainWindow;
-Logable GtkKey::log("view/gtk-key");
-Logable VirtualKeyboard::log("view/virtual-keyboard");
-Logable TreeManager::log("view/tree-manager");
 
 
-VideoView::VideoView(uint16_t dx, uint16_t dy): Gtk::DrawingArea()
+
+VideoView::VideoView(uint16_t dx, uint16_t dy, bool dim_from_parent)
+  : Gtk::DrawingArea(), dispatcher(16)
 {
-  log.setup("mmi", "video-view");
-  realized  = false;
+  realise  = false;
   csx       = 1;
   csy       = 1;
+  this->dim_from_parent = dim_from_parent;
 
   signal_realize().connect(sigc::mem_fun(*this, &VideoView::on_the_realisation));
-  signal_video_update.connect(sigc::mem_fun(*this, &VideoView::on_video_update));
+  //signal_video_update.connect(sigc::mem_fun(*this, &VideoView::on_video_update));
+  dispatcher.add_listener(this, &VideoView::on_event);
 
   change_dim(dx,dy);
-  set_size_request(csx,csy);
+  if(!dim_from_parent)
+    set_size_request(csx,csy);
 }
 
-void VideoView::update(void *img, uint16_t sx, uint16_t sy)
+void VideoView::get_dim(uint16_t &sx, uint16_t &sy)
 {
-  mutex_video_update.lock();
-  new_img = img;
-  new_sx  = sx;
-  new_sy  = sy;
-  signal_video_update();
+  sx = get_allocated_width();
+  sy = get_allocated_height();
 }
+
+
 
 void VideoView::change_dim(uint16_t sx, uint16_t sy)
 {
@@ -57,55 +72,112 @@ void VideoView::change_dim(uint16_t sx, uint16_t sy)
   {
     csx = sx;
     csy = sy;
-    set_size_request(csx,csy);
+    if(!dim_from_parent)
+      set_size_request(csx,csy);
 
     image_surface = Cairo::ImageSurface::create(Cairo::Format::FORMAT_RGB24, sx, sy);
   }
 }
 
-void VideoView::on_video_update()
+void VideoView::update(void *img, uint16_t sx, uint16_t sy)
 {
-  uint16_t sx = new_sx, sy = new_sy;
-  log.trace("Updating camera view(%d*%d)...", sx, sy);
+  if(!realise)
+  {
+    avertissement("video view update : non realise.");
+    //return;
+  }
 
+  if(dispatcher.is_full())
+  {
+    avertissement("VideoView::maj: FIFO de sortie pleine, on va ignorer quelques trames...");
+    //return;
+    dispatcher.clear();
+  }
+
+  Trame t;
+
+  if((this->csx == sx) && (this->csy == sy))
+  {
+    t.img = nullptr;
+    memcpy(this->image_surface->get_data(), img, 4 * sx * sy);
+  }
+  else
+  {
+    t.img = malloc(sx*sy*4);
+    memcpy(t.img, img, sx*sy*4);
+  }
+
+  t.sx  = sx;
+  t.sy  = sy;
+  dispatcher.on_event(t);
+}
+
+int VideoView::on_event(const Trame &t)
+{
+  uint16_t sx = t.sx, sy = t.sy;
   change_dim(sx,sy);
+  if(t.img != nullptr)
+  {
+    memcpy(this->image_surface->get_data(), t.img, 4 * sx * sy);
+    free(t.img);
+  }
+  queue_draw();
+  return 0;
+}
 
-  memcpy(this->image_surface->get_data(), new_img, 4 * sx * sy);
 
+
+void VideoView::draw_all()
+{
+  GdkEventExpose evt;
+  evt.area.x = 0;
+  evt.area.y = 0;
+  evt.area.width = get_allocation().get_width();
+  evt.area.height = get_allocation().get_height();
+  on_expose_event(&evt);
+}
+
+// Pas vraiment utilsé
+bool VideoView::on_expose_event(GdkEventExpose* event)
+{
   do_update_view();
-  mutex_video_update.unlock();
+  return true;
 }
 
 void VideoView::do_update_view()
 {
-  if(!realized)
+  if(!realise)
     return;
 
-  auto wnd = get_window();
-
-  if(!wnd)
+  if(!cr)
   {
-    realized = false;
-    return;
+    auto wnd = get_window();
+    if(!wnd)
+    {
+      realise = false;
+      return;
+    }
+    cr = wnd->create_cairo_context();
   }
-
-  Cairo::RefPtr<Cairo::Context> cr = wnd->create_cairo_context();
+  //trace_verbeuse("dessine(%d,%d)", csx, csy);
   cr->set_source(this->image_surface, 0, 0);
   cr->rectangle (0.0, 0.0, csx, csy);
   cr->clip();
   cr->paint();
 }
 
+// C'est ici qu'on dessine !
 bool VideoView::on_draw(const Cairo::RefPtr<Cairo::Context> &cr)
 {
+  this->cr = cr;
   do_update_view();
   return true;
 }
 
 void VideoView::on_the_realisation()
 {
-  log.trace("realized.");
-  realized = true;
+  infos("Vue video : realise.");
+  realise = true;
   do_update_view();
 }
 
@@ -495,7 +567,7 @@ bool dialogs::check_dialog(std::string title,
   return false;
 }
 
-void dialogs::show_info(std::string title, std::string short_description, std::string description)
+void dialogs::affiche_infos(std::string title, std::string short_description, std::string description)
 {
   if(appli_view_prm.img_cancel.size() == 0)
   {
@@ -518,7 +590,55 @@ void dialogs::show_info(std::string title, std::string short_description, std::s
   }
 }
 
-void dialogs::show_error(std::string title,
+void dialogs::affiche_infos_localisee(const std::string &id_locale)
+{
+  auto desc = utils::langue.get_localized(id_locale);
+
+  Gtk::MessageDialog dial(desc.get_description(utils::model::Localized::current_language),
+                          false,
+                          Gtk::MESSAGE_INFO,
+                          Gtk::BUTTONS_CLOSE,
+                          true);
+  dial.set_title(desc.get_localized());
+  //dial.set_secondary_text(description);
+  dial.set_position(Gtk::WIN_POS_CENTER);
+  DialogManager::setup_window(&dial);
+  dial.run();
+}
+
+void dialogs::affiche_avertissement_localise(const std::string &id_locale)
+{
+  auto desc = utils::langue.get_localized(id_locale);
+
+  Gtk::MessageDialog dial(desc.get_description(utils::model::Localized::current_language),
+                          false,
+                          Gtk::MESSAGE_WARNING,
+                          Gtk::BUTTONS_CLOSE,
+                          true);
+  dial.set_title(desc.get_localized());
+  //dial.set_secondary_text(description);
+  dial.set_position(Gtk::WIN_POS_CENTER);
+  DialogManager::setup_window(&dial);
+  dial.run();
+}
+
+void dialogs::affiche_erreur_localisee(const std::string &id_locale)
+{
+  auto desc = utils::langue.get_localized(id_locale);
+
+  Gtk::MessageDialog dial(desc.get_description(utils::model::Localized::current_language),
+                          false,
+                          Gtk::MESSAGE_ERROR,
+                          Gtk::BUTTONS_CLOSE,
+                          true);
+  dial.set_title(desc.get_localized());
+  //dial.set_secondary_text(description);
+  dial.set_position(Gtk::WIN_POS_CENTER);
+  DialogManager::setup_window(&dial);
+  dial.run();
+}
+
+void dialogs::affiche_erreur(std::string title,
                       std::string short_description,
                       std::string description)
 {
@@ -547,7 +667,7 @@ void dialogs::show_error(std::string title,
   }
 }
 
-void dialogs::show_warning(std::string title,
+void dialogs::affiche_avertissement(std::string title,
                         std::string short_description,
                         std::string description,
                         bool blocking)
@@ -578,9 +698,31 @@ void dialogs::show_warning(std::string title,
        dial.show();
   }
 }
+
+std::string dialogs::ouvrir_fichier_loc(const std::string &id_locale,
+                    const std::string &filtre, const std::string &id_filtre,
+                    std::string default_dir)
+{
+  auto desc = utils::langue.get_localized(id_locale);
+  auto filt = utils::langue.get_localized(id_filtre);
+  return ouvrir_fichier(desc.get_localized(),
+                        filtre,
+                        filt.get_localized(), "", default_dir);
+}
+
+std::string dialogs::enregistrer_fichier_loc(const std::string &id_locale,
+    const std::string filtre, const std::string &id_filtre,
+    const std::string &default_dir)
+{
+  auto desc = utils::langue.get_localized(id_locale);
+  auto filt = utils::langue.get_localized(id_filtre);
+  return enregistrer_fichier(desc.get_localized(),
+                             filtre,
+                             filt.get_localized(), "", default_dir);
+}
   
 
-std::string dialogs::save_dialog(std::string title, std::string filter, std::string filter_name,
+std::string dialogs::enregistrer_fichier(std::string title, std::string filter, std::string filter_name,
                               std::string default_name, std::string default_dir)
 {
     Gtk::FileChooserDialog dialog(title, Gtk::FILE_CHOOSER_ACTION_SAVE);
@@ -613,8 +755,14 @@ std::string dialogs::save_dialog(std::string title, std::string filter, std::str
           std::string filename = dialog.get_filename();
 
           std::string ext = utils::files::get_extension(filename);
+
           if(ext.size() == 0)
-            filename += filter;
+          {
+            //auto ext2 = utils::files::get_extension(ext);
+            infos("Pas d'extension precisee, ajout de %s", filter.c_str());
+            if((filter.size() > 0) && (filter[0] == '.'))
+              filename += filter;
+          }
 
           dialog.hide();
           return filename;
@@ -631,7 +779,44 @@ std::string dialogs::save_dialog(std::string title, std::string filter, std::str
     return "";
 }
 
-std::string dialogs::open_dialog(std::string title, std::string filter, std::string filter_name,
+std::string dialogs::selection_dossier(const std::string &titre)
+{
+  Gtk::FileChooserDialog dialog(titre, Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+  dialog.set_position(Gtk::WIN_POS_CENTER_ALWAYS);
+  if(mainWindow != nullptr)
+    dialog.set_transient_for(*mainWindow);
+  dialog.set_modal(true);
+  dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+  dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
+
+  dialog.set_select_multiple(false);
+  dialog.set_show_hidden(false);
+
+  //Show the dialog and wait for a user response:
+  int result = dialog.run();
+
+  //Handle the response:
+  switch(result)
+    {
+      case(Gtk::RESPONSE_OK):
+      {
+        std::string filename = dialog.get_filename();
+        dialog.hide();
+        return filename;
+      }
+      case(Gtk::RESPONSE_CANCEL):
+      {
+        return "";
+      }
+      default:
+      {
+        return "";
+      }
+    }
+  return "";
+}
+
+std::string dialogs::ouvrir_fichier(std::string title, std::string filter, std::string filter_name,
                               std::string default_name, std::string default_dir)
 {
     Gtk::FileChooserDialog dialog(title, Gtk::FILE_CHOOSER_ACTION_OPEN);
@@ -686,7 +871,7 @@ std::string dialogs::open_dialog(std::string title, std::string filter, std::str
     return "";
 }
 
-std::string dialogs::new_dialog(std::string title, std::string filter, std::string filter_name,
+std::string dialogs::nouveau_fichier(std::string title, std::string filter, std::string filter_name,
                               std::string default_name, std::string default_dir)
 {
     Gtk::FileChooserDialog dialog(title, Gtk::FILE_CHOOSER_ACTION_SAVE);
@@ -777,7 +962,7 @@ Glib::ustring request_user_string(Gtk::Window *parent,
 }
 
 #if 0
-void CException::show_error() const
+void CException::affiche_erreur() const
 {
     std::cout << "Fatal error: " << cat << std::endl << desc << std::endl;
     Gtk::MessageDialog dial(cat, false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_CLOSE, true);
@@ -843,15 +1028,8 @@ std::string JComboBox::get_current_key()
 
 void JFrame::set_label(const Glib::ustring &s)
 {
-    /*Glib::RefPtr<Gtk::Label> nl = new Gtk::Label();
-    nl->set_label(std::string("<span color=\"blue\">") + s + "</span>");
-    nl->set_use_markup(true);
-    //lab.parent = nullptr;
-    //this->set_label("ll");
-    set_label_widget(*nl);*/
     Gtk::Label *old = lab;
     lab = new Gtk::Label();
-    //lab->set_label(std::string("<span color=\"blue\">") + s + "</span>");
     lab->set_label(std::string("<span color=\"#006000\">") + s + "</span>");
     lab->set_use_markup(true);
     set_label_widget(*lab);
@@ -865,27 +1043,10 @@ JFrame::JFrame(std::string label)
     lab = nullptr;
     set_border_width(20);
     set_label(label);
-    /*label = std::string("<span color=\"blue\">") + label + "</span>";
-    lab.set_label(label);
-    lab.set_use_markup(true);
-    set_label_widget(lab);*/
 }
 
 
-GtkLed::GtkLed(unsigned int size, bool is_red, bool is_mutable)
-{
-  this->is_yellow = false;
-  this->size = size;
-  this->is_red = is_red;
-  this->is_mutable = is_mutable;
-  this->is_sensitive = true;
-  realized = false;
-  is_lighted = false;
-  set_size_request(size,size);
-  signal_realize().connect(sigc::mem_fun(*this, &GtkLed::on_the_realisation));
-  signal_button_press_event().connect( sigc::mem_fun( *this, &GtkLed::on_mouse));
-  add_events(Gdk::BUTTON_PRESS_MASK);
-}
+
 
 GtkKey::GtkKey(unsigned short size_x, unsigned short size_y, std::string s, bool toggle)
 {
@@ -903,33 +1064,11 @@ GtkKey::GtkKey(unsigned short size_x, unsigned short size_y, std::string s, bool
   add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK);
 }
 
-void GtkLed::set_mutable(bool is_mutable)
-{
-  this->is_mutable = is_mutable;
-}
 
-
-bool GtkLed::is_on()
-{
-  return is_lighted;
-}
-
-bool GtkLed::on_mouse(GdkEventButton *event)
-{
-  if(is_mutable)
-  {
-    is_lighted = !is_lighted;
-    update_view();
-    LedEvent le;
-    le.source = this;
-    dispatch(le);
-  }
-  return true;
-}
 
 bool GtkKey::on_mouse(GdkEventButton *event)
 {
-  //trace("mouse event.");
+  //infos("mouse event.");
 
   if(!sensitive)
     return true;
@@ -961,44 +1100,14 @@ bool GtkKey::on_mouse(GdkEventButton *event)
     kce.active = clicking;
     kce.key = this->text;
     kce.source = this;
-    log.trace("dispatch kce..");
+    infos("dispatch kce..");
     CProvider<KeyChangeEvent>::dispatch(kce);
   }
 
   return true;
 }
 
-void GtkLed::light(bool on)
-{
-  is_lighted = on;
-  update_view();
-}
 
-void GtkLed::set_red(bool is_red)
-{
-  this->is_red = is_red;
-  update_view();
-}
-
-void GtkLed::set_sensitive(bool sensistive)
-{
-  this->is_sensitive = sensistive;
-  update_view();
-}
-
-void GtkLed::set_yellow()
-{
-  this->is_yellow = true;
-  update_view();
-}
-
-void GtkLed::on_the_realisation()
-{
-  wnd = get_window();
-  gc = wnd->create_cairo_context();
-  realized = true;
-  update_view();
-}
 
 void GtkKey::on_the_realisation()
 {
@@ -1010,89 +1119,16 @@ void GtkKey::on_the_realisation()
   update_view();
 }
 
-bool GtkLed::on_expose_event(GdkEventExpose* event)
-{
-  update_view();
-  return true;
-}
+
 
 bool GtkKey::on_expose_event(GdkEventExpose* event)
 {
-  //trace("expose event.");
+  //infos("expose event.");
   update_view();
   return true;
 }
 
-static uint32_t grayer(uint32_t val)
-{
-  int32_t diff = 32768 - val;
-  diff = diff / 3;
-  return 32768 - diff;
-}
 
-void GtkLed::update_view()
-{
-  if(realized)
-  {
-  Gdk::Color dark_green;
-  int other, main;
-  if(is_lighted)
-  {
-    other = 20000;
-    main  = 65000;
-  }
-  else
-  {
-    other = 0;
-    main  = 35000;
-  }
-  if(is_yellow)
-  {
-    dark_green.set_blue(other);
-    dark_green.set_green((main * 2) / 3);
-    dark_green.set_red(main);
-  }
-  else if(is_red)
-  {
-    dark_green.set_blue(other);
-    dark_green.set_green(other);
-    dark_green.set_red(main);
-  }
-  else
-  {
-    dark_green.set_blue(other);
-    dark_green.set_green(main);
-    dark_green.set_red(other);
-  }
-
-  if(!this->is_sensitive)
-  {
-    /*dark_green.set_blue(dark_green.get_blue() / 3);
-    dark_green.set_green(dark_green.get_green() / 3);
-    dark_green.set_red(dark_green.get_red() / 3);*/
-    dark_green.set_blue(grayer(dark_green.get_blue()));
-    dark_green.set_green(grayer(dark_green.get_green()));
-    dark_green.set_red(grayer(dark_green.get_red()));
-  }
-
-  gc->set_source_rgb(dark_green.get_red(), dark_green.get_green(), dark_green.get_blue());
-  gc->arc(0,
-          0,
-          size,
-          64 * 90,
-          64 * 360);
-  dark_green.set_blue(35000);
-  dark_green.set_green(35000);
-  dark_green.set_red(35000);
-
-  gc->set_source_rgb(dark_green.get_red(), dark_green.get_green(), dark_green.get_blue());
-  gc->arc(0,
-          0,
-          size,
-          64 * 90,
-          64 * 360);
-  }
-}
 
 void GtkKey::set_sensitive(bool sensitive)
 {
@@ -1137,7 +1173,7 @@ void GtkKey::update_view()
     int width = allocation.get_width();
     int height = allocation.get_height();
 
-    //trace("width = %d, height = %d.", width, height);
+    //infos("width = %d, height = %d.", width, height);
 
     Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
 
@@ -1211,7 +1247,7 @@ void GtkKey::update_view()
 
     lay->add_to_cairo_context(cr);       // adds text to cairos stack of stuff to be drawn
     cr->stroke();                        // tells Cairo to render it's stack
-    //trace("Done drawing gtkkey.");
+    //infos("Done drawing gtkkey.");
   }
 }
 
@@ -1232,7 +1268,7 @@ GtkKey *GtkKeyboard::add_key(std::string s)
   GtkKey *key;
   key = new GtkKey(kw, kw, s);
   fixed.put(*key, cx, cy);
-  //trace("Add key [%s] @ %d, %d.", s.c_str(), cx, cy);
+  //infos("Add key [%s] @ %d, %d.", s.c_str(), cx, cy);
   keys.push_back(key);
   cx += (kw + 5);
   key->add_listener(this);
@@ -1245,7 +1281,7 @@ GtkKey *VirtualKeyboard::add_key(std::string s)
   GtkKey *key;
   key = new GtkKey(kw, kw, s);
   fixed.put(*key, cx, cy);
-  //trace("Add key [%s] @ %d, %d.", s.c_str(), cx, cy);
+  //infos("Add key [%s] @ %d, %d.", s.c_str(), cx, cy);
   keys.push_back(key);
   cx += (kw + 5);
   key->add_listener(this);
@@ -1355,7 +1391,7 @@ void GtkKeyboard::on_event(const KeyChangeEvent &kce)
 {
   if(kce.key.compare("SHIFT") == 0)
   {
-    trace("shift detected.");
+    infos("shift detected.");
     if(kce.active)
     {
       maj_on = true;
@@ -1564,7 +1600,7 @@ void GtkKeyboard::on_event(const KeyChangeEvent &kce)
       if(target_window != nullptr)
         target_window->event(ge);
 
-      trace("Key event sent = '%c'.", (char) gek.keyval);
+      infos("Key event sent = '%c'.", (char) gek.keyval);
     }
   }
   }
@@ -1572,7 +1608,7 @@ void GtkKeyboard::on_event(const KeyChangeEvent &kce)
 
 bool GtkKeyboard::on_key(GdkEventKey *event)
 {
-  trace("EVENT KEY: state=%x, keyval=%x, length=%x, ismod=%x, hw=%x.", event->state, event->keyval, event->length, event->is_modifier, event->hardware_keycode);
+  infos("EVENT KEY: state=%x, keyval=%x, length=%x, ismod=%x, hw=%x.", event->state, event->keyval, event->length, event->is_modifier, event->hardware_keycode);
   return true;
 }
 #endif
@@ -1673,10 +1709,10 @@ void VirtualKeyboard::update_keyboard()
 
 void VirtualKeyboard::on_event(const KeyChangeEvent &kce)
 {
-  log.trace("kc detected.");
+  infos("kc detected.");
   if(kce.key.compare("SHIFT") == 0)
   {
-    log.trace("shift detected.");
+    infos("shift detected.");
     if(kce.active)
     {
       maj_on = true;
@@ -1885,7 +1921,7 @@ void VirtualKeyboard::on_event(const KeyChangeEvent &kce)
       if(target_window != nullptr)
         target_window->event(ge);
 
-      log.trace("Key event sent = '%c'.", (char) gek.keyval);
+      infos("Key event sent = '%c'.", (char) gek.keyval);
     }
   }
   }
@@ -1893,7 +1929,7 @@ void VirtualKeyboard::on_event(const KeyChangeEvent &kce)
 
 bool VirtualKeyboard::on_key(GdkEventKey *event)
 {
-  log.trace("EVENT KEY: state=%x, keyval=%x, length=%x, ismod=%x, hw=%x.", event->state, event->keyval, event->length, event->is_modifier, event->hardware_keycode);
+  infos("EVENT KEY: state=%x, keyval=%x, length=%x, ismod=%x, hw=%x.", event->state, event->keyval, event->length, event->is_modifier, event->hardware_keycode);
   return true;
 }
 
@@ -1921,7 +1957,7 @@ void GtkKey::set_text(std::string s)
 #if 0
 void GtkKeyboard::display(Gtk::Window *target_window)
 {
-  trace("Display(target_window).");
+  infos("Display(target_window).");
   currently_active = true;
   this->target_window = target_window;
   show_all_children(true);
@@ -1943,7 +1979,7 @@ bool GtkKeyboard::is_currently_active()
 
 void GtkKeyboard::set_valid_chars(std::vector<std::string> &vchars)
 {
-  trace("update vchars..");
+  infos("update vchars..");
   bool all_maj = true, has_maj = false;
 
   for(unsigned int i = 0; i < vchars.size(); i++)
@@ -1997,7 +2033,7 @@ void GtkKeyboard::set_valid_chars(std::vector<std::string> &vchars)
 
 void VirtualKeyboard::set_valid_chars(const std::vector<std::string> &vchars)
 {
-  log.trace("update vchars..");
+  infos("update vchars..");
   bool all_maj = true, has_maj = false;
 
   for(unsigned int i = 0; i < vchars.size(); i++)
@@ -2340,7 +2376,7 @@ void GtkKeyboard::on_focus(Gtk::Widget *w)
 
 bool GtkKeyboard::on_focus_in(GdkEventFocus *gef)
 {
-  trace("focus in.");
+  infos("focus in.");
   if(target_window != nullptr)
   {
     target_window->present();
@@ -2556,7 +2592,7 @@ void NotebookManager::on_switch_page(Gtk::Widget *page, int page_num)
 
     if((page_num < 0) || (page_num >= (int) pages.size()))
     {
-      log.anomaly("Invalid page num: %d.", page_num);
+      erreur("Invalid page num: %d.", page_num);
       return;
     }
 
@@ -2569,7 +2605,7 @@ void NotebookManager::on_switch_page(Gtk::Widget *page, int page_num)
 
 void NotebookManager::on_b_close(Page *page)
 {
-  log.trace("on close(%s).", page->name.c_str());
+  infos("on close(%s).", page->name.c_str());
   current_page = -1;
   /*Gtk::Notebook::remove_page(*page->align);*/
 
@@ -2613,7 +2649,7 @@ int NotebookManager::add_page(int position,
   if(icon_path.size() > 0)
   {
     if(!files::file_exists(icon_path))
-      log.anomaly("Image not found: %s.", icon_path.c_str());
+      erreur("Image not found: %s.", icon_path.c_str());
     else
       ybox->pack_start(*(new Gtk::Image(icon_path)));
   }
@@ -2680,7 +2716,7 @@ NotebookManager::Page::~Page()
 
 int NotebookManager::remove_page(Gtk::Widget &widget)
 {
-  log.trace("Remove page..");
+  infos("Remove page..");
   current_page = -1;
   for(uint32_t i = 0; i < pages.size(); i++)
   {
@@ -2696,16 +2732,16 @@ int NotebookManager::remove_page(Gtk::Widget &widget)
         if(cur->widget == pages[i]->widget)
         {
           pages.erase(it);
-          log.trace("Delete page..");
+          infos("Delete page..");
           delete pages[i];
           return 0;
         }
       }
-      log.anomaly("Could not remove page from deque.");
+      erreur("Could not remove page from deque.");
       return -1;
     }
   }
-  log.anomaly("Page not found.");
+  erreur("Page not found.");
   return -1;
 }
 
@@ -2736,94 +2772,100 @@ void TreeManager::maj_langue()
   populate();
 }
 
+bool TreeManager::verifie_type_gere(const std::string &s)
+{
+  if(s == "action")
+    return false;
+  if(ids.size() == 0)
+    return true;
+  for(const auto &id: ids)
+    if(s == id)
+      return true;
+  return false;
+}
+
+bool TreeManager::a_enfant_visible(const utils::model::Node noeud)
+{
+  for(const auto &ch: noeud.schema()->children)
+    if(verifie_type_gere(ch.child_str))
+      return true;
+  return false;
+}
+
 void TreeManager::populate()
 {
   unsigned int i, j, n;
 
   tree_model->clear();
 
-  /*Gtk::TreeModel::Row row = *(tree_model->append());
+  populate(model, nullptr);
 
-  row[columns.m_col_name] = std::string("<b>") + model.get_identifier() + "</b>";
-  row[columns.m_col_ptr]  = model;
-  if(has_pic(model.schema()))
-    row[columns.m_col_pic] = get_pics(model.schema());
-  populate(model, row);*/
-
+# if 0
   for(i = 0; i < model.schema()->children.size(); i++)
   {
     SubSchema ss = model.schema()->children[i];
     NodeSchema *schema = ss.ptr;
 
-    if(schema->name.get_id().compare("action") == 0)
-    {
+    if(!verifie_type_gere(schema->name.get_id()))
       continue;
-    }
     //std::deque<Node> lst = model.get_children(schema->name.get_id());
     n = model.get_children_count(schema->name.get_id());
     for(j = 0; j < n; j++)
     {
       Node no = model.get_child_at(schema->name.get_id(), j);
       Gtk::TreeModel::Row subrow = *(tree_model->append());
-      subrow[columns.m_col_name] = std::string("<b>") + no.get_identifier(false) + "</b>";
+
+
+      auto s = no.get_identifier(false);
+      if(a_enfant_visible(no))
+        s = "<b>" + s + "</b>";
+
+      subrow[columns.m_col_name] = s;
       subrow[columns.m_col_ptr] = no;
 
       if(has_pic(schema))
         subrow[columns.m_col_pic] = get_pics(schema);
-      populate(no, subrow);
+      populate(no, &subrow);
     }
   }
+# endif
 
   tree_view.expand_all();
 }
 
-void TreeManager::populate(Node m, Gtk::TreeModel::Row row)
+void TreeManager::populate(Node m, const Gtk::TreeModel::Row *row)
 {
-  for(unsigned int i = 0; i < m.schema()->children.size(); i++)
+  //for(unsigned int i = 0; i < m.schema()->children.size(); i++)
+  for(const auto &ss: m.schema()->children)
   {
-    SubSchema ss = m.schema()->children[i];
-    NodeSchema *schema = ss.ptr;
+    //SubSchema ss = m.schema()->children[i];
+    const NodeSchema *schema = ss.ptr;
 
-    auto s = schema->name.get_id();
-
-    if(s == "action")
+    if(!verifie_type_gere(schema->name.get_id()))
       continue;
 
-    if((s != "cat") && (s != "demo"))
-      continue;
-
-
-
-    //std::deque<Node> lst = m.get_children(schema->name.get_id());
     unsigned int n = m.get_children_count(schema->name.get_id());
     for(unsigned int j = 0; j < n; j++)
     {
       Node no = m.get_child_at(schema->name.get_id(), j);
-      Gtk::TreeModel::Row subrow = *(tree_model->append(row.children()));
+      const Gtk::TreeModel::Row *subrow;
+      //Gtk::TreeModel::iterator subrow;
+
+      if(row == nullptr)
+        subrow = &(*(tree_model->append()));
+      else
+        subrow = &(*(tree_model->append(row->children())));
 
       std::string s = no.get_identifier(false);
 
-      bool has_child = false;
-
-      has_child = no.has_child("action");
-
-      /*for(unsigned int k = 0; k < no.get_children_count(); k++)
-      {
-        if(no.get_child_at(k).schema()->name.get_id().compare("action") != 0)
-        {
-          has_child = true;
-          break;
-        }
-        }*/
-
-      if(has_child)
+      if(a_enfant_visible(no))
         s = "<b>" + s + "</b>";
 
-      subrow[columns.m_col_name] = s;
-      subrow[columns.m_col_ptr]  = no;
+      (*subrow)[columns.m_col_name] = s;
+      (*subrow)[columns.m_col_ptr]  = no;
 
       if(has_pic(schema))
-        subrow[columns.m_col_pic] = get_pics(schema);
+        (*subrow)[columns.m_col_pic] = get_pics(schema);
       populate(no, subrow);
     }
   }
@@ -2831,13 +2873,13 @@ void TreeManager::populate(Node m, Gtk::TreeModel::Row row)
 
 void TreeManager::on_event(const ChangeEvent &e)
 {
-  log.trace("Model change.");
+  infos("Model change.");
   populate();
 }
 
 /*void TreeManager::on_event(const StructChangeEvent &e)
 {
-  trace("Model structural change.");
+  infos("Model structural change.");
   populate();
 }*/
 
@@ -2874,11 +2916,11 @@ bool TreeManager::MyTreeView::on_button_press_event(GdkEventButton *event)
   /* Right click */
   if((event->type == GDK_BUTTON_PRESS) && (event->button == 3))
   {
-    parent->log.trace("bpress event");
+    infos("bpress event");
     Node m = parent->get_selection();
     if(m.is_nullptr())
     {
-      parent->log.trace("no selection");
+      infos("no selection");
       return return_value;
     }
 
@@ -2907,7 +2949,7 @@ bool TreeManager::MyTreeView::on_button_press_event(GdkEventButton *event)
         pr.first = m;
         pr.second = action.get_attribute_as_string("name");
 
-        parent->log.trace("add action: %s", pr.second.c_str());
+        infos("add action: %s", pr.second.c_str());
 
         /*menulist.push_back(
           Gtk::Menu_Helpers::MenuElem(aname,
@@ -2921,7 +2963,7 @@ bool TreeManager::MyTreeView::on_button_press_event(GdkEventButton *event)
       }
     }
 
-    parent->log.trace("Show popup...");
+    infos("Show popup...");
     popup->accelerate(*this);
     popup->show_all();
     popup->show_all_children(true);
@@ -2930,11 +2972,11 @@ bool TreeManager::MyTreeView::on_button_press_event(GdkEventButton *event)
   /* Double click */
   else if((event->type == GDK_2BUTTON_PRESS) && (event->button == 1))
   {
-    //parent->log.trace("dclick event");
+    //infos("dclick event");
     Node m = parent->get_selection();
     if(m.is_nullptr())
     {
-      //parent->log.trace("no selection");
+      //infos("no selection");
       return return_value;
     }
 
@@ -2953,7 +2995,7 @@ bool TreeManager::MyTreeView::on_button_press_event(GdkEventButton *event)
 
         std::string aname = action.get_attribute_as_string("name");
 
-        //parent->trace("action: %s", aname.c_str());
+        //parent->infos("action: %s", aname.c_str());
 
         parent->on_menu(m, aname);
         return return_value;
@@ -3039,21 +3081,21 @@ void TreeManager::setup_row_view(Node ptr)
   dispatch(sce);
 }
 
-Glib::RefPtr<Gdk::Pixbuf> TreeManager::get_pics(NodeSchema *schema)
+Glib::RefPtr<Gdk::Pixbuf> TreeManager::get_pics(const NodeSchema *schema)
 {
   for(unsigned int i = 0; i < pics.size(); i++)
   {
     if(pics[i].second == schema)
     {
-      //trace("Returning pic.");
+      //infos("Returning pic.");
       return pics[i].first;
     }
   }
-  log.anomaly("pic not found for %s", schema->name.get_id().c_str());
+  erreur("pic not found for %s", schema->name.get_id().c_str());
   return Glib::RefPtr<Gdk::Pixbuf>();
 }
 
-bool TreeManager::has_pic(NodeSchema *schema)
+bool TreeManager::has_pic(const NodeSchema *schema)
 {
   for(unsigned int i = 0; i < pics.size(); i++)
   {
@@ -3063,12 +3105,12 @@ bool TreeManager::has_pic(NodeSchema *schema)
   return false;
 }
 
-void TreeManager::load_pics(NodeSchema *sc)
+void TreeManager::load_pics(const NodeSchema *sc)
 {
   //assert(sc != nullptr);
-  //log.trace("load pics...");
+  //infos("load pics...");
   //auto s = sc->to_string();
-  //log.trace(string("schem = ") + s);
+  //infos(string("schem = ") + s);
 
   for (uint32_t i = 0; i < pics_done.size(); i++) {
     if (pics_done[i] == sc)
@@ -3080,17 +3122,18 @@ void TreeManager::load_pics(NodeSchema *sc)
   if((!has_pic(sc))
       && sc->has_icon())
   {
-    std::pair<Glib::RefPtr<Gdk::Pixbuf>, NodeSchema *> p;
+    std::pair<Glib::RefPtr<Gdk::Pixbuf>, const NodeSchema *> p;
     p.second = sc;
-    std::string filename = utils::get_img_path() + files::get_path_separator() + sc->icon_path;
-    log.trace(std::string("Loading pic: ") + filename);
+    std::string filename = utils::get_img_path()
+    + files::get_path_separator() + sc->icon_path;
+    infos(std::string("Loading pic: ") + filename);
     if(!files::file_exists(filename))
-      log.anomaly("picture loading: " + filename + " not found.");
+      erreur("picture loading: " + filename + " not found.");
     else
     {
       p.first  = Gdk::Pixbuf::create_from_file(filename);
       pics.push_back(p);
-      //trace("ok.");
+      //infos("ok.");
     }
   }
   for(unsigned int i = 0; i < sc->children.size(); i++)
@@ -3101,6 +3144,11 @@ void TreeManager::load_pics(NodeSchema *sc)
 TreeManager::TreeManager(): tree_view(this)
 {
 
+}
+
+void TreeManager::set_liste_noeuds_affiches(const std::vector<std::string> &ids)
+{
+  this->ids = ids;
 }
 
 void TreeManager::set_model(Node model)
@@ -3172,17 +3220,17 @@ DialogManager::DialogManager()
 
 bool DialogManager::on_timeout(int tn)
 {
-  trace("timeout.");
+  infos("timeout.");
 
   if(current_window != nullptr)
   {
     if(appli_view_prm.use_touchscreen)
     {
-      trace("present kb.");
+      infos("present kb.");
 
       //GtkKeyboard::get_instance()->set_keep_above();
     }
-    trace("present kw.");
+    infos("present kw.");
     //current_window->raise();//show();//present();
     current_window->set_keep_above();
   }
@@ -3212,11 +3260,11 @@ void DialogManager::forward_focus()
 
     if(tick - dm->last_focus_tick < 200)
     {
-      dm->trace("forward focus: differed.");
+      dm->infos("forward focus: differed.");
       dm->lock = false;
       return;
     }
-    dm->trace("forward focus: now.");
+    dm->infos("forward focus: now.");
     dm->last_focus_tick = tick;
 
     // Creation of a new object prevents long lines and shows us a little
@@ -3299,7 +3347,7 @@ void DialogManager::update_sizes()
     return;
   }
 
-  trace("Re-setup window..");
+  infos("Re-setup window..");
 
   if(!show_keyboard)
   {
@@ -3352,7 +3400,7 @@ void DialogManager::update_sizes()
     if(sy1 + sy2 + 2 * delta <= (int) screen_y)
     {
       y1 = (screen_y - sy1 - 2 * delta - sy2) / 2;
-      trace("Screen is large enough.");
+      infos("Screen is large enough.");
     }
     else
     {
@@ -3377,7 +3425,7 @@ void DialogManager::update_sizes()
   {
     if((sy1 + delta) <= (int) screen_y)
     {
-      trace("Screen is large enough.");
+      infos("Screen is large enough.");
       y1 = (screen_y - sy1) / 2;
     }
     else
@@ -3395,11 +3443,11 @@ void DialogManager::update_sizes()
   }
   x1 = (screen_x - sx1) / 2;
   current_window->move(x1 + ox, y1 + oy);
-  trace("SCR=(%d,%d), W1=(%d,%d), W2=(%d,%d).",
+  infos("SCR=(%d,%d), W1=(%d,%d), W2=(%d,%d).",
         screen_x, screen_y,
         sx1, sy1,
         sx2, sy2);
-  trace("--> P1=(%d,%d), P2=(%d,d).",
+  infos("--> P1=(%d,%d), P2=(%d,d).",
         x1, y1, x2, y2);
   lock = false;
   }
@@ -3454,7 +3502,7 @@ void DialogManager::setup_window(Gtk::Window *wnd, bool fullscreen)
 
     get_screen(wnd, ox, oy, screen_x, screen_y);
 
-    TraceManager::trace(TraceManager::AL_NORMAL, "view", "SETUP WND: ox=%d,oy=%d,sx=%d,sy=%d.", ox,oy,screen_x,screen_y);
+    TraceManager::infos(TraceManager::AL_NORMAL, "view", "SETUP WND: ox=%d,oy=%d,sx=%d,sy=%d.", ox,oy,screen_x,screen_y);
 
     wnd->get_size(sx1, sy1);
     if(fullscreen)
@@ -3472,11 +3520,11 @@ void DialogManager::setup_window(Gtk::Window *wnd, bool fullscreen)
 
     if((sy1 <= (int) screen_y) && ((sx1 <= (int) screen_x)))
     {
-      TraceManager::trace(TraceManager::AL_NORMAL, "view", "Screen is large enough.");
+      TraceManager::infos(TraceManager::AL_NORMAL, "view", "Screen is large enough.");
     }
     else
     {
-      TraceManager::trace(TraceManager::AL_WARNING, "view", "Screen is too small: scroll bar is mandatory.");
+      TraceManager::infos(TraceManager::AL_WARNING, "view", "Screen is too small: scroll bar is mandatory.");
       // Force the y dimension:
       // delta * 3 + sy1 + sy2 = screen_y
       if(sy1 > (int) screen_y)
@@ -3498,10 +3546,10 @@ void DialogManager::setup_window(Gtk::Window *wnd, bool fullscreen)
     }
 
     wnd->move(ox + x1, oy + y1);
-    TraceManager::trace(TraceManager::AL_NORMAL, "view", "SCR=(%d,%d), WREQ=(%d,%d).",
+    TraceManager::infos(TraceManager::AL_NORMAL, "view", "SCR=(%d,%d), WREQ=(%d,%d).",
           screen_x, screen_y,
           sx1, sy1);
-    TraceManager::trace(TraceManager::AL_NORMAL, "view", "--> POS=(%d,%d).",
+    TraceManager::infos(TraceManager::AL_NORMAL, "view", "--> POS=(%d,%d).",
           x1, y1);
     wnd->present();
 #   endif
@@ -3519,10 +3567,10 @@ void DialogManager::setup_window(Placable *wnd, bool fullscreen)
 
   get_screen(wnd->get_window(), ox, oy, screen_x, screen_y);
 
-  TraceManager::trace(AL_NORMAL, "view",
+  /*TraceManager::infos(AL_NORMAL, "view",
                       "SETUP WND (FS = %s): ox=%d,oy=%d,sx=%d,sy=%d.",
                       fullscreen ? "true" : "false",
-                      ox,oy,screen_x,screen_y);
+                      ox,oy,screen_x,screen_y);*/
 
   wnd->get_window()->get_size(sx1, sy1);
   if(fullscreen)
@@ -3541,13 +3589,12 @@ void DialogManager::setup_window(Placable *wnd, bool fullscreen)
 
   if((sy1 <= (int) screen_y) && ((sx1 <= (int) screen_x)))
   {
-    TraceManager::trace(AL_NORMAL, "view",
-        "Screen is large enough.");
+    //TraceManager::infos(AL_NORMAL, "view",
+    //    "Screen is large enough.");
   }
   else
   {
-    TraceManager::trace(AL_WARNING,
-        "view", "Screen is too small: scroll bar is mandatory.");
+    avertissement("Screen is too small: scroll bar is mandatory.");
     // Force the y dimension:
     // delta * 3 + sy1 + sy2 = screen_y
     if(sy1 > (int) screen_y)
@@ -3575,12 +3622,12 @@ void DialogManager::setup_window(Placable *wnd, bool fullscreen)
   }
 
   wnd->get_window()->move(ox + x1, oy + y1);
-  TraceManager::trace(AL_NORMAL, "view", "SCR=(%d,%d,%d,%d), WREQ=(%d,%d).",
+  /*TraceManager::infos(AL_NORMAL, "view", "SCR=(%d,%d,%d,%d), WREQ=(%d,%d).",
         ox, oy,
         screen_x, screen_y,
         sx1, sy1);
-  TraceManager::trace(AL_NORMAL, "view", "--> POS=(%d,%d).",
-        x1, y1);
+  TraceManager::infos(AL_NORMAL, "view", "--> POS=(%d,%d).",
+        x1, y1);*/
   wnd->get_window()->present();
 }
 
@@ -3605,7 +3652,7 @@ void DialogManager::setup(Placable *wnd)
   if(i == windows_stack.size())
     windows_stack.push_back(wnd);
 
-  trace("setup window..");
+  infos("setup window..");
 
   current_window = wnd;
 
@@ -3652,7 +3699,7 @@ void DialogManager::setup(Placable *wnd)
     if(sy1 + sy2 + delta <= (int) screen_y)
     {
       y1 = (screen_y - sy1 - delta - sy2) / 2;
-      trace("Screen is large enough.");
+      infos("Screen is large enough.");
     }
     else
     {
@@ -3678,7 +3725,7 @@ void DialogManager::setup(Placable *wnd)
   {
     if((sy1 + delta) <= (int) screen_y)
     {
-      trace("Screen is large enough.");
+      infos("Screen is large enough.");
       y1 = (screen_y - sy1) / 2;
     }
     else
@@ -3696,11 +3743,11 @@ void DialogManager::setup(Placable *wnd)
   }
   x1 = (screen_x - sx1) / 2;
   wnd->move(ox + x1, oy + y1);
-  trace("SCR=(%d,%d), W1=(%d,%d), W2=(%d,%d).",
+  infos("SCR=(%d,%d), W1=(%d,%d), W2=(%d,%d).",
         screen_x, screen_y,
         sx1, sy1,
         sx2, sy2);
-  trace("--> P1=(%d,%d), P2=(%d,%d).",
+  infos("--> P1=(%d,%d), P2=(%d,%d).",
         x1, y1, x2, y2);
 
   wnd->present();
@@ -3710,7 +3757,6 @@ void DialogManager::setup(Placable *wnd)
 
 ColorRectangle::ColorRectangle(const GColor &col, uint16_t width, uint16_t height)
 {
-  setup("view/color-rect");
   this->width  = width;
   this->height = height;
   this->col    = col;
@@ -3733,7 +3779,7 @@ ColorRectangle::~ColorRectangle()
 
 bool ColorRectangle::on_expose_event(const Cairo::RefPtr<Cairo::Context> &cr)
 {
-  //trace("exposed");
+  //infos("exposed");
   update_view();
   //sc_instance->show_all_children(true);
   return true;
@@ -3741,7 +3787,7 @@ bool ColorRectangle::on_expose_event(const Cairo::RefPtr<Cairo::Context> &cr)
 
 void ColorRectangle::on_the_realisation()
 {
-  //trace("realized.");
+  //infos("realized.");
   wnd = get_window();
   gc = wnd->create_cairo_context();
   realized = true;
@@ -3762,7 +3808,7 @@ void ColorRectangle::update_view()
   if(!realized)
     return;
 
-  //trace("update_view..");
+  //infos("update_view..");
 
   Gdk::Color gdkcolor = col.to_gdk();
 
@@ -3774,13 +3820,12 @@ void ColorRectangle::update_view()
     gc->move_to(0, y);
     gc->line_to(width, y);
   }
-  //trace("done.");
+  //infos("done.");
 }
 
 ColorButton::ColorButton(Attribute *model):
     al(Gtk::ALIGN_CENTER, Gtk::ALIGN_CENTER, 0, 0)
 {
-  setup("view/color-button");
   lock = false;
   this->model = model;
   std::string col = model->get_string();
@@ -3804,7 +3849,7 @@ ColorButton::ColorButton(Attribute *model):
 
 void ColorButton::on_b_pressed()
 {
-  trace("on_b_pressed..");
+  infos("on_b_pressed..");
 
 # if 0
   if(model->schema.constraints.size() > 0)
@@ -3839,10 +3884,10 @@ void ColorButton::on_b_pressed()
     {
       if(dialog.color_index >= model->schema.constraints.size())
       {
-        anomaly("Invalid color index: %d >= %d.", dialog.color_index, model->schema.constraints.size());
+        erreur("Invalid color index: %d >= %d.", dialog.color_index, model->schema.constraints.size());
       }
 
-      trace("color change confirmed: %d -> %s.",
+      infos("color change confirmed: %d -> %s.",
             dialog.color_index,
             model->schema.constraints[dialog.color_index].c_str());
       model->set_value(model->schema.constraints[dialog.color_index]);
@@ -3854,14 +3899,14 @@ void ColorButton::on_b_pressed()
   ColorDialog dlg;
   if(dlg.display(GColor(model->get_string()), model->schema->constraints) == 0)
   {
-    trace("user response = ok.");
+    infos("user response = ok.");
     GColor csel = dlg.get_color();
     std::string scol = csel.to_string();
     model->set_value(scol);
   }
   else
   {
-    trace("user response = cancel.");
+    infos("user response = cancel.");
   }
 
 
@@ -3894,7 +3939,7 @@ void ColorButton::on_b_pressed()
 
   if(dlg.run() == Gtk::RESPONSE_OK)
   {
-    trace("user response = ok.");
+    infos("user response = ok.");
     Gtk::ColorSelection *csel = dlg.get_colorsel();
     Gdk::Color col = csel->get_current_color();
     GColor col2(col);
@@ -3903,7 +3948,7 @@ void ColorButton::on_b_pressed()
   }
   else
   {
-    trace("user response = cancel.");
+    infos("user response = cancel.");
   }*/
 }
 
@@ -3917,7 +3962,7 @@ void ColorButton::on_event(const ChangeEvent &ce)
     //  && (ce.source == model))
     if(ce.type == ChangeEvent::ATTRIBUTE_CHANGED)
     {
-      trace("model change.");
+      infos("model change.");
       crec->update_color(GColor(model->get_string()));
     }
 
@@ -3994,7 +4039,7 @@ int ColorDialog::display(GColor initial_color, std::vector<std::string> constrai
 
     if(i == colors.size())
     {
-      anomaly("Initial color not found in palette: %s.", initial_color.to_string().c_str());
+      erreur("Initial color not found in palette: %s.", initial_color.to_string().c_str());
       initial = 0;
     }
 
@@ -4003,11 +4048,11 @@ int ColorDialog::display(GColor initial_color, std::vector<std::string> constrai
     {
       if(dialog.color_index >= constraints.size())
       {
-        anomaly("Invalid color index: %d >= %d.", dialog.color_index, constraints.size());
+        erreur("Invalid color index: %d >= %d.", dialog.color_index, constraints.size());
         return -1;
       }
 
-      trace("color change confirmed: %d -> %s.",
+      infos("color change confirmed: %d -> %s.",
             dialog.color_index,
             constraints[dialog.color_index].c_str());
 
@@ -4063,15 +4108,10 @@ void ColorDialog::unforce_scroll()
 GenDialog::GenDialog(GenDialogType type, std::string title)
 {
   result_ok = false;
-
   this->type = type;
 
-  setup("view/gen-dialog");
-
   set_position(Gtk::WIN_POS_CENTER);
-
   set_decorated(appli_view_prm.use_decorations);
-
   vbox = get_vbox();
 
   if(title.size() > 0)
@@ -4151,16 +4191,16 @@ GenDialog::GenDialog(GenDialogType type, std::string title)
 void GenDialog::on_b_apply_valid()
 {
   result_ok = true;
-  trace("on_b_apply_valid: hide...");
+  infos("on_b_apply_valid: hide...");
   hide();
-  trace("Will call on_apply...");
+  infos("Will call on_apply...");
   if(type == GEN_DIALOG_APPLY_CANCEL)
     on_apply();
   else if(type == GEN_DIALOG_VALID_CANCEL)
     on_valid();
   else
-    anomaly("unmanaged dialog type.");
-  trace("done.");
+    erreur("unmanaged dialog type.");
+  infos("done.");
 }
 
 void GenDialog::on_b_cancel_close()
@@ -4201,7 +4241,6 @@ ColorPaletteDialog::ColorPaletteDialog(const std::vector<GColor> &colors,
     langue.get_item("title-sel-color")),
     palette(colors, initial_color)
 {
-  setup("view/color-palette-dlg");
   this->colors = colors;
   this->vbox->pack_start(palette, Gtk::PACK_SHRINK);
   show_all_children(true);
@@ -4215,18 +4254,17 @@ ColorPaletteDialog::~ColorPaletteDialog()
 void ColorPaletteDialog::on_valid()
 {
   color_index = palette.current_color;
-  trace("on valid.");
+  infos("on valid.");
 }
 
 void ColorPaletteDialog::on_cancel()
 {
-  trace("on cancel");
+  infos("on cancel");
 }
 
 ColorPalette::ColorPalette(const std::vector<GColor> &colors,
                            uint32_t initial_color)
 {
-  setup("view/color-palette");
   this->colors = colors;
   ncols = 5;
   if(colors.size() < (unsigned int) ncols)
@@ -4240,8 +4278,8 @@ ColorPalette::ColorPalette(const std::vector<GColor> &colors,
   width   = c_width * ncols;
   height  = c_height * nrows;
 
-  trace("ncolors = %d, ncolumns = %d, nrows = %d.", colors.size(), ncols, nrows);
-  trace("set_size_request(%d,%d)", width, height);
+  infos("ncolors = %d, ncolumns = %d, nrows = %d.", colors.size(), ncols, nrows);
+  infos("set_size_request(%d,%d)", width, height);
   set_size_request(width, height);
   signal_realize().connect(sigc::mem_fun(*this, &ColorPalette::on_the_realisation));
   //signal_expose_event().connect(sigc::mem_fun(*this,&ColorPalette::on_expose_event));
@@ -4270,26 +4308,26 @@ bool ColorPalette::on_mouse(GdkEventButton *event)
   /* Left click? */
   if(event->button == 1)
   {
-    trace("left click @%d, %d.", x, y);
+    infos("left click @%d, %d.", x, y);
     unsigned int col, row;
 
     col = x / c_width;
     row = y / c_height;
 
-    trace("col = %d, row = %d.", col, row);
+    infos("col = %d, row = %d.", col, row);
 
     if((col < (unsigned int) ncols) && (row < (unsigned int) nrows))
     {
       unsigned int color = col + row * ncols;
       if(color < colors.size())
       {
-        trace("color = %d.", color);
+        infos("color = %d.", color);
         current_color = color;
         update_view();
       }
       else
       {
-        anomaly("invalid color index: %d.", color);
+        erreur("invalid color index: %d.", color);
       }
     }
 
@@ -4307,12 +4345,12 @@ void ColorPalette::update_view()
 {
   if(!realized)
   {
-    trace("update view: not realized.");
+    infos("update view: not realized.");
     return;
   }
   //GColor background = appli_view_prm.background_color;
 
-  trace("update view..");
+  infos("update view..");
 
   float degrees = 3.1415926 / 180.0;
 
@@ -4320,7 +4358,7 @@ void ColorPalette::update_view()
   const int width = allocation.get_width();
   const int height = allocation.get_height();
 
-  trace("width = %d, height = %d.", width, height);
+  infos("width = %d, height = %d.", width, height);
 
   Glib::RefPtr<Gdk::Window> wnd = get_window();
 
@@ -4366,7 +4404,7 @@ void ColorPalette::update_view()
 
       if(current_color == col + row * ncols)
       {
-        trace("SEL col %d row %d ccol %d.", col, row, current_color);
+        infos("SEL col %d row %d ccol %d.", col, row, current_color);
         cr->set_source_rgb(foreground, foreground, foreground);
         cr->arc(x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
         cr->arc(x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
@@ -4377,7 +4415,7 @@ void ColorPalette::update_view()
       }
 
       //cr->set_source_rgb(0.7 * foreground + 0.3 * background, 0.9 * foreground + 0.1 * background, 0.7 * foreground + 0.3 * background);
-      trace("color(%d) = %d.%d.%d.", col + row * ncols, color.red, color.green, color.blue);
+      infos("color(%d) = %d.%d.%d.", col + row * ncols, color.red, color.green, color.blue);
       cr->set_source_rgb(((float) color.red) / 256.0, ((float) color.green) / 256.0, ((float) color.blue) / 256.0);
       x = x + width / 10;
       y = y + height / 10;
@@ -4400,14 +4438,14 @@ void ColorPalette::update_view()
 
 bool ColorPalette::on_expose_event(GdkEventExpose *event)
 {
-  trace("exposed");
+  infos("exposed");
   update_view();
   return true;
 }
 
 void ColorPalette::on_the_realisation()
 {
-  trace("realized.");
+  infos("realized.");
   realized = true;
 }
 
@@ -4443,10 +4481,20 @@ bool SensitiveLabel::on_button_press_event(GdkEventButton *event)
 }
 
 
+void ProgressDialog::set_widget(Gtk::Widget *wid)
+{
+  this->wid = wid;
+  iframe.add(*wid);
+}
+
+void ProgressDialog::maj_texte(const std::string &s)
+{
+  label.set_markup(s);
+}
+
 ProgressDialog::ProgressDialog(): event_fifo(4)
 {
-  log.setup("mmi/progress-dialog");
-
+  wid = nullptr;
   set_position(Gtk::WIN_POS_CENTER);
 
   if(!appli_view_prm.use_decorations)
@@ -4472,6 +4520,7 @@ ProgressDialog::ProgressDialog(): event_fifo(4)
 
   box->pack_start(label, Gtk::PACK_SHRINK);
   box->pack_start(progress, Gtk::PACK_SHRINK);
+  box->pack_start(iframe, Gtk::PACK_EXPAND_WIDGET);
   box->pack_end(toolbar, Gtk::PACK_SHRINK);
 
   label.set_line_wrap(true);
@@ -4482,6 +4531,7 @@ ProgressDialog::ProgressDialog(): event_fifo(4)
 
 ProgressDialog::~ProgressDialog()
 {
+  iframe.remove();
   event_fifo.push(Event::EXIT);
   exit_done.wait();
 }
@@ -4494,7 +4544,7 @@ void ProgressDialog::on_b_cancel()
 
 bool ProgressDialog::on_timer(int index)
 {
-  //log.verbose("on timer: in_pr = %d.", (int) in_progress);
+  //trace_verbeuse("on timer: in_pr = %d.", (int) in_progress);
   if(!in_progress || canceled)
     return false;
   progress.pulse();
@@ -4503,7 +4553,7 @@ bool ProgressDialog::on_timer(int index)
 
 int ProgressDialog::on_event(const Bidon &bidon)
 {
-  log.verbose("Now stopping.");
+  trace_verbeuse("Now stopping.");
   hide();
   return 0;
 }
@@ -4521,9 +4571,7 @@ void ProgressDialog::thread_entry()
         in_progress = true;
         //can_start.wait();
         //callback_done.clear();
-        log.verbose("Calling callback...");
         functor->call();
-        log.verbose("Callback done.");
         //callback_done.raise();
 
         in_progress = false;
@@ -4532,12 +4580,11 @@ void ProgressDialog::thread_entry()
         {
           Bidon bidon;
           gtk_dispatcher.on_event(bidon);
-          log.verbose("Raise done.");
         }
         break;
       }
       case Event::EXIT:
-        log.trace("Exit thread...");
+        infos("Exit thread...");
         exit_done.raise();
         return;
     }
@@ -4546,12 +4593,12 @@ void ProgressDialog::thread_entry()
 
 void ProgressDialog::setup(std::string title, std::string text)
 {
-  log.verbose("setup(%s)...", title.c_str());
+  trace_verbeuse("setup(%s)...", title.c_str());
   canceled = false;
 
-  this->set_title(utils::str::latin_to_utf8(title));
+  this->set_title(title);
 
-  label.set_markup(utils::str::latin_to_utf8(text));
+  label.set_markup(text);
 
   if(utils::mmi::mainWindow != nullptr)
     set_transient_for(*utils::mmi::mainWindow);
@@ -4569,18 +4616,166 @@ void ProgressDialog::setup(std::string title, std::string text)
 
  DialogManager::setup_window(this);
 
- log.verbose("raising...");
+ trace_verbeuse("raising...");
  //can_start.raise();
 
  event_fifo.push(Event::START);
 
   int res = run();
-  log.verbose("Progress dialog done, res = %d.", res);
+  trace_verbeuse("Progress dialog done, res = %d.", res);
   if(res == Gtk::RESPONSE_CANCEL)
   {
 
   }
 }
+
+GtkLed::GtkLed(unsigned int size, bool is_red, bool is_mutable)
+{
+  this->is_yellow = false;
+  this->size = size;
+  this->is_red = is_red;
+  this->is_mutable = is_mutable;
+  this->is_sensitive = true;
+  realized = false;
+  is_lighted = false;
+  set_size_request(size,size);
+  //signal_realize().connect(sigc::mem_fun(*this, &GtkLed::on_the_realisation));
+  signal_button_press_event().connect( sigc::mem_fun( *this, &GtkLed::on_mouse));
+  add_events(Gdk::BUTTON_PRESS_MASK);
+}
+
+bool GtkLed::on_draw(const Cairo::RefPtr<Cairo::Context> &cr)
+{
+  Gtk::Allocation allocation = get_allocation();
+  const int width = allocation.get_width();
+  const int height = allocation.get_height();
+  int rayon = width < height ? width : height;
+
+  float b, g, r;
+  float other, main;
+  if(is_lighted)
+  {
+    other = 0.1;
+    main  = 0.9;
+  }
+  else
+  {
+    other = 0;
+    main  = 0.2;
+  }
+  if(is_yellow)
+  {
+    b = other;
+    g = (main * 2) / 3;
+    r = main;
+  }
+  else if(is_red)
+  {
+    b = other;
+    g = other;
+    r = main;
+  }
+  else
+  {
+    b = other;
+    g = main;
+    r = other;
+  }
+
+  if(!this->is_sensitive)
+  {
+    b /= 3;
+    g /= 3;
+    r /= 3;
+  }
+
+  cr->set_source_rgb(r, g, b);
+  cr->arc(width/2, height/2, rayon/2, 0, 6.29);
+  cr->fill();
+  cr->set_source_rgb(1.0, 1.0, 1.0);
+  cr->arc(width/2, height/2, rayon/2, 0, 6.29);
+  return true;
+}
+
+void GtkLed::set_mutable(bool is_mutable)
+{
+  this->is_mutable = is_mutable;
+}
+
+
+bool GtkLed::is_on()
+{
+  return is_lighted;
+}
+
+bool GtkLed::on_mouse(GdkEventButton *event)
+{
+  printf("on_mouse, is_mut = %d.\n", is_mutable); fflush(0);
+  if(is_mutable)
+  {
+
+    is_lighted = !is_lighted;
+    update_view();
+    LedEvent le;
+    le.source = this;
+    dispatch(le);
+  }
+  return true;
+}
+
+void GtkLed::light(bool on)
+{
+  is_lighted = on;
+  update_view();
+}
+
+void GtkLed::set_red(bool is_red)
+{
+  this->is_red = is_red;
+  update_view();
+}
+
+void GtkLed::set_sensitive(bool sensistive)
+{
+  this->is_sensitive = sensistive;
+  update_view();
+}
+
+void GtkLed::set_yellow()
+{
+  this->is_yellow = true;
+  update_view();
+}
+
+/*void GtkLed::on_the_realisation()
+{
+  wnd = get_window();
+  gc = wnd->create_cairo_context();
+  realized = true;
+  printf("GTKLED : realize.\n"); fflush(0);
+  update_view();
+}*/
+
+/*bool GtkLed::on_expose_event(GdkEventExpose* event)
+{
+  update_view();
+  return true;
+}*/
+
+void GtkLed::update_view()
+{
+  //queue_draw();
+  auto win = get_window();
+  if(win)
+  {
+    auto w = get_allocation().get_width(), h = get_allocation().get_height();
+    Gdk::Rectangle r(0, 0, w, h);
+    //printf("Invalidate rect %d, %d\n", w, h); fflush(0);
+    win->invalidate_rect(r, false);
+  }
+}
+
+
 
 }
 }

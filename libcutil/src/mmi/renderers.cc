@@ -9,6 +9,9 @@
 #include <memory>
 #include <iostream>
 
+using namespace std;
+
+
 namespace utils
 {
 namespace mmi
@@ -24,9 +27,6 @@ RefCellEditable::RefCellEditable(const Glib::ustring& path/*,
 	button_ptr_( 0 ),
 	editing_cancelled_( false )
 {
-  setup("view/refcelleditable");
-  //this->model = model;
-  //this->ref_name = ref_name;
   Gtk::HBox *const hbox = new Gtk::HBox(false, 0);
   add (*Gtk::manage( hbox ));
 
@@ -143,39 +143,39 @@ void RefCellEditable::on_editing_done()
 
 void RefCellEditable::on_button_clicked()
 {
-  trace("show ref. explorer..");
+  infos("show ref. explorer..");
 
   if(model.is_nullptr())
   {
-    anomaly("on_button_clicked(): nullptr model");
+    erreur("on_button_clicked(): nullptr model");
     return;
   }
 
   RefSchema *rs = model.schema()->get_reference(ref_name);
   if(rs != nullptr)
   {
-    trace("find root..");
+    infos("find root..");
 
     Node root = model.get_child(rs->path);
 
     if(!root.is_nullptr())
     {
-      root.log.trace("root found.");
+      infos("root found.");
       RefExplorerWnd *re = new RefExplorerWnd(root, rs->child_str);
       if(re->display() == 0)
       {
-        trace("update ref..");
+        infos("update ref..");
         model.set_reference(ref_name, re->get_selection());
       }
     }
     else
     {
-      anomaly("root not found.");
+      erreur("root not found.");
     }
   }
   else
   {
-    anomaly("ref schema not found");
+    erreur("ref schema not found");
   }
   signal_editing_done_.emit();
 }
@@ -298,8 +298,8 @@ bool RefCellRenderer::activate_vfunc (GdkEvent*, Gtk::Widget&, const Glib::ustri
 
 void RefCellEditable::setup_model(Node model, std::string ref_name)
 {
-  trace("Setup model %s ok!", ref_name.c_str());
-  trace("model = %s.", model.to_xml().c_str());
+  infos("Setup model %s ok!", ref_name.c_str());
+  infos("model = %s.", model.to_xml().c_str());
   this->model = model;
   this->ref_name = ref_name;
 }
@@ -311,7 +311,7 @@ Gtk::CellEditable* RefCellRenderer::start_editing_vfunc(GdkEvent *event,
                                                         const Gdk::Rectangle &cell_area, 
                                                         Gtk::CellRendererState flags)
 {
-  trace("start editing..");
+  infos("start editing..");
   //StringListView *slv = (StringListView *) &widget;
   
 
@@ -396,7 +396,6 @@ static bool has_child(NodeSchema *root, std::string type)
 RefExplorerWnd::RefExplorerWnd(Node model, const std::string &ref_name, const std::string &wnd_title):
   GenDialog(GenDialog::GEN_DIALOG_VALID_CANCEL), explorer(model, ref_name)
 {
-  setup("view/ref-explorer");
   if(wnd_title.size() > 0)
     set_title(wnd_title);
   else
@@ -448,7 +447,6 @@ Node RefExplorerWnd::get_selection()
 ///////////////////////////////////////////////
 
 RefExplorer::RefExplorer()
-  : log("libcutil/ref-explorer")
 {
   valid = false;
   init_done = false;
@@ -497,11 +495,9 @@ void RefExplorer::setup(Node model,
 }
 
 RefExplorer::RefExplorer(Node model, std::string ref_name, const std::string &title) 
-  : log("libcutil/ref-explorer")
 {
   valid = false;
   init_done = false;
-  setup(model, ref_name, title);
 }
 
 static bool has_such_child(Node root, const string &type)
@@ -546,7 +542,7 @@ void RefExplorer::populate()
 
     bool candidate = has_child(schema, ref_name) || (ref_name.size() == 0);
 
-    log.trace("schema[%s]: candidate = %s.", schema->name.get_id().c_str(), candidate ? "true" : "false");
+    infos("schema[%s]: candidate = %s.", schema->name.get_id().c_str(), candidate ? "true" : "false");
     
     if(candidate)
     {

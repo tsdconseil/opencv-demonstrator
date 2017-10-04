@@ -58,7 +58,7 @@ int calcule_canny(const cv::Mat &I, cv::Mat &masque_canny,
     seuil_haut = moyenne[0] + sigma[0];
   }
 
-  //journal.trace("Canny: seuils = %d, %d.", seuil_bas, seuil_haut);
+  //infos("Canny: seuils = %d, %d.", seuil_bas, seuil_haut);
   if(taille_noyau < 3)
     taille_noyau = 3;
 
@@ -96,8 +96,8 @@ int ContourDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   if(type_contour == 1)
     mode = RETR_TREE;
 
-  vector<vector<Point> > contours;
-  vector<Vec4i> hierarchie;
+  std::vector<std::vector<cv::Point> > contours;
+  std::vector<Vec4i> hierarchie;
   findContours(masque_canny, contours,
                hierarchie,
                mode,
@@ -164,7 +164,7 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
       GaussianBlur(I,tmp, Size(0,0),sigma);
     else
     {
-      Deriche_blur(I, tmp, gamma);
+      ocvext::Deriche_blur(I, tmp, gamma);
     }
   }
   else
@@ -190,7 +190,7 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   if(!preconv && !gradient_couleur)
   {
-    journal.trace("Gradient couleur -> abs...");
+    infos("Gradient couleur -> abs...");
     gx = cv::abs(gx);
     gy = cv::abs(gy);
     gx = gx / 255;
@@ -207,7 +207,7 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     cv::cartToPolar(gx, gy, mag, angle);
     //addWeighted(agx, .5, agy, .5, 0, output.images[0]);
     cv::normalize(mag, output.images[0], 0, 255, cv::NORM_MINMAX);
-    output.names[0] = langue.get_item("gabs");
+    output.names[0] = utils::langue.get_item("gabs");
   }
   else
   {
@@ -374,9 +374,9 @@ int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   {
     output.images[1] = I.clone();
     output.nout = 2;
-    vector<Vec2f> lignes;
+    std::vector<Vec2f> lignes;
     HoughLines(bw, lignes, reso_rho, reso_theta, seuil, 0, 0);
-    journal.trace("Détecté %d lignes.\n", (int) lignes.size());
+    infos("Détecté %d lignes.\n", (int) lignes.size());
     for(const auto &l: lignes)
       dessine_ligne(output.images[1], l[0], l[1]);
   }
@@ -404,13 +404,13 @@ int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     output.nout = 3;
     output.images[0] = I.clone();
 
-    vector<Vec2f> lignes;
+    std::vector<Vec2f> lignes;
     cv::Mat deb;
-    Hough_lines_with_gradient_dir(I, lignes, deb, reso_rho, reso_theta, 0.6, seuilg);
+    ocvext::Hough_lines_with_gradient_dir(I, lignes, deb, reso_rho, reso_theta, 0.6, seuilg);
     cv::pyrUp(deb, deb);
     output.images[1] = deb.t();
     output.names[1] = "Espace parametrique";
-    journal.trace("Détecté %d lignes.\n", (int) lignes.size());
+    infos("Détecté %d lignes.\n", (int) lignes.size());
     output.images[2] = I.clone();
     for(const auto &l: lignes)
       dessine_ligne(output.images[2], l[0], l[1]);
@@ -433,7 +433,7 @@ int HoughCDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   auto I = input.images[0];
   cvtColor(I, gris, CV_BGR2GRAY);
   output.images[0] = I.clone();
-  vector<Vec3f> cercles;
+  std::vector<Vec3f> cercles;
   double seuil = input.model.get_attribute_as_int("seuil");
   int rmin = input.model.get_attribute_as_int("rmin");
   int rmax = input.model.get_attribute_as_int("rmax");
@@ -443,7 +443,7 @@ int HoughCDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
       seuil,
       rmin,
       rmax);
-  journal.trace("Détecté %d cercles.\n", (int) cercles.size());
+  infos("Détecté %d cercles.\n", (int) cercles.size());
   for(size_t i = 0; i < cercles.size(); i++ )
   {
     float xc = cercles[i][0], yc = cercles[i][1], r = cercles[i][2];

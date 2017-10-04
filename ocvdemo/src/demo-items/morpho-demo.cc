@@ -22,7 +22,7 @@
  **/
 
 #include "demo-items/morpho-demo.hpp"
-#include "demo-items/thinning.hpp"
+#include "thinning.hpp"
 
 
 MorphoDemo::MorphoDemo()
@@ -35,8 +35,9 @@ int MorphoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 {
   int sel = input.model.get_attribute_as_int("type");
   int kersel = input.model.get_attribute_as_int("kernel");
+  int niter = input.model.get_attribute_as_int("niter");
 
-  int kernel_type;
+  int kernel_type = MORPH_RECT;
   if(kersel == 0)
     kernel_type = MORPH_RECT;
   else if(kersel == 1 )
@@ -58,11 +59,11 @@ int MorphoDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   auto I = input.images[0];
 
   if(sel == 0)
-    dilate(I,output.images[0],K);
+    dilate(I,output.images[0],K,cv::Point(-1,-1),niter);
   else if(sel == 1)
-    erode(I,output.images[0],K);
+    erode(I,output.images[0],K,cv::Point(-1,-1),niter);
   else
-    morphologyEx(I, output.images[0], sel, K);
+    morphologyEx(I, output.images[0], sel, K, cv::Point(-1,-1), niter);
 
   return 0;
 }
@@ -92,19 +93,19 @@ int DemoSqueletisation::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &outp
   // http://felix.abecassis.me/2011/09/opencv-morphological-skeleton/
   if(sel == 0)
   {
-    thinning_morpho(A, squelette);
+    ocvext::thinning_morpho(A, squelette);
   }
   // Zhang-Suen
   // D'après https://web.archive.org/web/20160322113207/http://opencv-code.com/quick-tips/implementation-of-thinning-algorithm-in-opencv/
   else if(sel == 1)
   {
-    thinning_Zhang_Suen(A, squelette);
+    ocvext::thinning_Zhang_Suen(A, squelette);
   }
   // Guo-Hall
   // D'après https://web.archive.org/web/20160314104646/http://opencv-code.com/quick-tips/implementation-of-guo-hall-thinning-algorithm/
   else if(sel == 2)
   {
-    thinning_Guo_Hall(A, squelette);
+    ocvext::thinning_Guo_Hall(A, squelette);
   }
 
   int aff = input.model.get_attribute_as_int("aff");

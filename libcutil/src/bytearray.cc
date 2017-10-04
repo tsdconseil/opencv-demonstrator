@@ -7,6 +7,7 @@
 #include <malloc.h>
 #include <string.h>
 
+
 namespace utils
 {
 namespace model
@@ -14,7 +15,7 @@ namespace model
 
 using namespace utils;
 
-Logable ByteArray::log("bytearray");
+
 
 
 ByteArray::ByteArray(std::string str, bool is_decimal)
@@ -44,7 +45,7 @@ ByteArray::ByteArray(std::string str, bool is_decimal)
   putc(current);
 }
 
-std::string ByteArray::to_string() const
+std::string ByteArray::to_string(bool hexa) const
 {
   std::string s = "";
 
@@ -54,7 +55,10 @@ std::string ByteArray::to_string() const
   for(unsigned int i = 0; i < data.size(); i++)
   {
     char buf[10];
-    sprintf(buf, "%d", data[i]);
+    if(hexa)
+      sprintf(buf, "%02x", data[i]);
+    else
+      sprintf(buf, "%d", data[i]);
     s += std::string(buf);
     if(i + 1 < data.size())
       s += ".";
@@ -82,6 +86,26 @@ unsigned char &ByteArray::operator[](unsigned int i)
 ByteArray::ByteArray(/*bool bigendian*/)
 {
   this->bigendian = false;
+}
+
+void ByteArray::lis_fichier(FILE *fi, uint32_t n)
+{
+  uint8_t *tmp = (uint8_t *) malloc(n);
+  fread(tmp, 1, n, fi);
+  for(auto i = 0u; i < n; i++)
+    data.push_back(tmp[i]);
+  free(tmp);
+}
+
+void ByteArray::ecris_fichier(FILE *fo)
+{
+  uint32_t n = data.size();
+  uint8_t *tmp = (uint8_t *) malloc(n);
+  auto ptr = data.begin();
+  for(auto i = 0u; i < n; i++)
+    tmp[i] = *ptr++;
+  fwrite(tmp, 1, n, fo);
+  free(tmp);
 }
 
 ByteArray::ByteArray(int len)
@@ -202,6 +226,13 @@ void ByteArray::put(const ByteArray &ba)
     putc(ba[i]);
 }
 
+void ByteArray::puts_zt(std::string s)
+{
+  for(unsigned int i = 0; i < s.size(); i++)
+    putc(s[i]);
+  putc(0x00);
+}
+
 void ByteArray::puts(std::string s)
 {
   uint32_t n = s.size();
@@ -226,10 +257,6 @@ void ByteArray::puts(std::string s)
 
   for(unsigned int i = 0; i < n; i++)
     putc(s[i]);
-
-  /*for(unsigned int i = 0; i < s.size(); i++)
-    putc(s[i]);
-  putc(0x00);*/
 }
 
 uint32_t ByteArray::size() const
@@ -241,7 +268,7 @@ uint8_t ByteArray::popc()
 {
   if(size() == 0)
   {
-    log.anomaly("popc: size = 0.");
+    erreur("ByteArray::popc: size = 0.");
     return 0xff;
   }
   uint8_t res = data[0];
@@ -264,7 +291,7 @@ std::string ByteArray::pops()
       n0 = popl();
       if(n0 == 0xffffffff)
       {
-        log.anomaly("invalid string");
+        erreur("invalid string");
         return "";
       }
     }
@@ -315,7 +342,7 @@ void ByteArray::pop_data(unsigned char *buffer, unsigned int len)
 {
   if(len > size())
   {
-    log.anomaly("pop_data(%d), size = %d.", len, size());
+    erreur("pop_data(%d), size = %d.", len, size());
     return;
   }
   for(unsigned int i = 0; i < len; i++)

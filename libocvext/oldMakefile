@@ -1,0 +1,116 @@
+# Makefile for MGC (Merio Gimbal Lock)
+#   Copyright 2017 J.A. / http://www.tsdconseil.fr
+
+# Project name
+PROJECT= libocvext
+
+# Path to repository root directy
+RPATH = ..
+
+# Definition of individual files to compiled
+# Yes, this is the right place to add your new demonstration source file name.
+
+# $(patsubst %,$(BUILD_DIR)/%.o,$(SOURCES))
+
+# (Optionnal) Sources requiring a graphic toolkit -> will not be included in the reduced library
+SOURCES_BASE= gl hough fourier ocvext thinning
+
+# SOURCES_BASE += gdl-dock gdl-dock-bar gdl-dock-item gdl-dock-item-button-image gdl-dock-item-grip gdl-dock-master gdl-dock-notebook gdl-dock-object gdl-dock-paned gdl-dock-placeholder gdl-preview-window gdl-switcher libgdltypebuiltins libgdlmarshal
+
+# SOURCES_BASE += gdl-dock-layout 
+
+#SOURCES_IHM1= $(wildcard */*.cc)
+#SOURCES_IHM= $(patsubst %.cc,%,$(SOURCES_IHM1))
+
+SOURCES_IHM = 
+
+# (Optionnal) Executable targets to be build (each one must have an associated source file)
+EXECS:= test-fourier
+
+# scan 
+
+# (Optionnal) Special directories to locate the source files
+# (not counting ./src and ./include)
+ADDITIONNAL_SRC_DIRS = src/outils src/test
+
+# Version of the MGC application
+VMAJ   = 1
+VMIN   = 0
+VPATCH = 0
+
+# R�vision de la librairie OpenCV
+OCV_VMAJ   = 3
+OCV_VMIN   = 1
+OCV_VPATCH = 0
+
+CDEFS =  -DOCV_VMAJ=$(OCV_VMAJ) -DOCV_VMIN=$(OCV_VMIN) -DOCV_VPATCH=$(OCV_VPATCH)
+CDEFS += -DVMAJ=$(VMAJ) -DVMIN=$(VMIN) -DVPATCH=$(VPATCH)
+ADDITIONNAL_INC_DIRS= $(CDEFS) -I$(RPATH)/libcutil/include -Isrc -DGETTEXT_PACKAGE=NULL -DGTK_NV=0
+#-I ../ocvext/include -I$(RPATH)/libcutil/include -I$(RPATH)/libdsp/include
+
+#ifeq ($(OCVIPATH),)
+#OCVIPATH = c:/opencv/include
+#OCVLPATH = c:/opencv/x86/mingw/lib
+#endif
+
+#ifeq ($(OCVIPATH),)
+ # OCVIPATH not defined, assume that OpenCV is installed in default directories (e.g. /usr/include/, etc.) 
+#else
+ # OCVIPATH is defined: it should be the path where opencv was builded
+#ADDITIONNAL_INC_DIRS += -I$(OCVIPATH)
+#ADDITIONNAL_LOPT     += -L$(OCVLPATH)
+#endif
+
+#OCVIPATH = c:/ocv310/build/install/include
+#OCVLPATH = c:/ocv310/build/install/x86/mingw/lib
+
+OCVIPATH = c:/ocv301/build/install/include
+OCVLPATH = c:/ocv301/build/install/x86/mingw/lib
+
+ADDITIONNAL_INC_DIRS += -I$(OCVIPATH)
+ADDITIONNAL_LOPT += -L$(OCVLPATH) 
+
+
+#ifeq ($(GTKANCIEN),VRAI)
+#ifeq ($(TARGET),LINUX)
+#else
+#ADDITIONNAL_INC_DIRS +=  
+#-march=i486
+#ADDITIONNAL_LOPT += -lole32 -loleaut32 -luuid -Wl,--stack,256000
+#endif
+#else
+#ADDITIONNAL_INC_DIRS +=  -DGTK3_RECENT
+#endif
+
+
+# External libraries
+EXTERNAL_LIBS = $(RPATH)/libcutil
+
+# (Optionnal) Additionnal targets to be build after library and executables
+ADDITIONNAL_TARGETS = 
+
+FIRST_TARGETS =
+
+ifeq ($(TARGET),LINUX)
+ADDITIONNAL_LOPT += -lopencv_core -lopencv_highgui -lopencv_objdetect -lopencv_features2d -lopencv_stitching -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio -lopencv_video -lopencv_calib3d -lopencv_photo -lopencv_ml -lopencv_face -lopencv_ximgproc -lopencv_videostab
+else
+ADDITIONNAL_INC_DIRS +=  -march=i486
+ADDITIONNAL_LOPT += -mwindows
+ADDITIONNAL_LOPT += -lopencv_core310 -lopencv_imgcodecs310 -lopencv_imgproc310 -lopencv_highgui310 -lopencv_video310 -lopencv_videoio310 -lopencv_features2d310 -lopencv_objdetect310 -lopencv_imgcodecs310 -lopencv_calib3d310 -lopencv_stitching310 -lopencv_photo310 -lopencv_ml310 -lopencv_videostab310
+# -march=i486
+#-lfftw3-3 -lfftw3f-3 
+endif
+
+# -lopencv_face310 -lopencv_ximgproc310
+
+ADDITIONNAL_CLEAN =
+
+
+# Common definitions for Makefiles and build rules
+include $(RPATH)/libcutil/data/std-makefile-defs
+
+
+
+
+
+

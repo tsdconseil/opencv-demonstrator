@@ -146,7 +146,7 @@
   <node name = "gaussian" fr="Gaussien">
   
     <attribute name="taille-noyau" fr="Largeur / hauteur du noyau" unit="pixels" en="Kernel size (pixels)" type="int" min="1" max="9" default="3"/>
-    <attribute name="sigma" fr="Ecart-type" type="float" default="0"/>
+    <attribute name="sigma" fr="Ecart-type" type="float" default="0" digits="1"/>
   
   </node>
   
@@ -157,8 +157,8 @@
   <node name = "bilateral">
      <attribute name="taille-noyau" fr="Taille du noyau" unit="pixels" en="Kernel size (pixels)" 
       type="int" min="1" max="20" default="10"/>
-     <attribute name="sigma-color" fr="Ecart-type couleur" en="Standard deviation (color)" type="float" default="100"/>
-     <attribute name="sigma-space" fr="Ecart-type espace" en="Standard deviation (space)" type="float" default="20"/>
+     <attribute name="sigma-color" fr="Ecart-type couleur" en="Standard deviation (color)" type="float" default="100" digits="1"/>
+     <attribute name="sigma-space" fr="Ecart-type espace" en="Standard deviation (space)" type="float" default="20" digits="1"/>
   </node>
   
   <node name = "morpho" fr="Opérateurs morphologiques" en="Morphological operations">
@@ -187,6 +187,8 @@ Morphological operations have many applications ; they are in particular used to
     </attribute>
     
     <attribute name="kernel-width" fr="Largeur du noyau" en="Kernel width" type="int" min="1" default="5"/>
+   
+    <attribute name="niter" fr="Nombre d'itérations" en="Iteration count" type="int" min="1" max="50" default="1"/>
     
   </node>
   
@@ -224,11 +226,11 @@ This demonstration enables you to compute the gradient, with different possible 
   </node>
   
   <node name="gaussian-sigma">
-      <attribute name="sigma" fr="Ecart-type préfiltrage" en="Standard deviation" type="float" default="2"/>
+      <attribute name="sigma" fr="Ecart-type préfiltrage" en="Standard deviation" type="float" default="2" digits="1"/>
   </node>
   
     <node name="deriche-gamma">
-      <attribute name="gamma" fr="Coefficient de filtrage" en="Filtering coefficient" type="float" default="0.2"/>
+      <attribute name="gamma" fr="Coefficient de filtrage" en="Filtering coefficient" type="float" default="0.2" digits="1"/>
   </node>
   
   <node name="det-flou">
@@ -251,7 +253,7 @@ This demonstration enables you to compute the gradient, with different possible 
     <attribute name="taille-noyau" fr="Taille noyau" en="Kernel size" default="3" min="3" max="21"/>
 
     <attribute name="prefiltrer" fr="Activation du préfiltrage" en="Enable pre-filtering" type="boolean" default="false"/>
-    <attribute name="sigma" fr="Ecart-type préfiltrage" en="Gaussian prefiltering standard deviation" type="float" default="2" require="prefiltrer=true">
+    <attribute name="sigma" fr="Ecart-type préfiltrage" en="Gaussian prefiltering standard deviation" type="float" default="2" require="prefiltrer=true" digits="1">
       <description lang="fr">Le préfiltrage gaussien permet de limiter le bruit de calcul (la dérivation a tendance à amplifier les hautes fréquences, donc le bruit).</description>
       <description lang="en">Gaussian prefiltering enables to reduce the computing noise (the derivation operation amplify somehow the high frequencies, hence the noise).</description>
     </attribute>
@@ -647,9 +649,15 @@ The principle is to localize the initial seeds positions for the watershed algor
     </description>
       <description lang="en">This demonstration of the DFT (Discret Fourier Transform) is based on the sample discrete_fourier_transform.cpp included in OpenCV.
     </description>
+
+    <attribute name="fenetrage" type="boolean" fr="Fenêtre de Hann" en="Hann window" default="true"/>
     
-    <attribute name="angle" type="float" fr="Rotation" en="Rotation" unit="degres"/>
+    <attribute name="log" type="boolean" fr="Vue logarithmique" en="Logarithmic view" default="true"/>
     
+    <attribute name="decalage-dc" type="boolean" fr="Décalage du DC au centre" en="Shift DC at center" default="true"/>
+    
+    <attribute name="angle" type="float" fr="Rotation" en="Rotation" unit="degres" digits="1"/>
+
     
   </node>
   
@@ -1096,11 +1104,19 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
 </node>
 
 <node name="sous-spect">
+
+  <description lang="fr">Suppression des composantes périodiques les plus importantes.</description>
+
   <!--<attribute name="gris" type="boolean" default="false" fr="Conversion en niveau de gris" en="Grayscale conversion"/>-->
-  <attribute name="seuil" type="float" default="2.0"/>
+  <attribute name="seuil" type="float" default="2.0" digits="1">
+    <description lang="fr">Seuil max. sur la magnitude, en nombre de fois la magnitude moyenne.</description>
+  </attribute>
 </node>
 
 <node name = "ocr">
+</node>
+
+<node name = "ift">
 </node>
 
 <node name = "redim">
@@ -1115,6 +1131,30 @@ In this demonstration, the mean pixel (and its covariance matrix) is estimated u
     <match value="1" fr="resize"/>
   </attribute>
   
+</node>
+
+<node name="detection-periode">
+
+  <description lang="fr">Cette démonstration permet de détecter la période principale sur une image, en prenant en compte toutes les directions possibles.</description>
+
+  <attribute name="zoom" fr="Facteur d'échelle" en="Zoom" type="int" default="100" min="100" max="1000" unit="%"/>
+  
+</node>
+
+<node name="detection-translation">
+    <description lang="fr">Cette démonstration illustre l'utilisation de la corrélation entre deux images afin de détecter un vecteur translation.</description>
+    <attribute name="norm-spectre" type="boolean" fr="Normalisation du spectre" en="Spectrum normalization" default="false"/>
+    <attribute name="tx" type="int" fr="Translation (x)" unit="pixels" size="2" signed="true"/>
+    <attribute name="ty" type="int" fr="Translation (y)" unit="pixels" size="2" signed="true"/>
+</node>
+
+<node name="detection-rotation">
+    <description lang="fr">Dans cette démonstration, on détecte la différence d'échelle et d'orientation entre deux images (et ceci indépendemment d'une éventuelle translation parasite), en exploitant la <b>transformée polaire</b> de la magnitude de la transformée de Fourier. Une fois ces images de transformée polaire calculées (pour les deux images), il suffit de détecter le vecteur translation (via une corrélation, et donc... une autre FFT !) entre ces deux images pour connaître les différences d'échelle et d'orientation.</description>
+    <attribute name="angle" type="float" fr="Rotation" en="Rotation" unit="degres" digits="1"/>
+    <attribute name="echelle" type="float" fr="Echelle" en="Scale" digits="2" default="1.0"/>
+    <attribute name="mode-log" type="boolean" fr="Mode logarithmique" en="Logarithmic mode" default="false"/>
+    <attribute name="tx" type="int" fr="Translation (x)" unit="pixels" size="2" signed="true"/>
+    <attribute name="ty" type="int" fr="Translation (y)" unit="pixels" size="2" signed="true"/>
 </node>
 
 </schema>

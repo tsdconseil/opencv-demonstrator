@@ -1,9 +1,13 @@
 #ifndef SOCKET_HPP
 #define SOCKET_HPP
 
+#ifdef WIN
+#include <winsock2.h>
+#endif
+
 #include "comm/iostreams.hpp"
 
-#include "trace.hpp"
+#include "../journal.hpp"
 #include "slots.hpp"
 #include "cutil.hpp"
 
@@ -74,7 +78,7 @@ private:
   uint8_t *buf;
   uint32_t mps;
 
-  Logable log;
+  journal::Logable log;
   void thread_entry();
 };
 
@@ -99,10 +103,10 @@ public:
   
   void write(const uint8_t *buffer, uint32_t len);
   int read(uint8_t *buffer, uint32_t length, int timeout);
-  int get_nb_rx_available();
   int getc(int timeout = 0);
   void putc(char c);
   void flush();
+  int get_nb_rx_available();
 
   uint16_t get_local_port() const;
   uint16_t get_remote_port() const;
@@ -112,7 +116,7 @@ public:
   friend class BluetoothServer;
   friend class BluetoothClient;
 private:
-  Logable log;
+  journal::Logable log;
   void rx_thread();
   hal::RawFifo rx_fifo;
   socket_type_t socket_type;
@@ -140,7 +144,7 @@ public:
 
 private:
   void thread_handler();
-  Logable log;
+  journal::Logable log;
   SOCKET listen_socket;
   sockaddr_in service;
 # ifdef WIN
@@ -153,7 +157,7 @@ private:
 };
 
 
-class BluetoothServer: private Logable,
+class BluetoothServer: private journal::Logable,
                        public  CProvider<SocketOpenedEvent>
 {
 public:
@@ -180,7 +184,7 @@ private:
   std::string comment;
 };
 
-class BluetoothClient: private Logable
+class BluetoothClient: private journal::Logable
 {
 public:
   BluetoothClient();
@@ -191,7 +195,7 @@ private:
 };
 
 #if 0
-class BluetoothSocket: private Logable,
+class BluetoothSocket: private journal::Logable,
                        public  IOStream
 {
 public:

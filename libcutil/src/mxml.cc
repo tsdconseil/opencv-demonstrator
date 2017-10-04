@@ -80,7 +80,7 @@ MXml MXml::get_child(std::string balise_name,
        && (child.get_attribute(att_name).string_value == att_value))
 	return child;
 
-  log_anomaly(main_log, "XML child not found: %s in %s where %s = %s.",
+  erreur("XML child not found: %s in %s where %s = %s.",
 	      balise_name.c_str(), name.c_str(),
 	      att_name.c_str(), att_value.c_str());
   return MXml();
@@ -99,7 +99,7 @@ MXml MXml::get_child(std::string name) const
   for(auto &ch: children)
     if(ch.name == name)
       return ch;
-  log_anomaly(main_log, "Child not found: %s in %s.",
+  erreur("Child not found: %s in %s.",
 	      name.c_str(), this->name.c_str());
   return MXml();
 }
@@ -139,7 +139,7 @@ XmlAttribute MXml::get_attribute(std::string name) const
   for(auto &att: attributes)
     if(att.name == name)
       return att;
-  log_anomaly(main_log, "getAttribute(%s): attribute not found in %s.",
+  erreur("getAttribute(%s): attribute not found in %s.",
 	      name.c_str(), this->name.c_str());
   return XmlAttribute();
 }
@@ -188,7 +188,7 @@ int MXml::from_file(std::string filename)
   auto result = doc.load_file(filename.c_str());
   if(result.status != pugi::xml_parse_status::status_ok)
   {
-    log_anomaly(main_log, "Error occurred while parsing [%s]: %s.",
+    erreur("Error occurred while parsing [%s]: %s.",
 		filename.c_str(), result.description());
     return -1;
   }
@@ -205,8 +205,7 @@ int MXml::from_string(std::string s)
   auto result = doc.load_buffer(s.c_str(), s.size());
   if(result.status != pugi::xml_parse_status::status_ok)
   {
-    log_anomaly(main_log, "Error occurred while parsing XML string: %s.",
-		result.description());
+    erreur("Error occurred while parsing XML string: %s.", result.description());
     return -1;
   }
 

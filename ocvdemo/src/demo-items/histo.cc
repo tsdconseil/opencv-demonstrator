@@ -124,8 +124,8 @@ int HistoBP::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   output.images[0] = input.images[0].clone();
   if(input.roi.width * input.roi.height > 0)
     calc_bp(input.images[0], input.roi, output.images[1]);
-  output.names[0] = langue.get_item("ROI selection");
-  output.names[1] = langue.get_item("Backprojection");
+  output.names[0] = utils::langue.get_item("ROI selection");
+  output.names[1] = utils::langue.get_item("Backprojection");
   return 0;
 }
 
@@ -185,7 +185,7 @@ int HistoCalc::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     dessine_courbe(hist[0], output.images[0], Scalar(255,0,0), 512.0 / 255);
     dessine_courbe(hist[1], output.images[0], Scalar(0,255,0), 512.0 / 255);
     dessine_courbe(hist[2], output.images[0], Scalar(0,0,255), 512.0 / 255);
-    output.names[0] = langue.get_item("histo-bvr");
+    output.names[0] = utils::langue.get_item("histo-bvr");
   }
   else if(sel == 1)
   {

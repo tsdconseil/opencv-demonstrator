@@ -79,8 +79,6 @@ private:
   /** Dimension de chaque image */
   std::vector<cv::Size> img_sizes;
 
-  utils::Logable journal;
-
   /** Titre principal */
   std::string title;
 

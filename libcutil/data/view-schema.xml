@@ -24,7 +24,7 @@
   
   <!-- TODO:
       -> paramètres liés (e.g. options en fonction du type de...)
-    --> -> choice/choice-item -> à merger avec les sub dépendant d'un prm ????
+    -> choice/choice-item -> à merger avec les sub dépendant d'un prm ????--> 
   
   <node name = "view"
         fr   = "Vue"
@@ -41,7 +41,6 @@
     <attribute name="pack" type="string" constraints="shrink|expand" default="shrink"/>
     <attribute name="pos-end" type="boolean" default="false"/>
     <attribute name="model" type="string"/>
-    <attribute name="id" type="string"/>
     <attribute name="type" 
                type="string" 
                constraints="null|panel|field|field-list|indicator|button|border-layout|grid-layout|fixed-layout|trig-layout|notebook|pane|image|label|custom|button-box"

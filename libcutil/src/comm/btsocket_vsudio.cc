@@ -14,20 +14,20 @@
 
 //static FILE *flog;
 
-#define trace(...)
+#define infos(...)
 
 int _bt_server_start(SOCKET *socket_,
                      const char *service_name,
                      const char *comment)
 {
   //flog = fopen("bluelog.txt", "wt");
-  trace("Bluetooth socket server test, peripheral = '%s'.\n", "peripheral");
+  infos("Bluetooth socket server test, peripheral = '%s'.\n", "peripheral");
 
   WSADATA m_data;
   /* Load the winsock2 library */
   if (WSAStartup(MAKEWORD(2,2), &m_data) != 0)
   {
-    trace("wsastartup error.\n");
+    infos("wsastartup error.\n");
     return -1;
   }
 
@@ -35,7 +35,7 @@ int _bt_server_start(SOCKET *socket_,
 
   if (s == INVALID_SOCKET)
   {
-    trace("Could not create socket: error %d\n", WSAGetLastError());
+    infos("Could not create socket: error %d\n", WSAGetLastError());
     return -1;
   }
 
@@ -46,7 +46,7 @@ int _bt_server_start(SOCKET *socket_,
     if (0 != getsockopt(s, SOL_SOCKET, SO_PROTOCOL_INFO,
 		(char*)&protocolInfo, &protocolInfoSize))
     {
-    trace("getsockopt: error %d\n", WSAGetLastError());
+    infos("getsockopt: error %d\n", WSAGetLastError());
     return -1;
     }
 
@@ -60,14 +60,14 @@ int _bt_server_start(SOCKET *socket_,
 
   if (bind(s, pAddr, sizeof(SOCKADDR_BTH)))
   {
-    trace("bind error %d\n", WSAGetLastError());
+    infos("bind error %d\n", WSAGetLastError());
     closesocket(s);
     return -3;
   }
 
   if(listen(s, 10))//5))
   {
-    trace("listen error %d\n", WSAGetLastError());
+    infos("listen error %d\n", WSAGetLastError());
     closesocket(s);
     return -1;
   }
@@ -75,14 +75,14 @@ int _bt_server_start(SOCKET *socket_,
   // check which port were listening on
   if(getsockname(s, (SOCKADDR*)&address, &sa_len))
   {
-    trace("getsockname error %d\n", WSAGetLastError());
+    infos("getsockname error %d\n", WSAGetLastError());
     closesocket(s);
     return -1;
   }
 
-  trace("listening on RFCOMM port: %d\n" , address.port) ;
+  infos("listening on RFCOMM port: %d\n" , address.port) ;
 
-  trace("Registering SDP service (METHOD 0)...\n");
+  infos("Registering SDP service (METHOD 0)...\n");
   WSAQUERYSET service;
 
   memset(&service, 0, sizeof(service));
@@ -112,13 +112,13 @@ int _bt_server_start(SOCKET *socket_,
 
   if (0 != WSASetService(&service, RNRSERVICE_REGISTER, 0))
   {
-    trace("set service error:%d\n", WSAGetLastError());
+    infos("set service error:%d\n", WSAGetLastError());
     closesocket(s);
     return -6;
   }
 
 
-  trace("Waiting for client connection...\n");
+  infos("Waiting for client connection...\n");
   //fflush(flog);
   // Sur la carte d'évaluation, faire :
   // CALL 00:0A:3A:7F:24:69 1101 RFCOMM

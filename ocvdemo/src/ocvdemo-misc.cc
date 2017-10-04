@@ -45,7 +45,6 @@ OCVDemoItem::OCVDemoItem()
   // Default demo item requires only 1 input image / video
   props.input_min = 1;
   props.input_max = 1;
-  journal.setup("ocvdemo-item","");
 }
 
 static void prepare_image(cv::Mat &I)
@@ -69,7 +68,7 @@ void OCVDemo::thread_calcul()
     // Fin de l'application
     ////////////////////////////
     case ODEvent::FIN:
-      journal.trace_major("Fin du thread de calcul.");
+      trace_majeure("Fin du thread de calcul.");
       signal_thread_calcul_fin.raise();
       return;
       ////////////////////////////	
@@ -90,7 +89,7 @@ void OCVDemo::thread_calcul()
       signal_calcul_termine.raise();
       break;
     default:
-      journal.anomaly("%s: invalid event.", __func__);
+      erreur("%s: invalid event.", __func__);
       return;
     }
   }
@@ -133,13 +132,15 @@ void OCVDemo::thread_video()
 
     for(auto i = 0u; i < video_captures.size(); i++)
     {
-      journal.verbose("[tvideo] lecture trame video[%d]...", i);
+      //trace_verbeuse("[tvideo] lecture trame video[%d]...", i);
       video_captures[i] >> tmp[i];
-      journal.verbose("[tvideo] ok.");
+      //trace_verbeuse("[tvideo] ok.");
+
+      utils::hal::sleep(10);
 
       if(tmp[i].empty())
       {
-        journal.trace_major("[tvideo] Fin de vidéo : redémarrage.");
+        trace_majeure("[tvideo] Fin de vidéo : redémarrage.");
         if(video_fp.size() > 0)
         {
           // TODO: redémarrage de toutes les vidéos en même temps
@@ -162,7 +163,7 @@ void OCVDemo::thread_video()
       continue;
     }
 
-    journal.verbose("gtk dispatcher...");
+    //trace_verbeuse("gtk dispatcher...");
     gtk_dispatcher.on_event(tmp);
 
     // Pour éviter le deadlock, attends soit que :
@@ -182,7 +183,7 @@ int OCVDemo::on_video_image(const std::vector<cv::Mat> &tmp)
 {
   // Récupération d'une trame vidéo (mais ici on est dans le thread GTK)
   // (Recovery of a video frame (but here we are in the GTK thread))
-  journal.verbose("on_video_image...");
+  //trace_verbeuse("on_video_image...");
   if(demo_en_cours != nullptr)
   {
     I0 = tmp[0];
@@ -254,9 +255,9 @@ void OCVDemo::update()
       demo_en_cours->input.mask = cv::Mat::zeros(I0.size(), CV_8U);
   }
 
-  journal.verbose("Acquisition mutex_update...");
+  //trace_verbeuse("Acquisition mutex_update...");
   mutex_update.lock();
-  journal.verbose("mutex_update ok.");
+  //trace_verbeuse("mutex_update ok.");
 
   sortie_en_cours = false;
 
@@ -269,7 +270,7 @@ void OCVDemo::update()
   I1 = I0.clone();
   auto s = modele.to_xml();
 
-  journal.trace("Calcul [%s], img: %d*%d, %d chn, model =\n%s",
+  infos("Calcul [%s], img: %d*%d, %d chn, model =\n%s",
       demo_en_cours->props.id.c_str(),
       I0.cols, I0.rows, I0.channels(),
       s.c_str());
@@ -289,18 +290,18 @@ void OCVDemo::update()
 
   if(calcul_status)
   {
-    journal.warning("ocvdemo: Echec calcul.");
+    avertissement("ocvdemo: Echec calcul.");
     auto s = demo_en_cours->output.errmsg;
     if(langue.has_item(s))
       s = langue.get_item(s);
-    utils::mmi::dialogs::show_warning("Erreur de traitement",
+    utils::mmi::dialogs::affiche_avertissement("Erreur de traitement",
         langue.get_item("echec-calcul"), s);
     mutex_update.unlock();
     return;
   }
   else
   {
-    journal.trace("Calcul [%s] ok.", demo_en_cours->props.id.c_str());
+    infos("Calcul [%s] ok.", demo_en_cours->props.id.c_str());
     
     if(demo_en_cours->output.nout > 0)
       sortie_en_cours = true;
@@ -316,7 +317,7 @@ void OCVDemo::update()
 
   if(img_count && (demo_en_cours->output.images[img_count - 1 ].data == nullptr))
   {
-    journal.warning("Img count = %d, et image de sortie non initialisée.", img_count);
+    avertissement("Img count = %d, et image de sortie non initialisée.", img_count);
     img_count = 1;
   }
   else if(img_count == 0)
@@ -359,7 +360,7 @@ void OCVDemo::update()
   mosaique.show_multiple_images(titre_principal, lst, titres);
 
   maj_bts();
-  journal.verbose("Liberation mutex_update...");
+  //trace_verbeuse("Liberation mutex_update...");
   mutex_update.unlock();
 
   signal_une_trame_traitee.raise();
@@ -378,7 +379,7 @@ void OCVDemo::update()
 ///////////////////////////////////////////////////////////////
 void OCVDemo::on_event(const ChangeEvent &ce)
 {
-  journal.verbose("change-event: %d / %s",
+  trace_verbeuse("change-event: %d / %s",
       (int) ce.type, ce.path[0].name.c_str());
 
   if(ce.type != ChangeEvent::GROUP_CHANGE)
@@ -391,7 +392,7 @@ void OCVDemo::on_event(const ChangeEvent &ce)
 
   if(ce.path[0].name == "global-schema")
   {
-    journal.verbose("Changement sur configuration globale");
+    trace_verbeuse("Changement sur configuration globale");
     lock = false;
     maj_langue();
     maj_entree();
@@ -400,7 +401,7 @@ void OCVDemo::on_event(const ChangeEvent &ce)
     return;
   }
 
-  journal.verbose("Change event detected.");
+  trace_verbeuse("Change event detected.");
   update();
   lock = false;
   maj_bts();
@@ -409,6 +410,9 @@ void OCVDemo::on_event(const ChangeEvent &ce)
 void OCVDemo::add_demo(OCVDemoItem *demo)
 {
   items.push_back(demo);
+  auto schema = fs_racine->get_schema(demo->props.id);
+  demo->modele = utils::model::Node::create_ram_node(schema);
+  demo->modele.add_listener(this);
   demo->add_listener(this);
 }
 
@@ -443,9 +447,9 @@ void OCVDemo::maj_entree()
   first_processing = true;
   entree_video = false;
 
-  journal.verbose("lock...");
+  trace_verbeuse("lock...");
   mutex_video.lock();
-  journal.verbose("lock ok.");
+  trace_verbeuse("lock ok.");
 
   release_all_videos();
 
@@ -468,17 +472,17 @@ void OCVDemo::maj_entree()
 
     if(se.is_video())
     {
-      journal.trace("Ouverture fichier video [%s]...", se.chemin.c_str());
+      infos("Ouverture fichier video [%s]...", se.chemin.c_str());
       int res;
       video_captures.push_back(cv::VideoCapture());
       if(se.type == ImageSelecteur::SpecEntree::TYPE_WEBCAM)
         res = video_captures[vid].open(se.id_webcam);
       else
         res = video_captures[vid].open(se.chemin);
-      journal.verbose("Effectué.");
+      trace_verbeuse("Effectué.");
       if(!res)
       {
-        utils::mmi::dialogs::show_error(langue.get_item("ech-vid-tit"),
+        utils::mmi::dialogs::affiche_erreur(langue.get_item("ech-vid-tit"),
             langue.get_item("ech-vid-sd"),
             langue.get_item("ech-vid-d") + "\n" + se.chemin);
         mutex_video.unlock();
@@ -495,7 +499,7 @@ void OCVDemo::maj_entree()
       I0 = se.img.clone();
       if(I0.data == nullptr)
       {
-        utils::mmi::dialogs::show_error("Erreur",
+        utils::mmi::dialogs::affiche_erreur("Erreur",
             "Impossible de charger l'image", "");
         destroyWindow(titre_principal);
         mosaique.callback_init_ok = false;
@@ -513,24 +517,33 @@ void OCVDemo::maj_entree()
 }
 
 
+OCVDemoItem *OCVDemo::recherche_demo(const std::string &nom)
+{
+  for(auto demo: items)
+    if(demo->props.id == nom)
+      return demo;
+  erreur("Demo non trouve (%s).", nom.c_str());
+  return nullptr;
+}
+
 void OCVDemo::setup_demo(const utils::model::Node &sel)
 {
   auto id = sel.get_attribute_as_string("name");
   auto s = sel.get_localized_name();
-  journal.trace_major("Selection changed: %s (%s).", id.c_str(), s.c_str());
+  trace_majeure("Selection changed: %s (%s).", id.c_str(), s.c_str());
 
   while(video_en_cours)
   {
     signal_video_demarre.clear();
     signal_video_suspendue.clear();
     video_stop = true;
-    journal.trace("interruption flux video...");
+    infos("interruption flux video...");
     signal_video_suspendue.wait();
-    journal.trace("Flux video interrompu.");
+    infos("Flux video interrompu.");
   }
 
   mutex_update.lock();
-  journal.verbose("Debut setup...");
+  trace_verbeuse("Debut setup...");
 
   cadre_proprietes.remove();
   if (rp != nullptr)
@@ -552,11 +565,12 @@ void OCVDemo::setup_demo(const utils::model::Node &sel)
     return;
   }
 
-  auto schema = fs_racine->get_schema(id);
-  modele = utils::model::Node::create_ram_node(schema);
+  //auto schema = fs_racine->get_schema(id);
+  //modele = utils::model::Node::create_ram_node(schema);
+  //modele = demo.
+  //modele.add_listener(this);
 
-  modele.add_listener(this);
-  {
+  /*{
     utils::mmi::NodeViewConfiguration vconfig;
     vconfig.show_desc = true;
     vconfig.show_main_desc = true;
@@ -565,8 +579,8 @@ void OCVDemo::setup_demo(const utils::model::Node &sel)
     cadre_proprietes.add(*(rp->get_widget()));
     cadre_proprietes.show();
     cadre_proprietes.show_all_children(true);
-  }
-  journal.verbose("setup demo...");
+  }*/
+  trace_verbeuse("setup demo...");
 
   ///////////////////////////////////////////
   // - Localise la demo parmi les démos enregistrées
@@ -581,7 +595,7 @@ void OCVDemo::setup_demo(const utils::model::Node &sel)
   // - Displays the toolbar if necessary
   //////////////////////////////////////////
 
-  journal.verbose("update_demo()...");
+  trace_verbeuse("update_demo()...");
   namedWindow(titre_principal, CV_WINDOW_NORMAL);
   
   //en: current demo
@@ -598,7 +612,21 @@ void OCVDemo::setup_demo(const utils::model::Node &sel)
       rdi1.x = demo->input.roi.x + demo->input.roi.width;
       rdi1.y = demo->input.roi.y + demo->input.roi.height;
 
+      modele = demo->modele;
+      {
+        utils::mmi::NodeViewConfiguration vconfig;
+        vconfig.show_desc = true;
+        vconfig.show_main_desc = true;
+        rp = new utils::mmi::NodeView(&wnd, modele, vconfig);
+        cadre_proprietes.set_label(s);
+        cadre_proprietes.add(*(rp->get_widget()));
+        cadre_proprietes.show();
+        cadre_proprietes.show_all_children(true);
+      }
+
       demo->input.model = modele;
+
+
  
       /* code mort
       * dead code
@@ -634,7 +662,7 @@ void OCVDemo::setup_demo(const utils::model::Node &sel)
         img_selecteur.ajoute_fichier(img.get_attribute_as_string("path"));
 
       int nmissing = demo->props.input_min - img_selecteur.get_nb_images();
-      journal.verbose("nmissing is %d ", nmissing );
+      trace_verbeuse("nmissing is %d ", nmissing );
       if(nmissing > 0)
       {
         for(auto i = 0; i < nmissing; i++)
@@ -645,11 +673,11 @@ void OCVDemo::setup_demo(const utils::model::Node &sel)
   }
   if(demo_en_cours == nullptr)
   {
-    journal.warning("Demo non trouvee : %s", id.c_str());
+    avertissement("Demo non trouvee : %s", id.c_str());
     std::string s = "";
     for(auto demo: items)
       s += demo->props.id + " ";
-    journal.trace("Liste des demos disponibles :\n%s", s.c_str());
+    infos("Liste des demos disponibles :\n%s", s.c_str());
   }
 
 
@@ -664,7 +692,7 @@ void OCVDemo::setup_demo(const utils::model::Node &sel)
   maj_bts();
   mutex_update.unlock();
 
-  journal.verbose("** SETUP SCHEMA TERMINE, MAJ ENTREE...");
+  trace_verbeuse("** SETUP SCHEMA TERMINE, MAJ ENTREE...");
   maj_entree();
 }
 
@@ -739,10 +767,8 @@ OCVDemo *OCVDemo::get_instance()
 
 OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 {
-  journal.setup("", "ocvdemo");
-  journal.trace("OCVDemo::OCVDemo() (constructeur).");
-  utils::current_language = Localized::LANG_EN;
-  langue.current_language = "en";
+  infos("OCVDemo::OCVDemo() (constructeur).");
+  utils::model::Localized::current_language = Localized::LANG_EN;
   video_en_cours = false;
   video_stop = false;
   outil_dessin_en_cours = 0;
@@ -753,7 +779,8 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   instance = this;
   lock = false;
   rp = nullptr;
-  fs_racine = new utils::model::FileSchema("./data/schema.xml");
+  fs_racine = new utils::model::FileSchema(utils::get_fixed_data_path()
+  + PATH_SEP + "odemo-schema.xml");
   utils::mmi::NodeViewConfiguration vconfig;
 
 
@@ -774,7 +801,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
     }
   }
 
-  journal.trace("Application configuration:\n%s\n", modele_global.to_xml().c_str());
+  infos("Application configuration:\n%s\n", modele_global.to_xml().c_str());
 
   maj_langue_systeme();
     
@@ -786,7 +813,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
         langue.get_item("check-lock-2"),
         langue.get_item("check-lock-3")))
     {
-      auto s = utils::mmi::dialogs::save_dialog(langue.get_item("save-log-title"),
+      auto s = utils::mmi::dialogs::enregistrer_fichier(langue.get_item("save-log-title"),
           ".txt", "Log file");
       if(s.size() > 0)
       {
@@ -804,6 +831,8 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   modele_global.add_listener(this);
 
   wnd.add(vbox);
+
+  vbox.pack_start(frame_menu, Gtk::PACK_SHRINK);
 
   barre_outils.set_icon_size(Gtk::ICON_SIZE_SMALL_TOOLBAR);
   barre_outils.set_has_tooltip(false);
@@ -834,17 +863,22 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   vbox.pack_start(hpaned, Gtk::PACK_EXPAND_WIDGET);
 
   auto schema = fs_racine->get_schema("ocv-demo");
-  tdm = utils::model::Node::create_ram_node(schema, "./data/model.xml");
+  tdm = utils::model::Node::create_ram_node(schema,
+      utils::get_fixed_data_path() + PATH_SEP + "odemo-model.xml");
+      //"./data/odemo-model.xml");
 
   auto s = tdm.to_xml();
-  journal.trace("TOC = \n%s\n", s.c_str());
+  infos("TOC = \n%s\n", s.c_str());
   auto sc2 = tdm.schema();
   s = sc2->to_string();
-  journal.trace("TOC SCHEMA = \n%s\n", s.c_str());
-
+  infos("TOC SCHEMA = \n%s\n", s.c_str());
 
   add_demos();
 
+  std::vector<std::string> ids;
+  ids.push_back("cat");
+  ids.push_back("demo");
+  vue_arbre.set_liste_noeuds_affiches(ids);
   vue_arbre.set_model(tdm);
 
   vue_arbre.utils::CProvider<utils::mmi::SelectionChangeEvent>::add_listener(this);
@@ -860,7 +894,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 
   if(cmdeline.has_option("-s"))
   {
-    journal.trace_major("Export tableau des fonctions supportees...");
+    trace_majeure("Export tableau des fonctions supportees...");
     //these are used to generate the web site
     auto s = this->export_html(Localized::Language::LANG_FR);
     utils::files::save_txt_file("../../../site/contenu/opencv/ocvdemo/table.html", s);
@@ -903,9 +937,9 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   // Moved "-c" from above to here so it runs after thread_calcul has been started.
   if(cmdeline.has_option("-c"))
   {
-    journal.trace_major("Export des captures d'écran...");
+    trace_majeure("Export des captures d'écran...");
     export_captures();
-    journal.trace_major("Toutes les captures ont été exportées.");
+    trace_majeure("Toutes les captures ont été exportées.");
     on_b_exit();
   }
 }

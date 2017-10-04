@@ -23,11 +23,11 @@
 #include "comm/iostreams.hpp"
 #include "cutil.hpp"
 #include "slots.hpp"
-#include "trace.hpp"
 #include "bytearray.hpp"
 
 #include <stdint.h>
 #include <queue>
+#include "../journal.hpp"
 
 namespace utils
 {
@@ -94,7 +94,7 @@ private:
   hal::Signal signal_ack;
   uint8_t *buffer;
   uint16_t packet_counter;
-  static Logable log;
+  static journal::Logable log;
   
   bool do_terminate;
   hal::Signal signal_terminated1, signal_terminated2;
@@ -136,7 +136,7 @@ private:
   uint32_t max_packet_length, tx_segmentation;
   uint8_t *buffer;
   hal::Mutex mutex;
-  static Logable log;
+  static journal::Logable log;
 };
 
 
@@ -215,7 +215,7 @@ private:
   Packet response;
   int do_terminate;
   /* For debug purpose */
-  static Logable log;
+  static journal::Logable log;
   class CmdeStorage
   {
   public:
