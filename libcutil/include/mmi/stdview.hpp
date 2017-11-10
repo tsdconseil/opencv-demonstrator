@@ -417,6 +417,9 @@ class AttributeListView: public Gtk::VBox,
                          private CListener<KeyPosChangeEvent>
 {
 public:
+  AttributeListView();
+  void init(Node model,
+            const NodeViewConfiguration &config);
   AttributeListView(Node model,
                     const NodeViewConfiguration &config);
 
@@ -531,10 +534,14 @@ class NodeView: private CListener<ChangeEvent>,
                 public GenericView
 {
 public:
+  NodeView();
   NodeView(Node model);
   NodeView(Gtk::Window *mainWin, Node model);
   NodeView(Gtk::Window *mainWin, Node model,
            const NodeViewConfiguration &config);
+
+  int init(Node modele, const NodeViewConfiguration &config = NodeViewConfiguration(), Gtk::Window *mainWin = nullptr);
+
   ~NodeView();
   Gtk::Widget *get_gtk_widget(){return get_widget();}
   Gtk::Widget *get_widget();
@@ -552,9 +559,9 @@ protected:
   
 private:
 
-  void init(Gtk::Window *mainWin,
-            Node model,
-            const NodeViewConfiguration &config);
+  int init(Gtk::Window *mainWin,
+           Node model,
+           const NodeViewConfiguration &config);
 
   NodeViewConfiguration config;
   int nb_columns;
@@ -588,6 +595,8 @@ private:
   class MyTreeView : public Gtk::TreeView
   {
   public:
+        MyTreeView();
+        void init(NodeView *parent);
         MyTreeView(NodeView *parent);
         virtual bool on_button_press_event(GdkEventButton *ev);
   private:

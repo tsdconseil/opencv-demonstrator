@@ -182,7 +182,7 @@ int DemoFiltrage::proceed(const DemoFiltrageConfig &conf, cv::Mat &I, OCVDemoIte
   if(conf.type_filtre == DemoFiltrageConfig::FILTRE_MA)
     cv::blur(Ib, If, cv::Size(conf.ma.taille_noyau,conf.ma.taille_noyau));
   else if(conf.type_filtre == DemoFiltrageConfig::FILTRE_GAUSSIEN)
-    cv::GaussianBlur(Ib, If, cv::Size(conf.gaussien.taille_noyau,conf.gaussien.taille_noyau), 0);
+    cv::GaussianBlur(Ib, If, cv::Size(conf.gaussien.taille_noyau,conf.gaussien.taille_noyau), conf.gaussien.sigma);
   else if(conf.type_filtre == DemoFiltrageConfig::FILTRE_MEDIAN)
     cv::medianBlur(Ib, If, conf.median.taille_noyau);
   else if(conf.type_filtre == DemoFiltrageConfig::FILTRE_BILATERAL)

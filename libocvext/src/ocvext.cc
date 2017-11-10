@@ -309,10 +309,7 @@ void affiche_dans_cadre(const cv::Mat &I, cv::Mat &cadre, cv::Size taille_vue, c
     rdi.x = 0;
     rdi.height = taille_video.height * ratio_x;
     rdi.y = (taille_vue.height - rdi.height) / 2;
-
-
     ratio = ratio_x;
-    p0 = cv::Point(0,rdi.y);
   }
   else // bandes verticales en haut et en bas
   {
@@ -321,10 +318,9 @@ void affiche_dans_cadre(const cv::Mat &I, cv::Mat &cadre, cv::Size taille_vue, c
     rdi.height = taille_vue.height;
     rdi.y = 0;
     // si ry > 0 : pb : rdi.width > taille_vue.width !!!
-
     ratio = ratio_y;
-    p0 = cv::Point(rdi.x,0);
   }
+  p0 = cv::Point(rdi.x,rdi.y);
 
   if(rdi.width * rdi.height == 0)
     return;

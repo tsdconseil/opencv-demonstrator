@@ -16,6 +16,7 @@ public:
   void maj(const cv::Mat &img);
   void maj(const std::string &chemin_fichier);
   void change_dim(uint16_t sx, uint16_t sy);
+  void coor_vue_vers_image(int xv, int yv, cv::Point &xi);
 
   bool on_draw(const Cairo::RefPtr<Cairo::Context> &cr);
 
@@ -23,6 +24,8 @@ protected:
   //void on_size_allocate(Gtk::Allocation &allocation);
 
 private:
+  float ratio;
+  cv::Point p0;
   bool cr_alloue;
 
   void change_dim_interne(uint16_t sx, uint16_t sy);

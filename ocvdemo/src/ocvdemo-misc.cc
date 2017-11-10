@@ -765,8 +765,12 @@ OCVDemo *OCVDemo::get_instance()
 }
 
 
-OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
+OCVDemo::OCVDemo(utils::CmdeLine &cmdeline, const std::string &prefixe_modele_)
 {
+  std::string prefixe_modele = prefixe_modele_;
+  if(prefixe_modele.size() == 0)
+    prefixe_modele = "odemo";
+
   infos("OCVDemo::OCVDemo() (constructeur).");
   utils::model::Localized::current_language = Localized::LANG_EN;
   video_en_cours = false;
@@ -780,7 +784,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
   lock = false;
   rp = nullptr;
   fs_racine = new utils::model::FileSchema(utils::get_fixed_data_path()
-  + PATH_SEP + "odemo-schema.xml");
+  + PATH_SEP + prefixe_modele + "-schema.xml");
   utils::mmi::NodeViewConfiguration vconfig;
 
 
@@ -864,7 +868,7 @@ OCVDemo::OCVDemo(utils::CmdeLine &cmdeline)
 
   auto schema = fs_racine->get_schema("ocv-demo");
   tdm = utils::model::Node::create_ram_node(schema,
-      utils::get_fixed_data_path() + PATH_SEP + "odemo-model.xml");
+      utils::get_fixed_data_path() + PATH_SEP + prefixe_modele + "-model.xml");
       //"./data/odemo-model.xml");
 
   auto s = tdm.to_xml();

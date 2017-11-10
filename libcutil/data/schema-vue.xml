@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This file is part of LIBCUTIL.
+  
+   LIBCUTIL is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+  
+   LIBCUTIL is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+  
+   You should have received a copy of the GNU Lesser General Public License
+   along with LIBCUTIL.  If not, see <http://www.gnu.org/licenses/>.
+  
+   Copyright 2007-2017 J. A. -->
+
+<schema root = "widget"
+        name = "vue">
+  
+  <include-schema  path="data/std-schema.xml"/>
+  
+  <node name = "widget" inherits="localized">
+    <attribute name="pack" type="string" constraints="shrink|expand" default="shrink"/>
+    <attribute name="pos-end" type="boolean" default="false"/>
+    <attribute name="modele" type="string" fr="Chemin vers le modèle"/>
+    <attribute name="x" type="int"/>
+    <attribute name="y" type="int"/>
+    <attribute name="ncols" type="int" default="1"/>
+    <attribute name="nrows" type="int" default="1"/>
+    <attribute name="orientation" type="string" constraints="nord|est|sud|ouest|centre"/>
+  </node>
+  
+  <node name      = "conteneur" 
+        inherits  = "widget">
+    <sub type = "bouton"/>
+    <sub type = "boite-boutons"/>
+    <sub type = "panneau"/>
+    <sub type = "champs"/>
+    <sub type = "liste-champs"/>
+    <sub type = "vue-modele"/>
+    <sub type = "notebook"/>
+    <sub type = "image"/>
+    <sub type = "label"/>
+    <sub type = "separateur-vertical"/>
+    <sub type = "separateur-horizontal"/>
+    <sub type = "disposition-verticale"/>
+    <sub type = "disposition-horizontale"/>
+    <sub type = "disposition-grille"/>
+    <sub type = "disposition-bordure"/>
+    <sub type = "disposition-trig"/>
+    
+    <sub type = "list-layout"/>
+    <sub type = "vue-speciale"/>
+  </node>
+  
+  <node name="separateur-horizontal" inherits="widget"/>
+  <node name="separateur-vertical" inherits="widget"/>
+  
+  <node name="disposition-verticale" inherits="conteneur"/>
+  <node name="disposition-horizontale" inherits="conteneur"/>
+  
+  <node name="disposition-grille" fr="Grille" inherits="conteneur">
+    <attribute name="nlignes" type="int" fr="Nombre de lignes"/>
+    <attribute name="ncolonnes" type="int" fr="Nombre de colonnes"/>
+  </node>
+  
+  <node name="disposition-fixe" fr="Mise en page fixée" inherits="conteneur">
+  </node>
+  
+  <node name="vue-speciale" inherits="widget">
+  </node>
+  
+  <node name = "vue-modele" inherits="widget"/>
+  
+  <node name      = "grille" 
+        inherits  = "conteneur">
+  </node>
+  
+  <node name      = "label" 
+        inherits  = "widget">
+  </node>
+  
+  <node name      = "image" 
+        inherits  = "widget">
+    <attribute name = "chemin" 
+               fr   ="Chemin"
+               type = "file"/>
+  </node>
+  
+  <node name      = "indicateur" 
+        fr        = "Indicateur" 
+        inherits  = "widget">
+  </node>
+  
+  <node name = "panneau" fr="Séparation" inherits="conteneur">
+    <attribute name        = "dir"
+               type        = "string"
+               default     = "H"
+               constraints = "H|V">
+      <match value = "V"
+             name  = "V"
+             fr    = "Vertical"/>
+      <match value = "H"
+             name  = "H"
+             fr    = "Horizontal"/>
+    </attribute>
+    <description >Séparateur vertical ou horizontal</description>
+  </node>
+  
+  <node name="notebook" inherits="conteneur">
+  </node>
+
+  <node     name      = "disposition-bordure" 
+            fr        = "Mise en page de type Bordure" 
+            inherits  = "conteneur">
+  </node>
+  
+  <node name="disposition-trig" fr="Mise en page de type 3" inherits="conteneur">
+  </node>
+
+
+  <node name="list-layout" inherits="widget">
+    <attribute name="ncols" type="int" default="2"/>
+    <attribute name="path" type="string"/>
+    <attribute name="child-type" type="string"/>
+    <sub type="bouton"/>
+  </node>
+  
+  <node name="boite-boutons" inherits="conteneur">
+  </node>
+  
+  <node name="bouton" inherits="widget">
+    <attribute name="require-sel" type="boolean" default="false"/>
+    <attribute name="default"     type="boolean" default="false"/>
+  </node>
+  
+
+
+  <node name="bouton" fr="Bouton" inherits="widget">
+    <ref type="command" name="command" fr="Commande associée"/>
+  </node>
+  
+  <node name      = "champs" 
+        fr        = "Champs"
+        en        = "Field view"
+        inherits  = "widget">
+    <attribute name="ctrl-id" type="string" fr="Chemin vers le contrôleur" en="Control id"/>
+    <attribute name="editable" type="boolean" fr="Editable" default="true"/>
+    <attribute name="type"  type="int" min="0" max="5" default="0">
+      <match value="0" fr="Automatique"/>
+      <match value="1" fr="Combo box"/>
+      <match value="2" fr="Check box"/>
+      <match value="3" fr="Entry"/>
+      <match value="4" fr="Radio"/>
+      <match value="5" fr="Texte"/>
+    </attribute>
+    <attribute name="ndigits" type="int" fr="Nombre de chiffres significatifs" default="5"/>
+  </node>
+       
+  <node name     = "liste-champs"
+        fr       = "Liste de champs"
+        en       = "Field list"
+        inherits = "widget">
+    <sub type="champs"/>
+  </node>
+  
+</schema>

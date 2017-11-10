@@ -650,35 +650,37 @@ int CamCalDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
   cvtColor(input.images[0], Ig, CV_BGR2GRAY);
 
-  output.images[2] = cv::Mat(/*Ig.size()*/cv::Size(480,640), CV_8UC3);
 
-  bool found;
+  output.images[2] = cv::Mat(/*Ig.size()*/cv::Size(480,640), CV_8UC3);
+  output.images[1] = output.images[2];
+
+  bool trouve;
   if(sel == 0)
   {
-    found = cv::findChessboardCorners(Ig, board_size, pointbuf,
+    trouve = cv::findChessboardCorners(Ig, board_size, pointbuf,
       CALIB_CB_ADAPTIVE_THRESH | CALIB_CB_FAST_CHECK | CALIB_CB_NORMALIZE_IMAGE);
     // improve the found corners' coordinate accuracy
-     if(found)
+     if(trouve)
        cv::cornerSubPix(Ig, pointbuf, Size(11,11),
          Size(-1,-1), TermCriteria( TermCriteria::EPS+TermCriteria::COUNT, 30, 0.1 ));
   }
   else if(sel == 1)
-    found = cv::findCirclesGrid(Ig, board_size, pointbuf );
+    trouve = cv::findCirclesGrid(Ig, board_size, pointbuf );
   else
-    found = cv::findCirclesGrid(Ig, board_size, pointbuf, CALIB_CB_ASYMMETRIC_GRID );
+    trouve = cv::findCirclesGrid(Ig, board_size, pointbuf, CALIB_CB_ASYMMETRIC_GRID );
 
 
   //cvtColor(I, O[0], CV_GRAY2BGR);
 
   Mat Ior = input.images[0].clone();
   output.images[0] = Ior.clone();
-  if(found)
-   cv::drawChessboardCorners(output.images[0], board_size, Mat(pointbuf), found);
+  if(trouve)
+   cv::drawChessboardCorners(output.images[0], board_size, Mat(pointbuf), trouve);
 
   trace_majeure("Trouvé %d coins (found = %d).",
-      pointbuf.size(), (int) found);
+      pointbuf.size(), (int) trouve);
 
-  if(found)
+  if(trouve)
   {
     Mat distCoeffs;
     Mat cameraMatrix;

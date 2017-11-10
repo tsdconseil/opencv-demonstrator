@@ -13,10 +13,11 @@ VPATCH = 0
 RPATH = ..
 
 # Fichiers sources
-SOURCES = gl hough fourier ocvext thinning vue-image vue-collection
+SOURCES = gl hough fourier ocvext thinning vue-image vue-collection calib images-selection reco
 
 # Exécutables
-EXECS = test-fourier
+EXECS = etalonnage-camera
+#test-fourier
 
 # Dossiers où trouver les fichiers sources (autres que ./src and ./include)
 AUTRES_DOSSIERS_SOURCES = src/outils src/test
@@ -28,7 +29,7 @@ LIBS_EXTERNES = $(RPATH)/libcutil
 OPTIONS_COMPIL = 
 
 # Dépendances OpenCV
-include $(RPATH)/libcutil/data/makefile-opencv
+include $(RPATH)/libcutil/data/makefile-opencv320
 
 # Makefile standard
 include $(RPATH)/libcutil/data/std-makefile-defs

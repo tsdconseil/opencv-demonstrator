@@ -326,10 +326,10 @@ void OCVDemo::maj_langue()
   titre_principal = langue.get_item("resultats");
 #endif
 
-  char bf[500];
-  sprintf(bf, " [version %d.%d.%d]", VMAJ, VMIN, VPATCH);
+  //char bf[500];
+  //sprintf(bf, " [version %d.%d.%d]", VMAJ, VMIN, VPATCH);
 
-  wnd.set_title(langue.get_item("main-title") + std::string(bf));
+  wnd.set_title(langue.get_item("main-title"));// + std::string(bf));
 
   if(utils::model::Localized::current_language != prev_lg)
   {

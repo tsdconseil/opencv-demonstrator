@@ -311,10 +311,10 @@
     <demo name  = "corner-match"
           fr    = "Mise en correspondance"
           en    = "Matching">
-  <!--        <img path = "1"/>
-         <img path = "2"/> -->
-        <img path="data/img/lac1.jpg"/>
-       <img path="data/img/lac2.jpg"/>
+         <img path = "0"/>
+         <img path = "1"/> 
+        <!--  <img path="data/img/lac1.jpg"/>
+       <img path="data/img/lac2.jpg"/>-->
     </demo>
     </cat>
     

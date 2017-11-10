@@ -145,7 +145,7 @@
   
   <node name = "gaussian" fr="Gaussien">
   
-    <attribute name="taille-noyau" fr="Largeur / hauteur du noyau" unit="pixels" en="Kernel size (pixels)" type="int" min="1" max="9" default="3"/>
+    <attribute name="taille-noyau" fr="Largeur / hauteur du noyau" unit="pixels" en="Kernel size (pixels)" type="int" min="1" max="21" default="3"/>
     <attribute name="sigma" fr="Ecart-type" type="float" default="0" digits="1"/>
   
   </node>
@@ -213,12 +213,18 @@ This demonstration enables you to compute the gradient, with different possible 
       <match value="0" name="0" fr="Opérateur de Sobel" en="Sobel operator"/>
       <match value="1" name="1" fr="Opérateur de Scharr" en="Schar operator"/>
     </attribute>
-    <attribute name="sel3" min="0" max="1" fr="Type de préfiltrage" en="Prefiltering type">
+    <attribute name="sel3" min="0" max="2" fr="Type de préfiltrage" en="Prefiltering type">
       <match value="0" name="0" fr="Gaussien" en="Gaussian" schema="gaussian-sigma"/>
       <match value="1" name="1" fr="Deriche" en="Deriche" schema="deriche-gamma"/>
+      <match value="2" name="2" fr="Aucun" en="None"/>
             <description lang="fr">Le préfiltrage permet de limiter le bruit de calcul (la dérivation a tendance à amplifier les hautes fréquences, donc le bruit).</description>
       <description lang="en">The prefiltering enables to reduce the computing noise (the derivation operation amplify somehow the high frequencies, hence the noise).</description>
     </attribute>
+    
+    <attribute  name  = "mode-hsv"
+                fr    = "Mode HSV actif"
+                type  = "boolean"/>
+                
     
     <sub type="gaussian-sigma" min="1" max="1"/>
     <sub type="deriche-gamma" min="1" max="1"/>
@@ -250,13 +256,15 @@ This demonstration enables you to compute the gradient, with different possible 
       <match value="1" name="1" fr="Valeur signée" en="Signed value"/>
     </attribute>
     
-    <attribute name="taille-noyau" fr="Taille noyau" en="Kernel size" default="3" min="3" max="21"/>
+    <attribute name="taille-noyau" fr="Taille noyau" en="Kernel size" default="3" min="3" max="31"/>
 
     <attribute name="prefiltrer" fr="Activation du préfiltrage" en="Enable pre-filtering" type="boolean" default="false"/>
     <attribute name="sigma" fr="Ecart-type préfiltrage" en="Gaussian prefiltering standard deviation" type="float" default="2" require="prefiltrer=true" digits="1">
       <description lang="fr">Le préfiltrage gaussien permet de limiter le bruit de calcul (la dérivation a tendance à amplifier les hautes fréquences, donc le bruit).</description>
       <description lang="en">Gaussian prefiltering enables to reduce the computing noise (the derivation operation amplify somehow the high frequencies, hence the noise).</description>
     </attribute>
+    
+    <attribute name="echelle" fr="Facteur d'échelle image" en="Image scale factor" type="float" default="1.0" min="0.01" max="100" digits="2"/>
   
   </node>
   
@@ -389,6 +397,8 @@ This demonstration allows you to test lines detection with OpenCV, with the stan
      
      <attribute name="reso-rho" fr="Résolution (rho)" en="Resolution (rho)" type="float" default="1.0" unit="pixels"/>
      <attribute name="reso-theta" fr="Résolution (theta)" en="Resolution (theta)" type="float" default="1.0" unit="degrés"/>
+     
+     <attribute name="angle" type="int" fr="Rotation" en="Rotation" unit="degres" digits="1"/>
       
   </node>
   

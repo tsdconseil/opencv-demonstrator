@@ -18,6 +18,9 @@
   
    Copyright 2007-2011 J. A. -->
 
+  <item name="fermer" fr="Fermer" en="Close"/>
+  <item name="b-annuler" fr="Annuler" en="Cancel"/>
+  <item name="b-valider" fr="Valider" en="Ok"/>
   <item name="infos" fr="A propos..." en="About..."/>
   <item name="new" fr="Nouveau" en="New"/>
   <item name="Use it" fr="Sélection" en="Selection"/>

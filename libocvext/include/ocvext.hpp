@@ -84,7 +84,12 @@ struct MultiPlot
 
 extern void adapte_en_bgr(const cv::Mat &I, cv::Mat &O);
 
-extern void affiche_dans_cadre(const cv::Mat &I, cv::Mat &cadre, cv::Size taille_vue, const cv::Scalar &arriere_plan);
+extern void affiche_dans_cadre(const cv::Mat &I, cv::Mat &cadre,
+      cv::Size taille_vue, const cv::Scalar &arriere_plan);
+
+extern void affiche_dans_cadre(const cv::Mat &I, cv::Mat &cadre,
+    cv::Size taille_vue, const cv::Scalar &arriere_plan,
+                        cv::Point &p0, float &ratio);
 
 }
 

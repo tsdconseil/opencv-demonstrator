@@ -99,6 +99,15 @@ void VueImage::maj(const std::string &chemin_fichier)
     maj(img);
 }
 
+void VueImage::coor_vue_vers_image(int xv, int yv, cv::Point &xi)
+{
+  xv -= p0.x;
+  yv -= p0.y;
+  xv /= ratio;
+  yv /= ratio;
+  xi = cv::Point(xv, yv);
+}
+
 void VueImage::maj(const cv::Mat &img)
 {
   cv::Mat img2, img3;
@@ -151,7 +160,10 @@ void VueImage::maj_surface(const cv::Mat &I)
   uint16_t sx, sy;
   get_dim(sx, sy);
   //infos("resize (%d,%d) --> (%d,%d)", I.cols, I.rows, sx, sy);
-  affiche_dans_cadre(I, O, cv::Size(sx, sy), cv::Scalar(0));
+
+
+
+  affiche_dans_cadre(I, O, cv::Size(sx, sy), cv::Scalar(0), p0, ratio);
   ///cv::resize(t.img, O, cv::Size(sx, sy));
   //uint16_t sx = t.img.cols, sy = t.img.rows;
   change_dim_interne(sx,sy);

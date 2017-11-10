@@ -153,6 +153,23 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   int sel2 = model.get_attribute_as_int("sel2");
   int sel3 = model.get_attribute_as_int("sel3");
   int tnoyau = model.get_attribute_as_int("taille-noyau");
+  bool mode_hsv = model.get_attribute_as_boolean("mode-hsv");
+
+  cv::Mat masque_saturation_luminance;
+
+
+  if(mode_hsv)
+  {
+    cv::Mat hsv;
+    cv::Mat hsv_composantes[3];
+    cv::cvtColor(I, hsv, CV_BGR2HSV);
+    cv::split(hsv, hsv_composantes);
+    I = hsv_composantes[0]; // Teinte
+    masque_saturation_luminance =
+          (hsv_composantes[1] > 50)
+        & (hsv_composantes[2] > 50);
+  }
+
 
   if((tnoyau & 1) == 0)
     tnoyau++;
@@ -162,10 +179,10 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   {
     if(sel3 == 0)
       GaussianBlur(I,tmp, Size(0,0),sigma);
-    else
-    {
+    else if(sel3 == 1)
       ocvext::Deriche_blur(I, tmp, gamma);
-    }
+    else
+      tmp = I.clone();
   }
   else
     tmp = I.clone();
@@ -205,6 +222,14 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     cv::Mat mag, angle;
 
     cv::cartToPolar(gx, gy, mag, angle);
+
+
+    if(mode_hsv)
+    {
+      infos("mag : %d, %d, masque : %d, %d", mag.cols, mag.rows, masque_saturation_luminance.cols, masque_saturation_luminance.rows);
+      mag.setTo(0.0f, 255 - masque_saturation_luminance);
+    }
+
     //addWeighted(agx, .5, agy, .5, 0, output.images[0]);
     cv::normalize(mag, output.images[0], 0, 255, cv::NORM_MINMAX);
     output.names[0] = utils::langue.get_item("gabs");
@@ -290,6 +315,7 @@ int LaplaceDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   float sigma = input.model.get_attribute_as_float("sigma");
   int aff = input.model.get_attribute_as_int("aff");
   int taille_noyau = input.model.get_attribute_as_int("taille-noyau");
+  float echelle = input.model.get_attribute_as_float("echelle");
 
   if((taille_noyau & 1) == 0)
     taille_noyau++;
@@ -300,7 +326,16 @@ int LaplaceDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   if(pref && (sigma > 0))
     GaussianBlur(tmp, tmp, Size(0,0), sigma);
 
+  if(echelle < 0.01)
+    echelle = 0.01;
+
+  infos("Resize echelle = %f", echelle);
+
+  cv::resize(tmp, tmp, cv::Size(0,0), echelle, echelle);
+
   cv::Laplacian(tmp, lap, CV_32F, taille_noyau, 1, 0);
+
+  cv::resize(lap, lap, cv::Size(0,0), 1.0 / echelle, 1.0 / echelle);
 
   if(aff == 0)
     lap = cv::abs(lap);
@@ -352,8 +387,28 @@ int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   float seuil = input.model.get_attribute_as_float("seuil");
   float seuilg = input.model.get_attribute_as_float("seuilg");
   float seuil_canny = input.model.get_attribute_as_float("seuil-canny");
+  float angle = input.model.get_attribute_as_float("angle");
+
   Mat dst, bw;
   int ratio = 3;
+  auto I = input.images[0].clone();
+  cv::cvtColor(I, bw, CV_BGR2GRAY);
+
+  if(angle != 0)
+  {
+    infos("Rotation %f degres...", angle);
+    cv::Size sz = bw.size() / 2;
+    cv::Point centre;
+    centre.x = sz.width;
+    centre.y = sz.height;
+    //uint16_t sx = sz.width, sy = sz.height;
+    cv::Mat R = cv::getRotationMatrix2D(centre, angle, 1.0);
+    cv::warpAffine(bw, bw, R, bw.size());
+    cv::warpAffine(I, I, R, bw.size());
+    //bw = bw(Rect(sx/4,sy/4,sx/2,sy/2));
+  }
+
+
 
   if((reso_theta <= 0) || (reso_rho <= 0))
   {
@@ -362,8 +417,7 @@ int HoughDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     return -1;
   }
 
-  auto I = input.images[0];
-  cv::cvtColor(I, bw, CV_BGR2GRAY);
+
   cv::blur(bw, bw, cv::Size(3, 3));
   Canny(bw, bw, seuil_canny, seuil_canny * ratio, 3);
   cvtColor(bw, output.images[0], CV_GRAY2BGR);

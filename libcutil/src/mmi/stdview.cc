@@ -657,27 +657,41 @@ bool NodeView::MyTreeModel::drag_data_received_vfunc(
   return false;
 }
 
-NodeView::NodeView(Gtk::Window *mainWin, Node model)
-:  table(model, NodeViewConfiguration()), tree_view(this)
+NodeView::NodeView(Gtk::Window *mainWin, Node model)//: tree_view(this)
+//:  table(model, NodeViewConfiguration()), tree_view(this)
 {
   NodeViewConfiguration config;
   init(mainWin, model, config);
 }
 
+int NodeView::init(Node modele, const NodeViewConfiguration &config, Gtk::Window *mainWin)
+{
+  table.init(modele, config);
+  return init(mainWin, modele, config);
+}
+
+NodeView::NodeView()
+{
+}
+
 NodeView::NodeView(Node model) :
-    table(model, NodeViewConfiguration()), tree_view(this) {
+    table(model, NodeViewConfiguration())
+{
   NodeViewConfiguration config;
   init(mainWindow, model, config);
 }
 
 NodeView::NodeView(Gtk::Window *mainWin, Node model,
     const NodeViewConfiguration &config) :
-    table(model, config), tree_view(this) {
+    table(model, config)
+{
   init(mainWin, model, config);
 }
 
-void NodeView::init(Gtk::Window *mainWin, Node model,
-    const NodeViewConfiguration &config) {
+int NodeView::init(Gtk::Window *mainWin, Node model,
+    const NodeViewConfiguration &config)
+{
+  tree_view.init(this);
   this->config = config;
   // (1) Inits diverses
   //infos("Creation...");
@@ -949,6 +963,7 @@ void NodeView::init(Gtk::Window *mainWin, Node model,
    config.to_string().c_str(),
    aff_mode_names[affichage].c_str(),
    has_optionnals ? "true" : "false");*/
+  return 0;
 }
 
 bool NodeView::is_valid() {
@@ -1467,9 +1482,18 @@ void NodeView::add_element(std::pair<Node, SubSchema *> p) {
   //infos("Now m =\n%s", m.to_xml().c_str());
 }
 
-NodeView::MyTreeView::MyTreeView(NodeView *parent) :
-    Gtk::TreeView() {
+void NodeView::MyTreeView::init(NodeView *parent)
+{
   this->parent = parent;
+}
+
+NodeView::MyTreeView::MyTreeView()
+{
+}
+
+NodeView::MyTreeView::MyTreeView(NodeView *parent)/* :
+    Gtk::TreeView()*/ {
+  init(parent);
 }
 
 void NodeView::on_treeview_row_activated(const Gtk::TreeModel::Path &path,
@@ -1585,11 +1609,21 @@ void AttributeListView::on_the_realisation() {
    scroll.set_size_request(w + 30, h + 30);*/
 }
 
-AttributeListView::AttributeListView(Node model,
-    const NodeViewConfiguration &config) :
-    table1(
-           ((model.schema()->attributes.size() > 0) ? model.schema()->attributes.size() : 1),
-        3, false), table2(1, 1, false) {
+AttributeListView::AttributeListView()
+{
+}
+
+void AttributeListView::init(Node model,
+    const NodeViewConfiguration &config)
+{
+  table1.resize(((model.schema()->attributes.size() > 0) ? model.schema()->attributes.size() : 1),
+      3);
+  table1.set_homogeneous(false);
+
+
+  table2.resize(1, 1);
+  table2.set_homogeneous(false);
+
 
   this->config = config;
   bool has_no_attributes = true;
@@ -2035,6 +2069,15 @@ AttributeListView::AttributeListView(Node model,
   on_event(ce);
 
   //signal_realize().connect(sigc::mem_fun(*this, &AttributeListView::on_the_realisation));
+}
+
+AttributeListView::AttributeListView(Node model,
+    const NodeViewConfiguration &config) /*:
+    table1(
+           ((model.schema()->attributes.size() > 0) ? model.schema()->attributes.size() : 1),
+        3, false), table2(1, 1, false)*/
+{
+  init(model, config);
 }
 
 static void exec_cmde(Node &model, std::string cmde_name)

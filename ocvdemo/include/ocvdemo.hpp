@@ -98,7 +98,8 @@ class OCVDemo:
 {
 public:
   /** Constructeur (devrait être privé !) */
-  OCVDemo(utils::CmdeLine &cmdeline);
+  OCVDemo(utils::CmdeLine &cmdeline,
+          const std::string &prefixe_modele = "");
 
   //void ajoute_bouton(Gtk::ToolButton *bouton);
 
