@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<section name="ocvext-lang">
+
+  <!-- This file is part of LIBOCVEXT.
+  
+   LIBOCVEXT is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+  
+   LIBOCVEXT is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+  
+   You should have received a copy of the GNU Lesser General Public License
+   along with LIBOCVEXT.  If not, see <http://www.gnu.org/licenses/>.
+  
+   Copyright 2007-2017 J. A. -->
+
+  <item name="analyser" fr="Analyser image" en="Analyse image"/>
+  <item name="echec-etalonnage" fr="Echec de l'étalonnage de la caméra"
+        en = "Camera calibration failed"/>
+  <item name="enreg-cal" fr="Enregistrer étalonnage caméra"
+    en="Save camera calibration"/>
+  <item name="fichier-cal" fr="Fichier YML" en="YML file"/>
+  <item name="cap" fr="Capturer image" en="Capture image"/>
+  <item name="cal" fr="Etalonnage caméra..." en="Camera calibration..."/>
+  
+  <item name="title-open" fr="Ajouter une image..." en="Add an image..."/>
+  <item name="b_del" fr="Supprimer" en="Remove"/>
+  <item name="b_open" fr="Ouvrir..." en="Open..."/>
+  <item name="b_ajout" fr="Ajouter..." en="Add..."/>
+  <item name="b_del_tout" fr="Supprimer tout" en="Remove all"/>
+  <item name="titre-sel" fr="Sélection des sources" en="Source(s) selection"/>
+
+  
+</section>

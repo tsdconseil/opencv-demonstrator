@@ -30,7 +30,9 @@
 # Exclude the build folders.
 ocvdemo/build/*
 libcutil/build/*
-ocvext/build/*
+libocvext/build/*
+ocvdemo/installeur/*
+ocvdemo/installer/*
 
 # Exclude emacs tmp files
 *~
