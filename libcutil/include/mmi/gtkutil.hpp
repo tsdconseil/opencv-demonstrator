@@ -64,6 +64,7 @@ using std::ptrdiff_t;
 #include <gtkmm/main.h>
 #include <gtkmm/aboutdialog.h>
 #include <gtkmm/progressbar.h>
+#include <gtkmm/toggleaction.h>
 
 #include <gtkmm/stock.h>
 #include <gtkmm/messagedialog.h>
@@ -829,7 +830,7 @@ private:
   utils::hal::Mutex mutex_video_update;
 
 
-  int on_event(const Trame &t);
+  void on_event(const Trame &t);
 
   void do_update_view();
   virtual bool on_draw(const Cairo::RefPtr<Cairo::Context> &cr);
@@ -966,7 +967,7 @@ private:
   bool on_timer(int index);
   void on_b_cancel();
   struct Bidon{};
-  int on_event(const Bidon &bidon);
+  void on_event(const Bidon &bidon);
 
 
   utils::mmi::GtkDispatcher<Bidon> gtk_dispatcher;
@@ -997,6 +998,25 @@ void ProgressDialog::start_progress(std::string title, std::string text,
 extern int verifie_dernier_demarrage();
 
 extern int termine_appli();
+
+
+class FenetreVisibiliteToggle
+{
+public:
+  FenetreVisibiliteToggle();
+  void config(Gtk::Window *fenetre,
+              Glib::RefPtr<Gtk::ActionGroup> agroup,
+              const std::string &id);
+  void affiche(bool visible = true);
+  bool est_visible() const;
+private:
+  bool gere_evt_delete(GdkEventAny *evt);
+  void on_toggle();
+  bool visible;
+  Glib::RefPtr<Gtk::ToggleAction> toggle;
+  Gtk::Window *fenetre;
+  bool lock;
+};
 
 
 }

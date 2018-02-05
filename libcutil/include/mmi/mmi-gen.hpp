@@ -37,7 +37,9 @@ public:
 
 protected:
 
-  struct Action: public utils::VoidEventProvider
+  struct ActionEvent{};
+
+  struct Action: public utils::CProvider<ActionEvent>
   {
     std::string id;
     Gtk::ToolButton bouton;
@@ -57,6 +59,7 @@ protected:
   utils::model::NodeSchema *schema_vue; // Schéma construit
   std::vector<MMIGenSection *> sections;
   Gtk::VBox  vbox_princ;
+  Gtk::Frame frame_menu;
   std::vector<Gtk::VBox *> vboxes;
   Gtk::HBox hbox;//, hb1, hb2;
   Gtk::ProgressBar progress;

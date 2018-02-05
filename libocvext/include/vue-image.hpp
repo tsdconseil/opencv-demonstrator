@@ -20,8 +20,13 @@ public:
 
   bool on_draw(const Cairo::RefPtr<Cairo::Context> &cr);
 
+  cv::Scalar arriere_plan;
+
 protected:
   //void on_size_allocate(Gtk::Allocation &allocation);
+
+  //void get_preferred_width(int& minimum_width, int& natural_width) const;
+  //void get_preferred_height(int& minimum_height, int& natural_height) const;
 
 private:
   float ratio;
@@ -57,7 +62,7 @@ private:
 
 
   void maj_surface(const cv::Mat &I);
-  int on_event(const Trame &t);
+  void on_event(const Trame &t);
 
   void do_update_view();
 

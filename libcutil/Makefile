@@ -52,13 +52,16 @@ FIRST_TARGETS =
 
 ADDITIONNAL_OBJS = 
 
-ifeq ($(OCVIPATH),)
+
+#ifeq ($(OCVIPATH),)
  # OCVIPATH not defined, assume that OpenCV is installed in default directories (e.g. /usr/include/, etc.)
-else
+#else
  # OCVIPATH is defined: it should be the path where opencv was builded
-ADDITIONNAL_INC_DIRS += -I$(OCVIPATH)
-ADDITIONNAL_LOPT     += -L$(OCVLPATH) -lopencv_core310 -lopencv_imgproc310 -lopencv_highgui310 -lopencv_videoio310 -lopencv_imgcodecs310 -march=i486
-endif
+#ADDITIONNAL_INC_DIRS += -I$(OCVIPATH)
+#ADDITIONNAL_LOPT     += -L$(OCVLPATH) -lopencv_core310 -lopencv_imgproc310 -lopencv_highgui310 -lopencv_videoio310 -lopencv_imgcodecs310 -march=i486
+#endif
+
+include $(RPATH)/libcutil/data/makefile-opencv320
 
 # Common definitions for Makefiles and build rules
 include $(RPATH)/libcutil/data/std-makefile-defs

@@ -43,20 +43,22 @@ template <class B>
 class EventFunctor
 {
 public:
-  virtual int call( B &b) = 0;
+  virtual void call( B &b) = 0;
 };
 
+#if 0
 class VoidEventFunctor
 {
 public:
   virtual void call() = 0;
 };
+#endif
 
 template <class A, class B>
 class SpecificEventFunctor: public EventFunctor<B>
 {
 public:
-  SpecificEventFunctor(A *object, int(A::*m_function)( B &b))
+  SpecificEventFunctor(A *object, void(A::*m_function)( B &b))
   {
     this->object = object;
     this->m_function = m_function;
@@ -72,6 +74,7 @@ private:
 };
 
 
+#if 0
 template <class A>
 class SpecificVoidEventFunctor: public VoidEventFunctor
 {
@@ -91,6 +94,7 @@ private:
   A *object;
 };
 /** @endcond */
+#endif
 
 
 
@@ -109,11 +113,11 @@ public:
 
     template<class A>
     int add_listener(A *target,
-                     int (A:: *fun)( Type &));
+                     void (A:: *fun)( Type &));
 
     template<class A>
     int remove_listener(A *target,
-                        int (A:: *fun)( Type &));
+                        void (A:: *fun)( Type &));
 
     virtual ~Provider<Type>(){remove_all_listeners();}
 
@@ -122,6 +126,7 @@ private:
     std::deque<EventFunctor<Type> *> functors;
 };
 
+#if 0
 class VoidEventProvider
 {
 public:
@@ -141,6 +146,7 @@ public:
 private:
     std::deque<VoidEventFunctor *> functors;
 };
+#endif
 
 /** Event listener mother class. */
 template <class Type>
@@ -212,6 +218,7 @@ void Provider<Type>::dispatch( Type &evt)
   //mutex.unlock();
 }
 
+#if 0
 template<class A>
 int VoidEventProvider::add_listener(A *target,
                                     void (A:: *fun)())
@@ -221,11 +228,12 @@ int VoidEventProvider::add_listener(A *target,
   functors.push_back(f);
   return 0;
 }
+#endif
 
 template<class Type>
 template<class A>
 int Provider<Type>::add_listener(A *target,
-                              int (A:: *fun)( Type &))
+                              void (A:: *fun)( Type &))
 {
   /* TODO: check if not already registered */
   SpecificEventFunctor<A,Type> *f = new SpecificEventFunctor<A,Type>(target, fun);
@@ -234,17 +242,19 @@ int Provider<Type>::add_listener(A *target,
 }
 
 
+#if 0
 template<class A>
 int VoidEventProvider::remove_listener(A *target,
                                     void (A:: *fun)())
 {
   return 0;
 }
+#endif
 
 template<class Type>
 template<class A>
 int Provider<Type>::remove_listener(A *target,
-                                    int (A:: *fun)( Type &))
+                                    void (A:: *fun)( Type &))
 {
   //std::deque<SpecificEventFunctor<A,Type> *>::iterator it;
 
@@ -269,25 +279,25 @@ template <class B>
 class CEventFunctor
 {
 public:
-  virtual int call(const B &b) = 0;
+  virtual void call(const B &b) = 0;
 };
 
 template <class A, class B>
 class SpecificCEventFunctor: public CEventFunctor<B>
 {
 public:
-  SpecificCEventFunctor(A *object, int(A::*m_function)(const B &b))
+  SpecificCEventFunctor(A *object, void(A::*m_function)(const B &b))
   {
     this->object = object;
     this->m_function = m_function;
   }
 
-  virtual int call(const B &b)
+  virtual void call(const B &b)
   {
-    return (*object.*m_function)(b);
+    (*object.*m_function)(b);
   }
 private:
-  int (A::*m_function)(const B &);
+  void (A::*m_function)(const B &);
   A *object;
 };
 /** @endcond */
@@ -309,11 +319,11 @@ public:
 
     template<class A>
     int add_listener(A *target,
-                     int (A:: *fun)(const Type &));
+                     void (A:: *fun)(const Type &));
 
     template<class A>
     int remove_listener(A *target,
-                        int (A:: *fun)(const Type &));
+                        void (A:: *fun)(const Type &));
 
     virtual ~CProvider<Type>(){remove_all_listeners();}
 
@@ -407,7 +417,7 @@ void CProvider<Type>::dispatch(const Type &evt)
 template<class Type>
 template<class A>
 int CProvider<Type>::add_listener(A *target,
-                              int (A:: *fun)(const Type &))
+                              void (A:: *fun)(const Type &))
 {
   /* TODO: check if not already registered */
   SpecificCEventFunctor<A,Type> *f = new SpecificCEventFunctor<A,Type>(target, fun);
@@ -418,7 +428,7 @@ int CProvider<Type>::add_listener(A *target,
 template<class Type>
 template<class A>
 int CProvider<Type>::remove_listener(A *target,
-                                    int (A:: *fun)(const Type &))
+                                    void (A:: *fun)(const Type &))
 {
   //std::deque<SpecificEventFunctor<A,Type> *>::iterator it;
 

@@ -73,7 +73,7 @@ public:
   virtual void write(const uint8_t *buffer, uint32_t len);
   virtual void putc(char c) = 0;
   void put(const model::ByteArray &ba);
-  void put_data(const char *buffer, int len);
+  void put_data(const void *buffer, int len);
   void put_string(std::string s);
   void putw(unsigned short s);
   virtual void flush(){}

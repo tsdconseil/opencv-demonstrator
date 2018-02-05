@@ -66,7 +66,7 @@ namespace journal
     AL_ANOMALY   = 16,
 
     /** @brief To disable all infos levels */
-    AL_NONE      = 0
+    AL_NONE      = 17
 
   } TraceLevel;
 

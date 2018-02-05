@@ -58,7 +58,7 @@ private:
 
   };
   utils::mmi::GtkDispatcher<EvtGtk> dispatcheur;
-  int gere_evt_gtk(const EvtGtk &eg);
+  void gere_evt_gtk(const EvtGtk &eg);
 };
 
 

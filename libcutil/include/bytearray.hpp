@@ -23,6 +23,8 @@ class ByteArray
 
   void lis_fichier(FILE *fi, uint32_t lon);
   void ecris_fichier(FILE *fo);
+  int ecris_fichier(const std::string &fn);
+  int lis_fichier(const std::string &fn);
 
   ByteArray(int len);
   ByteArray();
@@ -45,7 +47,7 @@ class ByteArray
   void        putw(uint16_t w);
   void        putl(uint32_t l);
   void        putL(uint64_t val);
-  void        put(const unsigned char *buffer, unsigned int len);
+  void        put(const void *buffer, unsigned int len);
   /** Put nullptr terminated string */
   void        puts_zt(std::string s);
   void        puts(std::string s);
@@ -58,7 +60,7 @@ class ByteArray
   uint64_t    popL();
   std::string pops();
   float       popf();
-  void        pop_data(uint8_t *buffer, uint32_t len);
+  void        pop_data(void *buffer, uint32_t len);
   void        pop(ByteArray &ba, uint32_t len);
 
   std::string to_string(bool hexa = false) const;

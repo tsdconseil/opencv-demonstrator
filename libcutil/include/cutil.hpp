@@ -699,16 +699,13 @@ public:
   bool has_item(const std::string &name) const;
   std::string get_item(const std::string &name) const;
   const utils::model::Localized &get_localized(const std::string &name) const;
-  //const char *get_text(std::string name);
   Section &get_section(const std::string &name);
   const Section &get_section(const std::string &name) const;
-  //std::string current_language;
   void load();
   void load(std::string filename);
   void load(const utils::model::MXml &data);
 private:
   Section(const utils::model::MXml &data);
-  //utils::model::MXml data;
   std::vector<utils::model::Localized> elmts;
   std::vector<utils::refptr<Section>> subs;
   std::string nom;
@@ -717,7 +714,11 @@ private:
 
 
 
-
+class Test
+{
+public:
+  virtual int proceed() = 0;
+};
 
 
 /** @brief Test framework */
@@ -727,6 +728,7 @@ public:
   TestUtil(const utils::CmdeLine &cmdeline);
   TestUtil(const std::string &module, const std::string &prg, int argc, const char **argv);
   int add_test(const std::string &name, int (*test_routine)());
+  int add_test(const std::string &name, Test *test);
   int proceed();
 
   /** @param precision: relative precision, in percent. */
@@ -738,6 +740,7 @@ private:
   public:
     std::string name;
     int (*test_routine)();
+    Test *test;
   };
   std::vector<TestUnit> units;
   utils::CmdeLine cmdeline;

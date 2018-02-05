@@ -112,7 +112,7 @@ void VideoView::update(void *img, uint16_t sx, uint16_t sy)
   dispatcher.on_event(t);
 }
 
-int VideoView::on_event(const Trame &t)
+void VideoView::on_event(const Trame &t)
 {
   uint16_t sx = t.sx, sy = t.sy;
   change_dim(sx,sy);
@@ -122,7 +122,6 @@ int VideoView::on_event(const Trame &t)
     free(t.img);
   }
   queue_draw();
-  return 0;
 }
 
 
@@ -1030,7 +1029,10 @@ void JFrame::set_label(const Glib::ustring &s)
 {
     Gtk::Label *old = lab;
     lab = new Gtk::Label();
-    lab->set_label(std::string("<span color=\"#006000\">") + s + "</span>");
+    if(appli_view_prm.inverted_colors)
+      lab->set_label(std::string("<span color=\"#00ff00\">") + s + "</span>");
+    else
+      lab->set_label(std::string("<span color=\"#006000\">") + s + "</span>");
     lab->set_use_markup(true);
     set_label_widget(*lab);
     lab->show();
@@ -2794,42 +2796,8 @@ bool TreeManager::a_enfant_visible(const utils::model::Node noeud)
 
 void TreeManager::populate()
 {
-  unsigned int i, j, n;
-
   tree_model->clear();
-
   populate(model, nullptr);
-
-# if 0
-  for(i = 0; i < model.schema()->children.size(); i++)
-  {
-    SubSchema ss = model.schema()->children[i];
-    NodeSchema *schema = ss.ptr;
-
-    if(!verifie_type_gere(schema->name.get_id()))
-      continue;
-    //std::deque<Node> lst = model.get_children(schema->name.get_id());
-    n = model.get_children_count(schema->name.get_id());
-    for(j = 0; j < n; j++)
-    {
-      Node no = model.get_child_at(schema->name.get_id(), j);
-      Gtk::TreeModel::Row subrow = *(tree_model->append());
-
-
-      auto s = no.get_identifier(false);
-      if(a_enfant_visible(no))
-        s = "<b>" + s + "</b>";
-
-      subrow[columns.m_col_name] = s;
-      subrow[columns.m_col_ptr] = no;
-
-      if(has_pic(schema))
-        subrow[columns.m_col_pic] = get_pics(schema);
-      populate(no, &subrow);
-    }
-  }
-# endif
-
   tree_view.expand_all();
 }
 
@@ -4551,11 +4519,10 @@ bool ProgressDialog::on_timer(int index)
   return true;
 }
 
-int ProgressDialog::on_event(const Bidon &bidon)
+void ProgressDialog::on_event(const Bidon &bidon)
 {
   trace_verbeuse("Now stopping.");
   hide();
-  return 0;
 }
 
 void ProgressDialog::thread_entry()
@@ -4710,7 +4677,7 @@ bool GtkLed::is_on()
 
 bool GtkLed::on_mouse(GdkEventButton *event)
 {
-  printf("on_mouse, is_mut = %d.\n", is_mutable); fflush(0);
+  //printf("on_mouse, is_mut = %d.\n", is_mutable); fflush(0);
   if(is_mutable)
   {
 
@@ -4775,6 +4742,67 @@ void GtkLed::update_view()
   }
 }
 
+
+FenetreVisibiliteToggle::FenetreVisibiliteToggle()
+{
+  lock = false;
+  visible = false;
+  this->fenetre = nullptr;
+}
+
+bool FenetreVisibiliteToggle::est_visible() const
+{
+  return visible;
+}
+
+void FenetreVisibiliteToggle::config(Gtk::Window *fenetre,
+          Glib::RefPtr<Gtk::ActionGroup> agroup,
+          const std::string &id)
+{
+  this->fenetre = fenetre;
+  this->toggle  = Gtk::ToggleAction::create(id, langue.get_section("menu").get_item(id), "", false);
+  agroup->add(toggle, sigc::mem_fun(*this, &FenetreVisibiliteToggle::on_toggle));
+  fenetre->signal_delete_event().connect(sigc::mem_fun(*this, &FenetreVisibiliteToggle::gere_evt_delete));
+}
+
+bool FenetreVisibiliteToggle::gere_evt_delete(GdkEventAny *evt)
+{
+  infos("DELETE detecte sur fenetre.");
+  visible = false;
+  lock = true;
+  fenetre->hide();
+  toggle->set_active(false);
+  lock = false;
+  return true;
+}
+
+void FenetreVisibiliteToggle::affiche(bool visible_)
+{
+  infos("Toggle affiche (%d)", (int) visible_);
+  visible = visible_;
+  lock = true;
+  toggle->set_active(visible);
+  lock = false;
+  if(visible)
+  {
+    infos("Show (fenetre).");
+    fenetre->show();
+  }
+  else
+    fenetre->hide();
+}
+
+void FenetreVisibiliteToggle::on_toggle()
+{
+  if(!lock)
+  {
+    visible = !visible;
+    if(visible)
+      fenetre->show();
+    else
+      fenetre->hide();
+  }
+}
 
 
 }

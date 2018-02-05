@@ -95,7 +95,7 @@ public:
 
   Socket();
   virtual ~Socket();
-  bool is_connected();
+  bool is_connected() const;
   int connect(std::string target_ip,
               uint16_t target_port,
               socket_type_t type = SOCKET_TCP);

@@ -396,11 +396,29 @@ void VueDecimal::on_event(const ChangeEvent &ce) {
  *               FLOAT VIEW IMPLEMENTATION                         *
  *******************************************************************/
 
-VueFloat::VueFloat(Attribute *model) {
+VueFloat::VueFloat(Attribute *model, Node modele_vue)
+{
+  init(model, modele_vue);
+}
+
+VueFloat::VueFloat(Attribute *model)
+{
+  init(model, Node());
+}
+
+void VueFloat::init(Attribute *model, Node modele_vue)
+{
   lock = false;
   this->model = model;
   label.set_use_markup(true);
-  label.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
+
+  valeur_label = model->schema->name;
+
+  if(!modele_vue.is_nullptr())
+    if(modele_vue.get_localized_name().size() > 0)
+      valeur_label = modele_vue.get_localized();
+
+  label.set_markup("<b>" + NodeView::mk_label_colon(valeur_label) + "</b>");
   spin.set_editable(true);
 
   int digits = model->schema->digits;
@@ -433,7 +451,7 @@ VueFloat::VueFloat(Attribute *model) {
 }
 
 void VueFloat::update_langue() {
-  label.set_markup("<b>" + NodeView::mk_label(model->schema->name) + "</b>");
+  label.set_markup("<b>" + NodeView::mk_label(valeur_label) + "</b>");
 }
 
 unsigned int VueFloat::get_nb_widgets() {
@@ -486,14 +504,18 @@ VueBouleen::~VueBouleen() {
 
 }
 
-VueBouleen::VueBouleen(Attribute *model) {
+VueBouleen::VueBouleen(Attribute *model, bool affiche_label)
+{
   lock = false;
   this->model = model;
   //Gtk::Label *lab = new Gtk::Label();
   lab.set_use_markup(true);
-  std::string s = NodeView::mk_label(model->schema->name);
-  lab.set_markup("<b>" + s + "</b>");
-  check.add(lab);
+  if(affiche_label)
+  {
+    std::string s = NodeView::mk_label(model->schema->name);
+    lab.set_markup("<b>" + s + "</b>");
+    check.add(lab);
+  }
   check.set_active(model->get_boolean());
   check.signal_toggled().connect(
       sigc::mem_fun(*this, &VueBouleen::on_signal_toggled));
@@ -1674,8 +1696,9 @@ void VueChaineConstante::on_event(const ChangeEvent &ce)
     }
 
     std::string s = utils::str::latin_to_utf8(nom);
-    if(model->schema->has_unit())
-      s += " " + model->schema->unit;
+
+    //if(model->schema->has_unit())
+    //  s += " " + model->schema->unit;
     //if(model->schema->is_hexa)
      // s = "0x" + s;
 

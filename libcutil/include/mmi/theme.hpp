@@ -1,21 +1,25 @@
 #ifndef THEME_H
 #define THEME_H
 
-#ifdef MSYS2
+//#ifdef MSYS2
 #include <gtkmm/cssprovider.h>
-#include <gtkmm/styleproperty.h>
-#endif
+//#include <csssection.h>
+//#include <gtkmm/styleproperty.h>
+//#endif
 
 namespace utils{ namespace mmi{
+
+
+
 
 struct Theme
 {
   std::string id;
   std::string desc;
   std::string chemin;
-# ifdef MSYS2
+  //# ifdef MSYS2
   Glib::RefPtr<Gtk::CssProvider> provider;
-# endif
+  //# endif
 };
 
 extern std::vector<Theme> themes;

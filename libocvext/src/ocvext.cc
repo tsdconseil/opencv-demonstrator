@@ -283,7 +283,8 @@ void redim_preserve_aspect(const cv::Mat &I,
 
 
 
-void affiche_dans_cadre(const cv::Mat &I, cv::Mat &cadre, cv::Size taille_vue, const cv::Scalar &arriere_plan,
+void affiche_dans_cadre(const cv::Mat &I, cv::Mat &cadre, cv::Size taille_vue,
+                        const cv::Scalar &arriere_plan,
                         cv::Point &p0, float &ratio)
 {
   auto taille_video = I.size();

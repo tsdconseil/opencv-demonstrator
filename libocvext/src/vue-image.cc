@@ -13,9 +13,25 @@ namespace ocvext {
 std::vector<Cairo::RefPtr<Cairo::Context>> *VueImage::old_srf =
     new std::vector<Cairo::RefPtr<Cairo::Context>>();
 
+
+#if 0
+void VueImage::get_preferred_width(int& minimum_width, int& natural_width) const
+{
+  infos("**************** gpw : %d", csx);
+  minimum_width = natural_width = csx;
+}
+
+void VueImage::get_preferred_height(int& minimum_height, int& natural_height) const
+{
+  infos("*************** gph : %d", csy);
+  minimum_height = natural_height = csy;
+}
+#endif
+
 VueImage::VueImage(uint16_t dx, uint16_t dy, bool dim_from_parent)
   : Gtk::DrawingArea(), dispatcher(16)
 {
+  arriere_plan = cv::Scalar(0);
   cr_alloue = false;
   alloc_x = alloc_y = -1;
   realise  = false;
@@ -108,6 +124,9 @@ void VueImage::coor_vue_vers_image(int xv, int yv, cv::Point &xi)
   xi = cv::Point(xv, yv);
 }
 
+#define TEST00 1
+
+
 void VueImage::maj(const cv::Mat &img)
 {
   cv::Mat img2, img3;
@@ -120,21 +139,24 @@ void VueImage::maj(const cv::Mat &img)
   }
   cv::cvtColor(img2, img3, CV_BGR2BGRA);
 
+# if !TEST00
   en_attente.img = img3;
+# endif
 
   //maj_surface(en_attente.img);
 
   if(!realise)
   {
     avertissement("maj vue image : non realise.");
-    //en_attente.img = img.clone();
+#   if TEST00
+    en_attente.img = img3;
+#   endif
     return;
-    //return;
   }
 
   if(dispatcher.is_full())
   {
-    avertissement("maj vue image: FIFO de sortie pleine, on va ignorer quelques trames...");
+    //avertissement("maj vue image: FIFO de sortie pleine, on va ignorer quelques trames...");
     //return;
     dispatcher.clear();
   }
@@ -161,9 +183,11 @@ void VueImage::maj_surface(const cv::Mat &I)
   get_dim(sx, sy);
   //infos("resize (%d,%d) --> (%d,%d)", I.cols, I.rows, sx, sy);
 
+  // Un essai
+  // sx = I.cols; sy = I.rows;
 
 
-  affiche_dans_cadre(I, O, cv::Size(sx, sy), cv::Scalar(0), p0, ratio);
+  affiche_dans_cadre(I, O, cv::Size(sx, sy), arriere_plan, p0, ratio);
   ///cv::resize(t.img, O, cv::Size(sx, sy));
   //uint16_t sx = t.img.cols, sy = t.img.rows;
   change_dim_interne(sx,sy);
@@ -173,12 +197,17 @@ void VueImage::maj_surface(const cv::Mat &I)
   DEBOGUE_VUE_IMAGE(infos("ok"));
 }
 
-int VueImage::on_event(const Trame &t)
+void VueImage::on_event(const Trame &t)
 {
   /*if(t.img.cols != 0)
   {
     maj_surface(t.img);
   }*/
+
+# if TEST00
+  en_attente.img = t.img;
+# endif
+
   uint16_t sx, sy;
   get_dim(sx, sy);
   //infos("queue_draw (alloc = %d * %d)...", sx, sy);
@@ -187,7 +216,6 @@ int VueImage::on_event(const Trame &t)
   //queue_draw_area(0, 0, csx, csy);
   //do_update_view();
   //show();
-  return 0;
 }
 
 
@@ -217,9 +245,9 @@ void VueImage::draw_all()
 // Pas vraiment utilsé
 bool VueImage::gere_expose_event(GdkEventExpose* event)
 {
-  int sx = get_allocated_width();
-  int sy = get_allocated_height();
-  DEBOGUE_VUE_IMAGE(infos("expose event : alloc = %d * %d", sx, sy));
+  //int sx = get_allocated_width();
+  //int sy = get_allocated_height();
+  //DEBOGUE_VUE_IMAGE(infos("expose event : alloc = %d * %d", sx, sy));
   do_update_view();
   return true;
 }
@@ -310,9 +338,11 @@ bool VueImage::on_draw(const Cairo::RefPtr<Cairo::Context> &cr)
       // Pour contourner bogue GTK sous Windows 10,
       // il ne faut pas supprimer le CR
       // sînon ("")
+      #ifdef WIN
       old_srf->push_back(this->cr);
       DEBOGUE_VUE_IMAGE(infos("destruction cr..."));
       this->cr.clear();
+      #endif
     }
     DEBOGUE_VUE_IMAGE(infos("copie cr..."));
     cr_alloue = true;

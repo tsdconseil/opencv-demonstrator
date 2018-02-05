@@ -935,7 +935,10 @@ int FileSchema::from_xml(const MXml &xm)
     return -1;
   }
 
-  std::string rootname = xm.get_attribute("root").to_string();
+  /*std::string rootname;
+
+  if(xm.has_attribute("root"))
+    rootname = xm.get_attribute("root").to_string();*/
 
   std::vector<const MXml *> lst;
 
@@ -997,9 +1000,9 @@ int FileSchema::from_xml(const MXml &xm)
   }
 
   build_references();
-  root = get_schema(rootname);
-  if(root != nullptr)
-    root->update_size_info();
+  // root = get_schema(rootname);
+  // if(root != nullptr)
+  //   root->update_size_info();
 
   return 0;
 }
@@ -2238,8 +2241,9 @@ int    AttributeSchema::serialize(ByteArray &ba, float value)  const
   return 0;
 }
 
-int    AttributeSchema::serialize(ByteArray &ba, const string &value) const
+int    AttributeSchema::serialize(ByteArray &ba, const std::string &value_) const
 {
+  std::string value = value_;
   const AttributeSchema &as = *this;
   switch(as.type)
   {
@@ -2251,8 +2255,19 @@ int    AttributeSchema::serialize(ByteArray &ba, const string &value) const
       }*/
     case TYPE_INT:
     {
-
       int val = 0;
+
+      if(enumerations.size() > 0)
+      {
+        for(const auto &e: enumerations)
+        {
+          if((value == e.name.get_id()) || (value == e.name.get_localized()))
+          {
+            value = e.value;
+            break;
+          }
+        }
+      }
 
 
       if(is_hexa)
@@ -2319,6 +2334,8 @@ int    AttributeSchema::serialize(ByteArray &ba, const string &value) const
       istr >> result;
 
       ba.putf(result);
+
+      //infos("Conversion string >> float : %s >> %f", s.c_str(), result);
 
         //result = atof(s.c_str());
         //printf("get_float: %s -> %f\n", s.c_str(), result);
@@ -2538,6 +2555,9 @@ void RamNode::on_event(const ChangeEvent &ce)
 {
   event_detected = true;
 
+  if(inhibit_event_raise)
+    return;
+
   //infos(ce.to_string());
 
   if((ce.type == ChangeEvent::GROUP_CHANGE) && (inhibit_event_raise))
@@ -2547,7 +2567,7 @@ void RamNode::on_event(const ChangeEvent &ce)
   // but to external yes !
 
   // Dispatch all normal events to parent
-  if(ce.type != ChangeEvent::GROUP_CHANGE)
+  if((ce.type != ChangeEvent::GROUP_CHANGE))// && (!inhibit_event_raise))
   {
     ChangeEvent nce = ce;
     XPathItem xpi(schema->name.get_id(), instance);
@@ -3427,7 +3447,8 @@ void Node::copy_from(const Node e)
     set_reference(name, ref);
   }
 
-  for(unsigned int i = 0; i < e.data->get_attribute_count(); i++)
+  n = e.data->get_attribute_count();
+  for(unsigned int i = 0; i < n; i++)
   {
     Attribute *att = e.data->get_attribute_at(i);
     set_attribute(att->schema->name.get_id(), att->value);
@@ -3469,6 +3490,9 @@ void Node::copy_from(const Node e)
 
   if(data->event_detected)
   {
+    auto s = schema()->name.get_id();
+    infos("Dispatch ensemble des evt precedents [%s]...", s.c_str());
+
     ChangeEvent ce;
     XPathItem xpi(schema()->name.get_id(), data->instance);
     ce.path = XPath(xpi);
@@ -4495,6 +4519,8 @@ bool AttributeSchema::is_valid(std::string s)
     for(i = 0; i < enumerations.size(); i++)
     {
       if(s.compare(enumerations[i].name.get_id()) == 0)
+        return true;
+      if(s.compare(enumerations[i].name.get_localized()) == 0)
         return true;
     }
 

@@ -3,6 +3,12 @@
 #include "mmi/gtkutil.hpp"
 
 
+#ifndef LINUX
+#ifndef MSYS1
+# define MSYS2
+#endif
+#endif
+
 //#define DISABLE_THEME 1
 
 // Ajouter settings.ini dans le dossier
@@ -20,6 +26,7 @@ static Theme *theme_en_cours = nullptr;
 class ThemeCB
 {
 public:
+#if 0
 void on_parsing_error(const Glib::RefPtr<const Gtk::CssSection>& section, const Glib::Error& error)
 {
   infos("on_parsing_error(): %s",error.what().c_str());
@@ -39,6 +46,7 @@ void on_parsing_error(const Glib::RefPtr<const Gtk::CssSection>& section, const 
   }
   */
 }
+#endif
 };
 
 
@@ -73,8 +81,8 @@ int charge_themes()
   theme.chemin = "...";//th.get_attribute_as_string("chemin");
   theme.provider = Gtk::CssProvider::create();
   theme.desc = "...";//th.get_localized_name();
-  ThemeCB cb;
-  theme.provider->signal_parsing_error().connect(sigc::mem_fun(cb, &ThemeCB::on_parsing_error));
+  //ThemeCB cb;
+  //theme.provider->signal_parsing_error().connect(sigc::mem_fun(cb, &ThemeCB::on_parsing_error));
   std::string fn = //utils::get_fixed_data_path() + "/themes/" + theme.chemin;
 
       utils::get_fixed_data_path() + chms[i];

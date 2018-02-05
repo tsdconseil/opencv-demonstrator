@@ -31,6 +31,7 @@ namespace utils
 using namespace model;
 
 
+#if 0
 void VoidEventProvider::remove_all_listeners()
 {
   functors.clear();
@@ -50,6 +51,7 @@ void VoidEventProvider::dispatch()
     ef->call();
   }
 }
+#endif
 
 ////////////////////////////////////////////////
 //// CONSTANT DATA
@@ -328,6 +330,13 @@ void init(CmdeLine &cmdeline,
   appdata.nom_projet          = projet;
 
   if(app.size() == 0)
+  {
+    std::string dummy, fn;
+    utils::files::split_path_and_filename(cmdeline.argv0, dummy, fn);
+    appdata.nom_appli = utils::files::remove_extension(fn);
+  }
+
+  if(appdata.nom_appli.size() == 0)
     appdata.nom_appli = projet;
 
   //if(cmdeline.argv != nullptr)
@@ -402,6 +411,8 @@ void init(CmdeLine &cmdeline,
     if(level < 6)
       tl = (journal::TraceLevel) level;
   }
+
+  //printf("tl = %d\n", (int) tl);
 
   /* Setup STDOUT traces level */
   journal::set_global_min_level(journal::TRACE_TARGET_STD, tl);
@@ -2222,6 +2233,17 @@ int TestUtil::add_test(const string &name, int (*test_routine)())
   TestUnit tu;
   tu.name = name;
   tu.test_routine = test_routine;
+  tu.test = nullptr;
+  units.push_back(tu);
+  return 0;
+}
+
+int TestUtil::add_test(const std::string &name, Test *test)
+{
+  TestUnit tu;
+  tu.name = name;
+  tu.test_routine = nullptr;
+  tu.test = test;
   units.push_back(tu);
   return 0;
 }
@@ -2281,7 +2303,12 @@ int TestUtil::proceed()
 
     float t00 = hal::get_tick_count_us();
 
-    int test_result = units[i].test_routine();
+    int test_result;
+
+    if(units[i].test == nullptr)
+      test_result = units[i].test_routine();
+    else
+      test_result = units[i].test->proceed();
 
     float t01 = hal::get_tick_count_us();
 

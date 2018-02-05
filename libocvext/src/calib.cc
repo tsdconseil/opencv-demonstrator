@@ -63,14 +63,12 @@ DialogueCalibration::DialogueCalibration()
 }
 
 
-int DialogueCalibration::gere_evt_gtk(const EvtGtk &eg)
+void DialogueCalibration::gere_evt_gtk(const EvtGtk &eg)
 {
   infos("ev gtk.");
 
   assert(photos.size() > 0);
   img_list.ajoute_photo(photos[photos.size() - 1]);
-
-  return 0;
 }
 
 void DialogueCalibration::gere_b_fermer()

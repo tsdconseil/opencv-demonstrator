@@ -24,6 +24,7 @@ ifeq ($(SYSTEME_EN_COURS),WINDOWS)
 ADDITIONNAL_LOPT += -mwindows
 ADDITIONNAL_LOPT += -lopencv_core320 -lopencv_imgcodecs320 -lopencv_imgproc320 -lopencv_highgui320 -lopencv_video320 -lopencv_videoio320 -lopencv_features2d320 -lopencv_objdetect320 -lopencv_imgcodecs320 -lopencv_calib3d320 -lopencv_stitching320 -lopencv_photo320 -lopencv_ml320 -lopencv_videostab320 -lopencv_flann320
 else
-ADDITIONNAL_LOPT += -lopencv_core -lopencv_highgui -lopencv_objdetect -lopencv_features2d -lopencv_stitching -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio -lopencv_video -lopencv_calib3d -lopencv_photo -lopencv_ml -lopencv_face -lopencv_ximgproc -lopencv_videostab
+ADDITIONNAL_LOPT += -lopencv_core -lopencv_highgui -lopencv_objdetect -lopencv_features2d -lopencv_stitching -lopencv_imgproc -lopencv_imgcodecs -lopencv_videoio -lopencv_video -lopencv_calib3d -lopencv_photo -lopencv_ml
+# -lopencv_face -lopencv_ximgproc -lopencv_videostab
 endif
 

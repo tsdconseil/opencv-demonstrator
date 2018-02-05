@@ -104,8 +104,9 @@ int InputStream::get_line(std::string &res, int timeout)
   return 0;
 }
 
-void OutputStream::put_data(const char *buffer, int len)
+void OutputStream::put_data(const void *buffer_, int len)
 {
+  const char *buffer = (const char *) buffer_;
   for(int i = 0; i < len; i++)
     putc(buffer[i]);
 }

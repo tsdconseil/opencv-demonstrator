@@ -63,9 +63,9 @@ Section "${DESCRIPTIF}" SecCkernide
   !endif
 #  !echo "EXEDIR = $EXEDIR"
 #  !echo $EXEDIR
-  File ..\build\release2\${NOM_EXE}
+  File ..\build\release\${NOM_EXE}
   SetOutPath "$INSTDIR\data"
-  File /r "..\build\release2\data\*"
+  File /r "..\build\release\data\*"
 !ifndef MODE_PATCH
   SetOutPath "$INSTDIR\share"
   File /r ".\share\*"

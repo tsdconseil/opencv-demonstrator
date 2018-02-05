@@ -177,6 +177,7 @@ public:
   bool empty();
   void clear();
   void deblock();
+  void reblock();
   int size();
 private:
   Mutex mutex;

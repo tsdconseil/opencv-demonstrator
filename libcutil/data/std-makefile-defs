@@ -26,6 +26,10 @@ ifeq ($(TSUF),2)
  ADDITIONNAL_INC_DIRS := $(ADDITIONNAL_INC_DIRS) -DMSYS2
 endif
 
+ifeq ($(TSUF),1)
+ ADDITIONNAL_INC_DIRS := $(ADDITIONNAL_INC_DIRS) -DMSYS1
+endif
+
 ifeq ($(RPATH),)
 # Relative path to other libraries
 RPATH:= ..
@@ -133,6 +137,7 @@ COPT = $(COPTADD) -Wall -MMD -MP -MF $(BUILD_DIR)/.dep/$(@F).d -Wno-write-string
 
 ifeq ($(RMODE),debug)
 COPT += -g -O2 -DDEBUG_MODE -DMODE_DEBUG=1 -DMODE_RELEASE=0
+# -O2 
 else
 COPT += -O3 -DRELEASE_MODE -DMODE_DEBUG=0 -DMODE_RELEASE=1
 endif
@@ -163,8 +168,12 @@ endif
 .PHONY : clean distclean check-dirs data-update
 
 # Default targets
-all:   check-dirs data-update $(FIRST_TARGETS) $(ADDITIONNAL_OBJS) $(CURRENT_LIB) $(CURRENT_LIB_BASE)  $(EXEFILES) $(ADDITIONNAL_TARGETS)
+all:  cls check-dirs data-update $(FIRST_TARGETS) $(ADDITIONNAL_OBJS) $(CURRENT_LIB) $(CURRENT_LIB_BASE)  $(EXEFILES) $(ADDITIONNAL_TARGETS)
 # $(MODEL_FILES) $(IMG_FILES) $(EXEFILES) $(ADDITIONNAL_TARGETS)
+
+cls:
+	@printf "\033c"
+
 
 base: check-dirs data-update $(CURRENT_LIB_BASE)
 

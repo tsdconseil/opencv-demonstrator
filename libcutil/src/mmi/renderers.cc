@@ -326,7 +326,9 @@ Gtk::CellEditable* RefCellRenderer::start_editing_vfunc(GdkEvent *event,
     return 0;
 #endif
 		  
-  std::auto_ptr<RefCellEditable> color_cell_edit_ptr(new RefCellEditable(path));
+  //std::auto_ptr<RefCellEditable> color_cell_edit_ptr(new RefCellEditable(path));
+
+  auto color_cell_edit_ptr = new RefCellEditable(path);
 	
   Glib::ustring text;
 		
@@ -340,7 +342,7 @@ Gtk::CellEditable* RefCellRenderer::start_editing_vfunc(GdkEvent *event,
   color_cell_edit_ptr->signal_editing_done().connect(sigc::mem_fun(*this, &RefCellRenderer::on_editing_done));
   color_cell_edit_ptr->show();
 	
-  color_cell_edit_ptr_ = Gtk::manage( color_cell_edit_ptr.release() );
+  color_cell_edit_ptr_ = Gtk::manage(color_cell_edit_ptr);//.release() );
   return color_cell_edit_ptr_;
 }
 
@@ -417,10 +419,9 @@ int RefExplorerWnd::display()
   return display_modal();
 }
 
-int RefExplorerWnd::on_change(const RefExplorerChange &change)
+void RefExplorerWnd::on_change(const RefExplorerChange &change)
 {
   update_view();
-  return 0;
 }
 
 void RefExplorerWnd::update_view()

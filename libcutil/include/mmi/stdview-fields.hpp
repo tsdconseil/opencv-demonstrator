@@ -33,9 +33,6 @@ private:
   void on_event(const ChangeEvent &ce);
   void on_signal_changed();
   bool on_signal_focus_out(GdkEventFocus *gef);
-  std::string class_name() const {
-    return "decimal-spin-view";
-  }
   Gtk::SpinButton spin;
   Gtk::Label label, label_unit;
   Gtk::Alignment align;
@@ -44,9 +41,17 @@ private:
   bool valid;
 };
 
-class VueFloat: public AttributeView {
+class VueFloat: public AttributeView
+{
 public:
+
+
+
+  VueFloat(Attribute *model, Node modele_vue);
   VueFloat(Attribute *model);
+
+  void init(Attribute *model, Node modele_vue);
+
   virtual ~VueFloat() {
   }
 
@@ -62,11 +67,9 @@ public:
 private:
   void on_event(const ChangeEvent &ce);
   void on_signal_changed();
-  std::string class_name() const {
-    return "float-view";
-  }
   Gtk::SpinButton spin;
   Gtk::Label label, label_unit;
+  utils::model::Localized valeur_label;
 };
 
 class VueChaine: public AttributeView
@@ -87,9 +90,6 @@ private:
   void on_event(const ChangeEvent &ce);
   void on_signal_changed();
   void update_valid();
-  std::string class_name() const {
-    return "string-view";
-  }
   Gtk::Label label, label_unit;
   Gtk::Entry entry;
 };
@@ -114,9 +114,6 @@ private:
   void on_event(const ChangeEvent &ce);
   //void on_signal_changed();
   void update_valid();
-  std::string class_name() const {
-    return "string-view";
-  }
   Gtk::Label label, label_unit;
   Gtk::Label entry;
 };
@@ -135,9 +132,6 @@ public:
 private:
   void on_event(const ChangeEvent &ce);
   void on_signal_changed();
-  std::string class_name() const {
-    return "txt-view";
-  }
   Gtk::Label label;
   Gtk::TextView view;
   Gtk::ScrolledWindow scroll;
@@ -160,9 +154,6 @@ private:
   bool on_frame_event(GdkEvent *gef);
   void on_event(const ChangeEvent &ce);
   void on_folder_changed();
-  std::string class_name() const {
-    return "folder-view";
-  }
   Gtk::Label label;
   Gtk::FileChooserButton *bouton;
   Gtk::FileChooserDialog *fcd;
@@ -223,9 +214,6 @@ public:
 private:
   void on_event(const ChangeEvent &ce);
   void on_signal_changed();
-  std::string class_name() const {
-    return "hexa-view";
-  }
   Gtk::Label label, label_unit;
   Gtk::Entry entry;
   bool valid;
@@ -245,17 +233,15 @@ public:
 private:
   void on_event(const ChangeEvent &ce);
   void on_signal_changed();
-  std::string class_name() const {
-    return "bytes-view";
-  }
   Gtk::Label label, label_unit;
   Gtk::Entry entry;
   bool valid;
 };
 
-class VueBouleen: public AttributeView {
+class VueBouleen: public AttributeView
+{
 public:
-  VueBouleen(Attribute *model);
+  VueBouleen(Attribute *model, bool affiche_label = true);
   virtual ~VueBouleen();
 
   void set_sensitive(bool b);
@@ -267,19 +253,17 @@ private:
   void on_event(const ChangeEvent &ce);
   void on_signal_toggled();
   Gtk::Label label, lab;
-
   Gtk::CheckButton check;
   bool lock;
-  std::string class_name() const {
-    return "boolean-view";
-  }
 };
 
-class VueLed: public AttributeView {
+class VueLed: public AttributeView
+{
 public:
-  VueLed(Attribute *model);
+  VueLed(Attribute *model, bool editable = true, bool error = false);
   virtual ~VueLed();
 
+  void set_readonly(bool b);
   void set_sensitive(bool b);
   unsigned int get_nb_widgets();
   Gtk::Widget *get_widget(int index);
@@ -287,15 +271,13 @@ public:
   void update_langue();
 private:
   void on_event(const ChangeEvent &ce);
-  int on_signal_toggled(const LedEvent &le);
+  void on_signal_toggled(const LedEvent &le);
   Gtk::Label label, lab;
   GtkLed led;
   Gtk::HBox vbox;
   Gtk::Alignment align;
   bool lock;
-  std::string class_name() const {
-    return "led-view";
-  }
+  bool editable;
 };
 
 class VueCombo: public AttributeView {
@@ -312,9 +294,6 @@ public:
 private:
   void on_event(const ChangeEvent &ce);
   void on_combo_changed();
-  std::string class_name() const {
-    return "combo-view";
-  }
   Gtk::Label label;
   Gtk::ComboBox combo;
 
@@ -350,9 +329,6 @@ private:
   std::vector<comm::SerialInfo> serials;
   void on_event(const ChangeEvent &ce);
   void on_combo_changed();
-  std::string class_name() const {
-    return "serial-view";
-  }
   Gtk::Label label;
   Gtk::ComboBox combo;
 
@@ -387,9 +363,6 @@ public:
 private:
   void on_event(const ChangeEvent &ce);
   void on_color_changed();
-  std::string class_name() const {
-    return "color-view";
-  }
   Gtk::Label label;
   Gtk::ColorButton color;
   ColorButton *cb;
@@ -410,9 +383,6 @@ private:
   void on_event(const ChangeEvent &ce);
   void on_date_changed();
   bool on_signal_focus_out(GdkEventFocus *gef);
-  std::string class_name() const {
-    return "date-view";
-  }
   Gtk::Label label;
   Gtk::HBox hbox;
   Gtk::Alignment a_month;
@@ -438,9 +408,6 @@ private:
   void update_sub_view();
   void on_event(const ChangeEvent &ce);
   void on_radio_activate(unsigned int num);
-  std::string class_name() const {
-    return "choice-view";
-  }
   Gtk::RadioButton **radios;
   Gtk::RadioButton::Group group;
   unsigned int nb_choices;

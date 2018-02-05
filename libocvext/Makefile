@@ -23,7 +23,7 @@ EXECS = etalonnage-camera
 AUTRES_DOSSIERS_SOURCES = src/outils src/test
 
 # Libraries externes
-LIBS_EXTERNES = $(RPATH)/libcutil 
+LIBS_EXTERNES = $(RPATH)/libcutil
 
 # Autres options de compilation
 OPTIONS_COMPIL = 

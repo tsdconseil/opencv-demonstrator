@@ -44,9 +44,9 @@ VueCollection::VueCollection(): vue(200,300,true)
   arbre.set_liste_noeuds_affiches(ids);
 }
 
-int VueCollection::gere_change_sel(const utils::mmi::SelectionChangeEvent &sce)
+void VueCollection::gere_change_sel(const utils::mmi::SelectionChangeEvent &sce)
 {
-  trace_verbeuse("changement selection.");
+  //trace_verbeuse("changement selection.");
   auto sel = sce.new_selection;
 
   auto type = sel.schema()->name.get_id();
@@ -84,7 +84,6 @@ int VueCollection::gere_change_sel(const utils::mmi::SelectionChangeEvent &sce)
   else
     avertissement("VueCollection : type non gere (%s)", type.c_str());
   fenetre.show_all_children(true);
-  return 0;
 }
 
 void VueCollection::affiche(utils::model::Node &modele)

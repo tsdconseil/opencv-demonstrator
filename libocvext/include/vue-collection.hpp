@@ -36,7 +36,7 @@ public:
 private:
 
   void gere_b_ouvrir_image();
-  int gere_change_sel(const utils::mmi::SelectionChangeEvent &sce);
+  void gere_change_sel(const utils::mmi::SelectionChangeEvent &sce);
 
   Gtk::Widget *vue_en_cours;
   Gtk::VBox vbox, vbox_princ;

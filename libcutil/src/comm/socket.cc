@@ -54,7 +54,7 @@ Socket::~Socket()
   infos("done.");
 }
 
-bool Socket::is_connected()
+bool Socket::is_connected() const
 {
   return connected;
 }
@@ -63,7 +63,6 @@ int Socket::get_nb_rx_available()
 {
   return rx_fifo.size();
 }
-
 
 int Socket::disconnect()
 {
@@ -86,11 +85,15 @@ int Socket::connect(std::string target_ip,
                     uint16_t target_port,
                     socket_type_t type)
 {
+  if(is_connected())
+    disconnect();
+
   this->connected = false;
 
   winsock_startup();
 
   infos("connect(%s:%d)...", target_ip.c_str(), target_port);
+
 
   /* Socket creation */
   sockaddr_in local, remote;
@@ -109,6 +112,7 @@ int Socket::connect(std::string target_ip,
     //remote.sin_addr.s_addr/*.S_un.S_addr*/ = INADDR_ANY;
     //remote.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
     target_ip = "127.0.0.1";
+    infos("(localhost)");
   }
 
 # ifdef WIN
@@ -185,6 +189,7 @@ int Socket::connect(std::string target_ip,
   //fcntl(sock, F_SETFL, O_NONBLOCK);
 # endif
   infos("Connected ok.");
+  rx_fifo.reblock();
   hal::thread_start(this, &Socket::rx_thread, "socket/client");
   return 0;
 }
@@ -473,7 +478,6 @@ void Socket::rx_thread()
         {
           char c = 0xff;
           free(tmp_buf);
-          
           infos("rx thread exit.");
           rx_fifo.write(&c, 1);
           this->rx_fifo.deblock();

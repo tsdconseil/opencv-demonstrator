@@ -2,6 +2,7 @@
 #include "mmi/ColorCellRenderer2.hpp"
 #include "mmi/renderers.hpp"
 #include "mmi/stdview-fields.hpp"
+#include <gtkmm/cellrenderercombo.h>
 
 #include "comm/serial.hpp"
 
@@ -21,7 +22,7 @@ using namespace fields;
 
 
 
-static string wtypes[((int) GenericView::WIDGET_MAX) + 1] =
+static string wtypes[((int) VueGenerique::WIDGET_MAX) + 1] =
 {
   "vue-modele",
   "nullptr-widget", 
@@ -34,7 +35,7 @@ static string wtypes[((int) GenericView::WIDGET_MAX) + 1] =
   "disposition-fixe",
   "disposition-trig",
   "notebook",
-  "panneau",
+  "panneau", // ?
   "image",
   "label",
   "combo",
@@ -43,7 +44,7 @@ static string wtypes[((int) GenericView::WIDGET_MAX) + 1] =
   "float",
   "radio",
   "switch",
-  "panel",
+  "cadre",
   "choice",
   "bytes",
   "text",
@@ -60,6 +61,8 @@ static string wtypes[((int) GenericView::WIDGET_MAX) + 1] =
   "vue-speciale",
   "separateur-horizontal",
   "separateur-vertical",
+  "table",
+  "led",
   "invalide"
 };
 
@@ -226,57 +229,63 @@ bool AttributeView::on_focus_in(GdkEventFocus *gef)
   return true;
 }
 
-GenericView::WidgetType AttributeView::choose_view_type(refptr<AttributeSchema> as)
+VueGenerique::WidgetType AttributeView::choose_view_type(refptr<AttributeSchema> as, bool editable)
 {
+  if((as->type == TYPE_BOOLEAN) && (!editable))
+    return VueGenerique::WIDGET_LED;
+
+  if(!editable)
+    return VueGenerique::WIDGET_FIXED_STRING;
+
   if((as->constraints.size() > 0) && (as->type != TYPE_COLOR))
-    return GenericView::WIDGET_COMBO;
+    return VueGenerique::WIDGET_COMBO;
 
   else if ((as->enumerations.size() > 0) && (as->has_max)
       && (as->max < 100))
-    return GenericView::WIDGET_COMBO;
+    return VueGenerique::WIDGET_COMBO;
 
   switch (as->type)
   {
     case TYPE_INT:
       if (as->is_bytes)
-        return GenericView::WIDGET_BYTES;
+        return VueGenerique::WIDGET_BYTES;
       else if (as->is_hexa)
-        return GenericView::WIDGET_HEXA_ENTRY;
+        return VueGenerique::WIDGET_HEXA_ENTRY;
       else
-        return GenericView::WIDGET_DECIMAL_ENTRY;
+        return VueGenerique::WIDGET_DECIMAL_ENTRY;
 
     case TYPE_STRING:
       if (as->formatted_text)
-        return GenericView::WIDGET_TEXT;
+        return VueGenerique::WIDGET_TEXT;
       else
-        return GenericView::WIDGET_STRING;
+        return VueGenerique::WIDGET_STRING;
 
     case TYPE_BOOLEAN:
-      return GenericView::WIDGET_SWITCH;
+      return VueGenerique::WIDGET_SWITCH;
 
     case TYPE_FLOAT:
-      return GenericView::WIDGET_FLOAT_ENTRY;
+      return VueGenerique::WIDGET_FLOAT_ENTRY;
 
     case TYPE_COLOR:
-      return GenericView::WIDGET_COLOR;
+      return VueGenerique::WIDGET_COLOR;
 
     case TYPE_DATE:
-      return GenericView::WIDGET_DATE;
+      return VueGenerique::WIDGET_DATE;
 
     case TYPE_FOLDER:
-      return GenericView::WIDGET_FOLDER;
+      return VueGenerique::WIDGET_FOLDER;
 
     case TYPE_FILE:
-      return GenericView::WIDGET_FILE;
+      return VueGenerique::WIDGET_FILE;
 
     case TYPE_SERIAL:
-      return GenericView::WIDGET_SERIAL;
+      return VueGenerique::WIDGET_SERIAL;
 
     default:
     {
       string s = as->to_string();
       avertissement("choose view type: unable to select one, schema:\n%s", s.c_str());
-      return GenericView::WIDGET_NULL;
+      return VueGenerique::WIDGET_NULL;
     }
   }
 }
@@ -284,26 +293,31 @@ GenericView::WidgetType AttributeView::choose_view_type(refptr<AttributeSchema> 
 AttributeView *AttributeView::factory(Node model, Node view)
 {
   XPath path;
+
   if(view.has_attribute("model"))
     path = view.get_attribute_as_string("model");
   else
     path = view.get_attribute_as_string("modele");
+
   Node owner = model.get_child(path.remove_last());
   refptr<AttributeSchema> as = owner.schema()->get_attribute(path.get_last());
   Attribute *att = owner.get_attribute(path.get_last());
 
-  //GenericView::WidgetType type = GenericView::type_from_string(view.get_attribute_as_string("type"));
-  //int type = view.get_attribute_as_int("type");
+  VueGenerique::WidgetType type = VueGenerique::WIDGET_AUTO;
+  bool editable = view.get_attribute_as_boolean("editable");
 
-  GenericView::WidgetType type = GenericView::WIDGET_AUTO;
+  std::string type_str = view.get_attribute_as_string("type");
 
-  if(type == GenericView::WIDGET_AUTO)
-    type = choose_view_type(as);
+  if(type_str.size() > 0)
+    type = VueGenerique::desc_vers_type(type_str);
 
-  if(!view.get_attribute_as_boolean("editable"))
-    type = GenericView::WIDGET_INDICATOR;
+  if(type == VueGenerique::WIDGET_AUTO)
+    type = choose_view_type(as, editable);
 
-  std::string s = GenericView::type_to_string(type);
+  //if(!editable)
+    //type = VueGenerique::WIDGET_INDICATOR;
+
+  std::string s = VueGenerique::type_vers_desc(type);
 
   trace_verbeuse("factory(): att type: %d (%s).", (int) type, s.c_str());
 
@@ -311,40 +325,55 @@ AttributeView *AttributeView::factory(Node model, Node view)
 
   switch(type)
   {
-    case GenericView::WIDGET_INDICATOR:
+    case VueGenerique::WIDGET_LED:
+    {
+      res = new VueLed(att, editable);
+      break;
+    }
+    case VueGenerique::WIDGET_FIXED_STRING:
     {
       res = new VueChaineConstante(att);
       break;
     }
-    case GenericView::WIDGET_STRING:
+    case VueGenerique::WIDGET_STRING:
     {
       res = new VueChaine(att);
       break;
     }
-    case GenericView::WIDGET_TEXT:
+    case VueGenerique::WIDGET_TEXT:
     {
       erreur("A FAIRE : vue texte.");
       //res = new VueTexte(att);
       break;
     }
-    case GenericView::WIDGET_DECIMAL_ENTRY:
+    case VueGenerique::WIDGET_DECIMAL_ENTRY:
     {
       res = new VueDecimal(att);
       break;
     }
-    case GenericView::WIDGET_FLOAT_ENTRY:
+    case VueGenerique::WIDGET_FLOAT_ENTRY:
     {
-      res = new VueFloat(att);
+      res = new VueFloat(att, view);
       break;
     }
-    case GenericView::WIDGET_HEXA_ENTRY:
+    case VueGenerique::WIDGET_HEXA_ENTRY:
     {
       res = new VueHexa(att);
       break;
     }
-    case GenericView::WIDGET_COMBO:
+    case VueGenerique::WIDGET_SWITCH:
+    {
+      res = new utils::mmi::fields::VueBouleen(att, false);
+      break;
+    }
+    case VueGenerique::WIDGET_COMBO:
     {
       res = new VueCombo(att);
+      break;
+    }
+    case VueGenerique::WIDGET_FILE:
+    {
+      res = new VueFichier(att, false);
       break;
     }
     default:
@@ -658,17 +687,13 @@ bool NodeView::MyTreeModel::drag_data_received_vfunc(
 }
 
 NodeView::NodeView(Gtk::Window *mainWin, Node model)//: tree_view(this)
-//:  table(model, NodeViewConfiguration()), tree_view(this)
+:  table(model, NodeViewConfiguration())//, tree_view(this)
 {
   NodeViewConfiguration config;
   init(mainWin, model, config);
 }
 
-int NodeView::init(Node modele, const NodeViewConfiguration &config, Gtk::Window *mainWin)
-{
-  table.init(modele, config);
-  return init(mainWin, modele, config);
-}
+
 
 NodeView::NodeView()
 {
@@ -688,8 +713,19 @@ NodeView::NodeView(Gtk::Window *mainWin, Node model,
   init(mainWin, model, config);
 }
 
-int NodeView::init(Gtk::Window *mainWin, Node model,
-    const NodeViewConfiguration &config)
+// public
+int NodeView::init(Node modele,
+                   const NodeViewConfiguration &config,
+                   Gtk::Window *mainWin)
+{
+  table.init(modele, config);
+  return init(mainWin, modele, config);
+}
+
+// private
+int NodeView::init(Gtk::Window *mainWin,
+                   Node model,
+                   const NodeViewConfiguration &config)
 {
   tree_view.init(this);
   this->config = config;
@@ -1616,7 +1652,8 @@ AttributeListView::AttributeListView()
 void AttributeListView::init(Node model,
     const NodeViewConfiguration &config)
 {
-  table1.resize(((model.schema()->attributes.size() > 0) ? model.schema()->attributes.size() : 1),
+  unsigned int natts_total = model.schema()->attributes.size();
+  table1.resize(((natts_total > 0) ? natts_total : 1),
       3);
   table1.set_homogeneous(false);
 
@@ -1624,6 +1661,7 @@ void AttributeListView::init(Node model,
   table2.resize(1, 1);
   table2.set_homogeneous(false);
 
+  //infos("&&&&&&&&&&&&&&&&&&&&&&&& INIT ALV : natts = %d", natts_total);
 
   this->config = config;
   bool has_no_attributes = true;
@@ -1649,7 +1687,7 @@ void AttributeListView::init(Node model,
   unsigned int nrows = 0;
   // TODO -> refactor (not using "Attribute" class anymore) 
   std::deque<Attribute *> atts; //= model.get_attributes();
-  unsigned int natts_total = model.schema()->attributes.size();
+
   unsigned int natts = 0;
   for(uint32_t i = 0; i < natts_total; i++)
   {
@@ -1725,11 +1763,11 @@ void AttributeListView::init(Node model,
 
     Attribute *att = atts[i];
 
-    if (ctable == &table_indicators) {
+    if (ctable == &table_indicators)
       ctable = otable;
-    }
 
-    if (i == first_att) {
+    if (i == first_att)
+    {
       ctable = &table2;
       *crow = 0;
     }
@@ -1739,13 +1777,17 @@ void AttributeListView::init(Node model,
 
     AttributeView *av = AttributeView::build_attribute_view(att, config, model);
 
-    av->CProvider < KeyPosChangeEvent > ::add_listener(this);
+    av->CProvider<KeyPosChangeEvent>::add_listener(this);
 
-    if (att->schema->is_read_only)
+    if (att->schema->is_read_only && !att->schema->is_instrument)
     {
-      //infos("****** %s IS READ ONLY.", att->name.c_str());
       av->set_sensitive(false);
     }
+    else if(att->schema->is_read_only)
+    {
+      av->set_readonly(true);
+    }
+
 
     if (!indicators_detected && att->schema->is_instrument)
     {
@@ -1938,9 +1980,9 @@ void AttributeListView::init(Node model,
 
           //infos("Adding tabular for %s...", es->name.get_id().c_str());
           //infos("Root schema is:\n%s\n", model.schema()->to_string().c_str());
-          StringListView *slv = new StringListView(model, es, config);
+          VueTable *slv = new VueTable(model, es, config);
           //table1.attach(*slv, 0, 3, row, row+1, Gtk::FILL, Gtk::FILL, 5, 5);//Gtk::FILL, Gtk::FILL, 5, 5);
-          the_vbox.pack_start(*slv, Gtk::PACK_EXPAND_WIDGET);
+          the_vbox.pack_start(/**slv*/*(slv->get_gtk_widget()), Gtk::PACK_EXPAND_WIDGET);
           row++;
           has_no_attributes = false;
         }
@@ -2072,10 +2114,7 @@ void AttributeListView::init(Node model,
 }
 
 AttributeListView::AttributeListView(Node model,
-    const NodeViewConfiguration &config) /*:
-    table1(
-           ((model.schema()->attributes.size() > 0) ? model.schema()->attributes.size() : 1),
-        3, false), table2(1, 1, false)*/
+    const NodeViewConfiguration &config)
 {
   init(model, config);
 }
@@ -2153,26 +2192,34 @@ void AttributeListView::on_b_command(std::string name)
 void AttributeListView::set_sensitive(bool sensitive)
 {
   list_is_sensitive = sensitive;
-  for(auto i = 0u; i < attributes_view.size(); i++)
+  ChangeEvent ce;
+  on_event(ce);
+  /*for(auto i = 0u; i < attributes_view.size(); i++)
   {
     AttributeView *ev = attributes_view[i].av;
     bool valid = model.is_attribute_valid(ev->model->schema->name.get_id());
 
-    bool sens = list_is_sensitive && valid && !ev->model->schema->is_read_only;
+    bool sens = list_is_sensitive
+                && valid
+                && !(ev->model->schema->is_read_only && !ev->model->schema->is_instrument);
 
     ev->set_sensitive(sens);
+
+    //if(ev->model->schema->is_read_only && ev->model->schema->is_instrument)
+
     if(attributes_view[i].desc != nullptr)
       attributes_view[i].desc->set_sensitive(sens);
-  }
+  }*/
 }
 
 void AttributeListView::on_event(const ChangeEvent &ce) 
 {
   //infos(ce.to_string());
-  for (unsigned int i = 0; i < attributes_view.size(); i++) {
+  for (unsigned int i = 0; i < attributes_view.size(); i++)
+  {
     AttributeView *av = attributes_view[i].av;
     bool valid = model.is_attribute_valid(av->model->schema->name.get_id());
-    bool sens = list_is_sensitive && valid && !av->model->schema->is_read_only;
+    bool sens = list_is_sensitive && valid && !(av->model->schema->is_read_only && !av->model->schema->is_instrument);
     av->set_sensitive(sens);
     if(attributes_view[i].desc != nullptr)
       attributes_view[i].desc->set_sensitive(sens);
@@ -2422,12 +2469,12 @@ void SelectionView::on_cell_toggled(const Glib::ustring& path)
  * STRING LIST VIEW
  ******************************************************************/
 
-StringListView::MyTreeView::MyTreeView(StringListView *parent) :
+VueTable::MyTreeView::MyTreeView(VueTable *parent) :
     Gtk::TreeView() {
   this->parent = parent;
 }
 
-bool StringListView::MyTreeView::on_button_press_event(GdkEventButton *event) 
+bool VueTable::MyTreeView::on_button_press_event(GdkEventButton *event) 
 {
   infos("b press event");
   
@@ -2445,9 +2492,60 @@ bool StringListView::MyTreeView::on_button_press_event(GdkEventButton *event)
   return TreeView::on_button_press_event(event);
 }
 
-StringListView::StringListView(Node model, NodeSchema *&sub,
-    const NodeViewConfiguration &cfg) :
-    tree_view(this) {
+Gtk::Widget *VueTable::get_gtk_widget()
+{
+  return &hbox;//this;
+}
+
+VueTable::VueTable(Node &modele_donnees,
+                               Node &modele_vue,
+                               Controleur *controleur):
+        tree_view(this)
+{
+  nb_lignes = -1;
+  Node md = modele_donnees;
+  std::string mod = modele_vue.get_attribute_as_string("modele");
+  if(mod.size() > 0)
+  {
+    md = md.get_child(mod);
+    if(md.is_nullptr())
+    {
+      erreur("hughjkjkjk");
+      return;
+    }
+  }
+  std::string type_sub = modele_vue.get_attribute_as_string("type-sub");
+  if(type_sub.size() == 0)
+  {
+    erreur("constructeur stringlistview : type-sub non précisé.");
+    return;
+  }
+  auto sub_schema = md.schema()->get_child(type_sub);
+  if(sub_schema == nullptr)
+  {
+    std::string s = md.to_xml();
+    erreur("Creation table : sous schema non trouve. Schema = \n%s\ntype sub = %s", s.c_str(), type_sub.c_str());
+    return;
+  }
+  NodeViewConfiguration cfg;
+  Config config;
+
+  config.affiche_boutons = modele_vue.get_attribute_as_boolean("affiche-boutons");
+  init(md, sub_schema->ptr, cfg, config);
+}
+
+VueTable::VueTable(Node model, NodeSchema *&sub,
+    const NodeViewConfiguration &cfg):
+        tree_view(this)
+{
+  Config config;
+  init(model, sub, cfg, config);
+}
+
+void VueTable::init(Node model, NodeSchema *&sub,
+    const NodeViewConfiguration &cfg, Config &config)
+{
+  this->config = config;
   int ncols = 0;
   unsigned int i;
 
@@ -2472,7 +2570,7 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
 
   name += "s";
 
-  set_label(name);
+  //set_label(name);
 
   b_add.set_label(langue.get_item("Add..."));
   b_remove.set_label(langue.get_item("Remove"));
@@ -2490,7 +2588,8 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
   tree_model = Gtk::TreeStore::create(columns);
   tree_view.set_model(tree_model);
 
-  for (i = 0; i < schema->attributes.size(); i++) {
+  for (i = 0; i < schema->attributes.size(); i++)
+  {
     refptr<AttributeSchema> as = schema->attributes[i];
     std::string cname = as->name.get_localized();
 
@@ -2505,9 +2604,9 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
 
     ncols++;
 
-    if (as->type == TYPE_COLOR) {
-      ColorCellRenderer2 * const colrenderer = new ColorCellRenderer2(
-          as->constraints);
+    if (as->type == TYPE_COLOR)
+    {
+      ColorCellRenderer2 * const colrenderer = new ColorCellRenderer2(as->constraints);
       Gtk::TreeViewColumn * const colcolumn = new Gtk::TreeViewColumn(cname,
           *Gtk::manage(colrenderer));
 
@@ -2516,35 +2615,79 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
       colrenderer->property_editable() = true;
       colrenderer->signal_edited().connect(
           sigc::bind < std::string
-              > (sigc::mem_fun(*this, &StringListView::on_editing_done), as->name.get_id()));
+              > (sigc::mem_fun(*this, &VueTable::on_editing_done), as->name.get_id()));
 
       if (appli_view_prm.use_touchscreen) {
         colrenderer->signal_editing_started().connect(
             sigc::bind < std::string
-                > (sigc::mem_fun(*this, &StringListView::on_editing_start), as->name.get_id()));
+                > (sigc::mem_fun(*this, &VueTable::on_editing_start), as->name.get_id()));
       }
-    } else {
-      Gtk::CellRendererText *render = Gtk::manage(new Gtk::CellRendererText());
+    }
+    else
+    {
+      Gtk::CellRendererText *render;
+      if(as->enumerations.size() > 0)
+      {
+        infos("Creation cell combo...");
+        auto render_combo = Gtk::manage(new Gtk::CellRendererCombo());
+        render = render_combo;
+
+        //render->property_text() = 0;
+        render->property_editable() = true;
+
+
+        struct ModelColonneCombo: public Gtk::TreeModel::ColumnRecord
+        {
+          Gtk::TreeModelColumn<Glib::ustring> choice; // valeurs possibles
+          ModelColonneCombo()
+          {
+            add(choice);
+          }
+        };
+
+
+        ModelColonneCombo col_combo;
+        Glib::RefPtr<Gtk::ListStore> model_combo = Gtk::ListStore::create(col_combo);
+        for(auto &e : as->enumerations)
+        {
+          auto s = e.name.get_localized();
+          infos("Enumeration : %s", s.c_str());
+          (*model_combo->append())[col_combo.choice] = s;
+        }
+
+        //Glib::PropertyProxy< bool > prp;
+        //prp.set_value(true);
+
+        //render_combo->property_has_entry().set_value(false);
+        render_combo->property_model().set_value(model_combo);
+        render_combo->property_text_column().set_value(0);
+        render_combo->property_has_entry().set_value(false);
+
+        //render_combo->signal_changed().connect(
+         //   sigc::bind<std::string>(sigc::mem_fun(*this, &VueTable::on_change), as->name.get_id()));
+      }
+      else
+      {
+        render = Gtk::manage(new Gtk::CellRendererText());
+        if (as->is_read_only)
+        {
+          render->property_editable() = false;
+        }
+        else
+        {
+          render->property_editable() = true;
+
+          render->signal_editing_started().connect(
+              sigc::bind<std::string>(sigc::mem_fun(*this, &VueTable::on_editing_start), as->name.get_id()));
+        }
+      }
+      render->signal_edited().connect(
+          sigc::bind<std::string>(sigc::mem_fun(*this, &VueTable::on_editing_done), as->name.get_id()));
       cell_renderers.push_back(render);
       Gtk::TreeView::Column *viewcol = Gtk::manage(
           new Gtk::TreeView::Column(cname, *render));
       viewcol->add_attribute(render->property_markup(), columns.m_cols[i]);
-
-      if (as->is_read_only) {
-        render->property_editable() = false;
-      } else {
-        render->property_editable() = true;
-        render->signal_edited().connect(
-            sigc::bind < std::string
-                > (sigc::mem_fun(*this, &StringListView::on_editing_done), as->name.get_id()));
-
-        render->signal_editing_started().connect(
-            sigc::bind < std::string
-                > (sigc::mem_fun(*this, &StringListView::on_editing_start), as->name.get_id()));
-      }
-
       tree_view.append_column(*viewcol);
-
     }
   }
 
@@ -2559,7 +2702,8 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
    tree_view.append_column(*viewcol);
    }*/
 
-  for (i = 0; i < schema->references.size(); i++) {
+  for (i = 0; i < schema->references.size(); i++)
+  {
     RefSchema as = schema->references[i];
     std::string cname = as.name.get_localized();
 
@@ -2583,16 +2727,16 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
     colrenderer->property_editable() = true;
     colrenderer->signal_edited().connect(
         sigc::bind < std::string
-            > (sigc::mem_fun(*this, &StringListView::on_editing_done), as.name.get_id()));
+            > (sigc::mem_fun(*this, &VueTable::on_editing_done), as.name.get_id()));
     colrenderer->signal_editing_started().connect(
         sigc::bind < std::string
-            > (sigc::mem_fun(*this, &StringListView::on_editing_start), as.name.get_id()));
+            > (sigc::mem_fun(*this, &VueTable::on_editing_start), as.name.get_id()));
   }
 
   Glib::RefPtr < Gtk::TreeSelection > refTreeSelection =
       tree_view.get_selection();
   refTreeSelection->signal_changed().connect(
-      sigc::mem_fun(*this, &StringListView::on_selection_changed));
+      sigc::mem_fun(*this, &VueTable::on_selection_changed));
 
   Gtk::Image *buttonImage_ = new Gtk::Image(
       utils::get_img_path() + files::get_path_separator() + "gtk-go-up16.png");
@@ -2602,12 +2746,12 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
   b_down.set_image(*buttonImage_);
 
   b_remove.signal_clicked().connect(
-      sigc::mem_fun(*this, &StringListView::on_b_remove));
-  b_up.signal_clicked().connect(sigc::mem_fun(*this, &StringListView::on_b_up));
+      sigc::mem_fun(*this, &VueTable::on_b_remove));
+  b_up.signal_clicked().connect(sigc::mem_fun(*this, &VueTable::on_b_up));
   b_down.signal_clicked().connect(
-      sigc::mem_fun(*this, &StringListView::on_b_down));
+      sigc::mem_fun(*this, &VueTable::on_b_down));
   b_add.signal_clicked().connect(
-      sigc::mem_fun(*this, &StringListView::on_b_add));
+      sigc::mem_fun(*this, &VueTable::on_b_add));
 
   /*scroll.add(tree_view);
    hbox.pack_start(scroll, Gtk::PACK_EXPAND_WIDGET);*/
@@ -2616,7 +2760,8 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
   scroll.add(tree_view);
   hbox.pack_start(scroll, Gtk::PACK_EXPAND_WIDGET);
 
-  for (i = 0; i < sub->commands.size(); i++) {
+  for (i = 0; i < sub->commands.size(); i++)
+  {
     CommandSchema &cs = sub->commands[i];
     // TODO: smart pointer
     Gtk::Button *b = new Gtk::Button();
@@ -2626,7 +2771,7 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
     b->set_label(cs.name.get_localized());
     b->signal_clicked().connect(
         sigc::bind < std::string
-            > (sigc::mem_fun(*this, &StringListView::on_b_command), cs.name.get_id()));
+            > (sigc::mem_fun(*this, &VueTable::on_b_command), cs.name.get_id()));
   }
 
   button_box.pack_start(b_up, Gtk::PACK_SHRINK);
@@ -2635,12 +2780,15 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
   button_box.pack_start(b_remove, Gtk::PACK_SHRINK);
 
   if (!sub_schema.readonly || (sub->commands.size() > 1))
-    hbox.pack_start(button_box, Gtk::PACK_SHRINK);
+  {
+    if(config.affiche_boutons)
+      hbox.pack_start(button_box, Gtk::PACK_SHRINK);
+  }
   button_box.set_border_width(5);
   button_box.set_layout(Gtk::BUTTONBOX_END);
   hbox.set_border_width(5);
 
-  add(hbox);
+  //add(hbox);
   update_view();
   //model->CProvider<ChangeEvent>::add_listener(this);
   model.add_listener(this);
@@ -2686,7 +2834,7 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
   if (cfg.table_height != -1)
     dy = cfg.table_height;
 
-  set_size_request(dx, dy);
+  hbox.set_size_request(dx, dy);
 
   tree_view.set_grid_lines(Gtk::TREE_VIEW_GRID_LINES_BOTH);
 
@@ -2704,96 +2852,151 @@ StringListView::StringListView(Node model, NodeSchema *&sub,
   //set_size_request(-1, 200);
 }
 
-void StringListView::on_b_command(std::string command) {
+void VueTable::on_b_command(std::string command) {
   infos("command detected: %s.", command.c_str());
 
   Node selection = get_selected();
   exec_cmde(selection, command);
 }
 
-void StringListView::update_langue() {
+void VueTable::update_langue() {
   b_add.set_label(langue.get_item("Add..."));
   b_remove.set_label(langue.get_item("Remove"));
 }
 
-void StringListView::on_event(const ChangeEvent &ce) 
+void VueTable::on_event(const ChangeEvent &ce) 
 {
   if (!lock) 
   {
-    infos(ce.to_string());
+    //infos(ce.to_string());
     //lock = true;
     //infos("event -> update_view..");
-    update_view();
+    if(ce.type == ChangeEvent::GROUP_CHANGE)
+    {
+      auto s = ce.to_string();
+      infos("VueTable : change evt: %s.", s.c_str());
+      update_view();
+    }
     //lock = false;
   }
 }
 
-void StringListView::update_view() {
-  uint32_t i, j;
-
-  if (!lock) {
-    can_remove = true;
-    lock = true;
-    Node selected = get_selected();
-    Node first, last;
-    Gtk::TreeModel::Row row;
-    clear_table();
-
-    for (i = 0; i < model.get_children_count(schema->name.get_id()); i++) {
-      Node sub = model.get_child_at(schema->name.get_id(), i);
-      row = *(tree_model->append());
-
-      for (j = 0; j < schema->attributes.size(); j++) {
-        std::string val, name;
-        name = schema->attributes[j]->name.get_id();
-        val = sub.get_attribute_as_string(name);
-        row[columns.m_cols[j]] = val;
-      }
-
-      for (j = 0; j < schema->references.size(); j++) {
-        Node ref = sub.get_reference(schema->references[j].name.get_id());
-        //ref.infos("one ref.");
-        std::string name = ref.get_localized().get_localized();
-        row[columns.m_cols[schema->attributes.size() + j]] = name;
-      }
-
-      row[columns.m_col_ptr] = sub;
-    }
-
-    //scroll.set_size_request(-1, 40 + 22 * model->schema->optionals.size());
-
-    tree_view.expand_all();
-
-    // If anything is selected
-    if (!selected.is_nullptr()) {
-      set_selection(selected);
-      b_remove.set_sensitive(true);
-
-      b_up.set_sensitive(selected != first);
-      b_down.set_sensitive(selected != last);
-    } else {
-      b_up.set_sensitive(false);
-      b_down.set_sensitive(false);
-      b_remove.set_sensitive(false);
-    }
-
-    b_add.set_sensitive(true);
-
-    int nchild = model.get_children_count(this->schema->name.get_id());
-    for (uint32_t i = 0; i < model.schema()->children.size(); i++) {
-      SubSchema ss = model.schema()->children[i];
-      if (ss.ptr == schema) {
-        if (ss.has_min() && (nchild <= ss.min)) {
-          b_remove.set_sensitive(false);
-          can_remove = false;
-        }
-        if (ss.has_max() && (nchild >= ss.max))
-          b_add.set_sensitive(false);
-        break;
-      }
-    }
-    lock = false;
+void VueTable::maj_ligne(Gtk::TreeModel::Row &trow, unsigned int row)
+{
+  auto id_sub = schema->name.get_id();
+  Node sub = model.get_child_at(id_sub, row);
+  for(auto col = 0u; col < schema->attributes.size(); col++)
+  {
+    maj_cellule(trow, row, col);
   }
+  for (auto j = 0u; j < schema->references.size(); j++)
+  {
+    Node ref = sub.get_reference(schema->references[j].name.get_id());
+    //ref.infos("one ref.");
+    std::string name = ref.get_localized().get_localized();
+    trow[columns.m_cols[schema->attributes.size() + j]] = name;
+  }
+}
+
+void VueTable::maj_cellule(Gtk::TreeModel::Row &trow, unsigned int row, unsigned int col)
+{
+  auto id_sub = schema->name.get_id();
+  Node sub = model.get_child_at(id_sub, row);
+  std::string val, name;
+  auto &as = schema->attributes[col];
+
+  name = as->name.get_id();
+  val = as->get_ihm_value(sub.get_attribute_as_string(name));
+
+  if(as->has_unit())
+    val += " " + as->unit;
+
+  trow[columns.m_cols[col]] = val;
+}
+
+//int essai_plante = 0;
+
+void VueTable::update_view() 
+{
+  uint32_t i;
+
+  //if(essai_plante)
+    //erreur("Vue table : update view innatendu.");
+
+  if (!lock)
+  {
+    infos("VueTable -> maj.");
+
+    auto id_sub = schema->name.get_id();
+
+    if((nb_lignes > 0) && ((int) model.get_children_count(id_sub) == nb_lignes))
+    {
+      infos("VueTable : maj slmt des valeurs.");
+      lock = true;
+      typedef Gtk::TreeModel::Children type_children;
+      type_children children = tree_model->children();
+      auto iter = children.begin();
+      // Only update the values
+      for(i = 0; i < (unsigned int) nb_lignes; i++)
+      {
+        auto r = *iter++;
+        maj_ligne(r, i);
+      }
+      lock = false;
+      return;
+    }
+
+      can_remove = true;
+      lock = true;
+      Node selected = get_selected();
+      Node first, last;
+      Gtk::TreeModel::Row row;
+      clear_table();
+
+      for (i = 0; i < model.get_children_count(id_sub); i++)
+      {
+        Node sub = model.get_child_at(id_sub, i);
+        row = *(tree_model->append());
+
+        maj_ligne(row, i);
+
+        row[columns.m_col_ptr] = sub;
+      }
+
+      //scroll.set_size_request(-1, 40 + 22 * model->schema->optionals.size());
+
+      tree_view.expand_all();
+
+      // If anything is selected
+      if (!selected.is_nullptr()) {
+        set_selection(selected);
+        b_remove.set_sensitive(true);
+
+        b_up.set_sensitive(selected != first);
+        b_down.set_sensitive(selected != last);
+      } else {
+        b_up.set_sensitive(false);
+        b_down.set_sensitive(false);
+        b_remove.set_sensitive(false);
+      }
+
+      b_add.set_sensitive(true);
+
+      int nchild = model.get_children_count(this->schema->name.get_id());
+      for (uint32_t i = 0; i < model.schema()->children.size(); i++) {
+        SubSchema ss = model.schema()->children[i];
+        if (ss.ptr == schema) {
+          if (ss.has_min() && (nchild <= ss.min)) {
+            b_remove.set_sensitive(false);
+            can_remove = false;
+          }
+          if (ss.has_max() && (nchild >= ss.max))
+            b_add.set_sensitive(false);
+          break;
+        }
+      }
+      lock = false;
+    }
 
   if (sub_schema.readonly) {
     b_add.set_sensitive(false);
@@ -2803,7 +3006,7 @@ void StringListView::update_view() {
   }
 }
 
-void StringListView::clear_table() {
+void VueTable::clear_table() {
   while (1) {
     typedef Gtk::TreeModel::Children type_children;
     type_children children = tree_model->children();
@@ -2815,7 +3018,7 @@ void StringListView::clear_table() {
   }
 }
 
-void StringListView::on_selection_changed() {
+void VueTable::on_selection_changed() {
   //infos("selection changed.");
   if (!lock) {
     lock = true;
@@ -2838,7 +3041,7 @@ void StringListView::on_selection_changed() {
   }
 }
 
-Node StringListView::get_selected() {
+Node VueTable::get_selected() {
   Glib::RefPtr < Gtk::TreeSelection > refTreeSelection =
       tree_view.get_selection();
   Gtk::TreeModel::iterator iter = refTreeSelection->get_selected();
@@ -2850,7 +3053,7 @@ Node StringListView::get_selected() {
   return selected;
 }
 
-void StringListView::set_selection(Node sub) {
+void VueTable::set_selection(Node sub) {
   if (sub.is_nullptr())
     return;
 
@@ -2865,9 +3068,10 @@ void StringListView::set_selection(Node sub) {
   }
 }
 
-void StringListView::on_editing_done(Glib::ustring path, Glib::ustring text,
-    std::string col) {
-
+void VueTable::on_editing_done(Glib::ustring path, 
+				     Glib::ustring text,
+				     std::string col) 
+{
   infos("edit done.");
 
   bool display_editing_dialog = false;
@@ -2876,9 +3080,11 @@ void StringListView::on_editing_done(Glib::ustring path, Glib::ustring text,
     display_editing_dialog = true;
 
   // Check if a column is a text view
-  for (unsigned int i = 0; i < schema->attributes.size(); i++) {
+  for (unsigned int i = 0; i < schema->attributes.size(); i++)
+  {
     refptr<AttributeSchema> &as = schema->attributes[i];
-    if ((as->type == TYPE_STRING) && (as->formatted_text)) {
+    if ((as->type == TYPE_STRING) && (as->formatted_text))
+    {
       display_editing_dialog = true;
       break;
     }
@@ -2896,10 +3102,13 @@ void StringListView::on_editing_done(Glib::ustring path, Glib::ustring text,
     std::string p = path;
     std::string s = text;
 
+    //infos("slview : update val s = %s.", s.c_str());
+
     int row = atoi(p.c_str());
 
-    infos("Editing done: col=%s, row=%d, path=%s, val=%s.", col.c_str(), row,
-        p.c_str(), s.c_str());
+    infos("Editing done: col=%s, row=%d, path=%s, val=%s.", 
+	  col.c_str(), row,
+	  p.c_str(), s.c_str());
 
     if ((row < 0)
         || (row >= (int) model.get_children_count(schema->name.get_id()))) {
@@ -2915,7 +3124,7 @@ void StringListView::on_editing_done(Glib::ustring path, Glib::ustring text,
   }
 }
 
-void StringListView::on_editing_start(Gtk::CellEditable *ed, Glib::ustring path,
+void VueTable::on_editing_start(Gtk::CellEditable *ed, Glib::ustring path,
     std::string col) {
   infos("editing start: col = %s", col.c_str());
   for (unsigned int i = 0; i < schema->references.size(); i++) {
@@ -2986,27 +3195,27 @@ void StringListView::on_editing_start(Gtk::CellEditable *ed, Glib::ustring path,
   }
 }
 
-bool StringListView::is_valid() {
+bool VueTable::is_valid() {
   return true;
 }
 
-void StringListView::on_b_remove() {
+void VueTable::on_b_remove() {
   Node sub = get_selected();
   model.remove_child(sub);
   update_view();
 }
 
-void StringListView::on_b_up() {
+void VueTable::on_b_up() {
   Node sub = get_selected();
   set_selection(sub.parent().up(sub));
 }
 
-void StringListView::on_b_down() {
+void VueTable::on_b_down() {
   Node sub = get_selected();
   set_selection(sub.parent().down(sub));
 }
 
-void StringListView::on_b_add() {
+void VueTable::on_b_add() {
   Node nv = model.add_child(schema);
   if (NodeDialog::display_modal(nv))
     model.remove_child(nv);
@@ -3766,44 +3975,33 @@ void VueChoix::update_sub_view()
 /*******************************************************************
  *               LED VIEW IMPLEMENTATION                       *
  *******************************************************************/
-VueLed::~VueLed() {
+VueLed::~VueLed()
+{
 
 }
 
-VueLed::VueLed(Attribute *model) {
+VueLed::VueLed(Attribute *model, bool editable, bool error)
+{
   lock = false;
   this->model = model;
-  //Gtk::Label *lab = new Gtk::Label();
+  this->editable = editable;
   lab.set_use_markup(true);
   std::string s = NodeView::mk_label(model->schema->name);
-  //s.resize(s.size() - 3);
-  //lab.set_markup("<b>" + s + "</b>");
   update_langue();
-
-  led.set_mutable(!model->schema->is_read_only);
-  led.set_red(model->schema->is_error);
-
-  //vbox.pack_start(led, Gtk::PACK_SHRINK);
-  //vbox.pack_start(align, Gtk::PACK_SHRINK);
-  //align.set_border_width(5);
-  //align.add(lab);
+  led.set_mutable(!model->schema->is_read_only && editable);
+  led.set_red(model->schema->is_error || error);
   led.light(model->get_boolean());
   led.add_listener(this, &VueLed::on_signal_toggled);
   led.show();
-  /*check.add(lab);
-   check.set_active(model->get_boolean());
-   check.signal_toggled().connect( sigc::mem_fun(*this, &BooleanView::on_signal_toggled));*/
 }
 
 void VueLed::update_langue() 
 {
-  //std::string s = NodeView::mk_label(model->schema->name);
-  //s.resize(s.size() - 3);
   lab.set_markup("<b>" + NodeView::mk_label_colon(model->schema->name) + "</b>");
-  //lab.set_markup("<b>" + s + "</b>");
 }
 
-unsigned int VueLed::get_nb_widgets() {
+unsigned int VueLed::get_nb_widgets()
+{
   return 2;
 }
 
@@ -3813,27 +4011,30 @@ Gtk::Widget *VueLed::get_widget(int index)
     return &lab;
   else
     return &led;
-    //return &vbox;
 }
 
 Gtk::Widget *VueLed::get_gtk_widget()
 {
-  return &led;//&vbox;
+  return &led;
+}
+
+void VueLed::set_readonly(bool b)
+{
+  led.set_mutable(!b);
 }
 
 void VueLed::set_sensitive(bool b) {
-  led.set_mutable(b);
+  led.set_mutable(b && !model->schema->is_read_only);
   lab.set_sensitive(b);
   led.set_sensitive(b);
 }
 
-int VueLed::on_signal_toggled(const LedEvent &le) {
+void VueLed::on_signal_toggled(const LedEvent &le) {
   if (!lock) {
     lock = true;
     model->set_value(led.is_on());
     lock = false;
   }
-  return 0;
 }
 
 void VueLed::on_event(const ChangeEvent &ce) {
@@ -3850,14 +4051,44 @@ void VueLed::on_event(const ChangeEvent &ce) {
  *******************************************************************
  *******************************************************************/
 
-GenericView::GenericView()
+VueGenerique::VueGenerique()
 {
+  is_sensitive = true;
+}
+
+void VueGenerique::set_sensitive(bool sensitive)
+{
+  is_sensitive = sensitive;
+  for(auto &e: enfants)
+  {
+    if(e != nullptr)
+      e->set_sensitive(sensitive);
+  }
+  get_gtk_widget()->set_sensitive(sensitive);
+}
+
+VueGenerique::~VueGenerique()
+{
+  for(auto e: enfants)
+  {
+    if(e != nullptr)
+      delete e;
+  }
+  enfants.clear();
+}
+
+void VueGenerique::maj_contenu_dynamique()
+{
+  infos(" ++++ GenericView::maj_contenu_dynamique ++++");
+  for(auto &e: enfants)
+  {
+    if(e != nullptr)
+      e->maj_contenu_dynamique();
+  }
 }
 
 
-
-
-GenericView::WidgetType GenericView::type_from_string(const string &s)
+VueGenerique::WidgetType VueGenerique::desc_vers_type(const string &s)
 {
   infos("%s...", s.c_str());
   for(unsigned int i = 0; i <= WIDGET_MAX; i++)
@@ -3872,7 +4103,7 @@ GenericView::WidgetType GenericView::type_from_string(const string &s)
   return WIDGET_NULL;
 }
 
-std::string     GenericView::type_to_string(GenericView::WidgetType type)
+std::string     VueGenerique::type_vers_desc(VueGenerique::WidgetType type)
 {
   unsigned int id = (unsigned int) type;
   if(id > WIDGET_MAX)
@@ -3892,7 +4123,7 @@ struct FabriqueWidgetElmt
 
 static std::vector<FabriqueWidgetElmt> fabriques;
 
-int GenericView::enregistre_widget(std::string id, FabriqueWidget *fabrique)
+int VueGenerique::enregistre_widget(std::string id, FabriqueWidget *fabrique)
 {
   FabriqueWidgetElmt fwe;
   fwe.id = id;
@@ -3902,7 +4133,7 @@ int GenericView::enregistre_widget(std::string id, FabriqueWidget *fabrique)
 }
 
 
-class SepV: public GenericView
+class SepV: public VueGenerique
 {
 public:
   SepV()
@@ -3913,7 +4144,7 @@ public:
   Gtk::Widget *get_gtk_widget(){return &sep;}
 };
 
-class SepH: public GenericView
+class SepH: public VueGenerique
 {
 public:
   SepH()
@@ -3923,10 +4154,11 @@ public:
   Gtk::Widget *get_gtk_widget(){return &sep;}
 };
 
-GenericView *GenericView::fabrique(Node data_model, Node modele_vue, Controleur *controler)
+VueGenerique *VueGenerique::fabrique(Node modele_donnees,
+                                   Node modele_vue,
+                                   Controleur *controler)
 {
-  GenericView *res = nullptr;
-
+  VueGenerique *res = nullptr;
 
   if(modele_vue.is_nullptr())
   {
@@ -3936,10 +4168,7 @@ GenericView *GenericView::fabrique(Node data_model, Node modele_vue, Controleur 
 
   auto id_widget = modele_vue.schema()->name.get_id();
   infos("Fabique [%s]...", id_widget.c_str());
-
-  WidgetType type = type_from_string(id_widget);
-
-
+  WidgetType type = desc_vers_type(id_widget);
 
   switch(type)
   {
@@ -3952,7 +4181,7 @@ GenericView *GenericView::fabrique(Node data_model, Node modele_vue, Controleur 
       if(fab.id == id_widget)
       {
         infos("Appelle fabrique speciale [%s]...", id_widget.c_str());
-        res = fab.fab->fabrique(data_model, modele_vue, controler);
+        res = fab.fab->fabrique(modele_donnees, modele_vue, controler);
         trouve = true;
         break;
       }
@@ -3974,7 +4203,7 @@ GenericView *GenericView::fabrique(Node data_model, Node modele_vue, Controleur 
       return nullptr;
     }
 
-    Node mod = data_model.get_child(chemin);
+    Node mod = modele_donnees.get_child(chemin);
 
     if(mod.is_nullptr())
     {
@@ -3986,45 +4215,52 @@ GenericView *GenericView::fabrique(Node data_model, Node modele_vue, Controleur 
     break;
   }
 
+  case WIDGET_TABLE:
+  {
+    trace_verbeuse("Fabrique vue table");
+    res = new VueTable(modele_donnees, modele_vue, controler);
+    break;
+  }
+
   case WIDGET_VUE_SPECIALE:
   {
     trace_verbeuse("Fabrique vue speciale");
-    res = new CustomWidget(data_model, modele_vue, controler);
+    res = new CustomWidget(modele_donnees, modele_vue, controler);
     break;
   }
 
   case WIDGET_TRIG_LAYOUT:
   {
     trace_verbeuse("Fabrique trig layout");
-    res = new TrigLayout(data_model, modele_vue);
+    res = new TrigLayout(modele_donnees, modele_vue);
     break;
   }
 
   case WIDGET_LIST_LAYOUT:
   {
     trace_verbeuse("Fabrique list layout");
-    res = new ListLayout(data_model, modele_vue, controler);
+    res = new ListLayout(modele_donnees, modele_vue, controler);
     break;
   }
 
   case WIDGET_FIELD_LIST:
   {
     trace_verbeuse("Fabrique field list");
-    res = new   FieldListView(data_model, modele_vue, controler);
+    res = new   VueListeChamps(modele_donnees, modele_vue, controler);
     break;
   }
 
   case WIDGET_VBOX:
-    res = new BoxLayout(1, data_model, modele_vue, controler);
+    res = new VueLineaire(1, modele_donnees, modele_vue, controler);
     break;
   case WIDGET_HBOX:
-    res = new BoxLayout(0, data_model, modele_vue, controler);
+    res = new VueLineaire(0, modele_donnees, modele_vue, controler);
     break;
   case WIDGET_NOTEBOOK:
-    res = new NoteBookLayout(data_model, modele_vue, controler);
+    res = new NoteBookLayout(modele_donnees, modele_vue, controler);
     break;
   case WIDGET_BUTTON_BOX:
-    res = new HButtonBox(data_model, modele_vue, controler);
+    res = new HButtonBox(modele_donnees, modele_vue, controler);
     break;
 
   case WIDGET_SEP_V:
@@ -4034,12 +4270,18 @@ GenericView *GenericView::fabrique(Node data_model, Node modele_vue, Controleur 
     res = new SepH();
     break;
   case WIDGET_GRID_LAYOUT:
-    res = new SubPlot(data_model, modele_vue, controler);
+    res = new SubPlot(modele_donnees, modele_vue, controler);
     break;
 
+  case WIDGET_CADRE:
+  {
+    res = new VueCadre(modele_donnees, modele_vue, controler);
+    break;
+  }
+
   case WIDGET_FIELD:
-  case WIDGET_PANEL:
-  case WIDGET_INDICATOR:
+
+  case WIDGET_FIXED_STRING:
   case WIDGET_BUTTON:
   case WIDGET_BORDER_LAYOUT:
 
@@ -4049,14 +4291,14 @@ GenericView *GenericView::fabrique(Node data_model, Node modele_vue, Controleur 
   case WIDGET_LABEL:
   default:
   {
-    auto s = type_to_string(type);
+    auto s = type_vers_desc(type);
     erreur("Type de widget non gere (%d / %s)", (int) type, s.c_str());
   }
   }
   if(res != nullptr)
   {
-    res->view_model = modele_vue;
-    res->data_model = data_model;
+    res->modele_vue = modele_vue;
+    res->modele_donnees = modele_donnees;
   }
   return res;
 }
@@ -4068,7 +4310,9 @@ SubPlot::SubPlot(Node &data_model, Node &view_model, Controleur *controler)
   for(auto i = 0u; i < n; i++)
   {
     Node ch = view_model.get_child_at(i);
-    auto v = GenericView::fabrique(data_model, ch, controler);
+    auto v = VueGenerique::fabrique(data_model, ch, controler);
+
+    enfants.push_back(v);
 
     auto x = ch.get_attribute_as_int("x"),
          y = ch.get_attribute_as_int("y"),
@@ -4108,24 +4352,25 @@ Gtk::Widget *SubPlot::get_gtk_widget()
 TrigLayout::TrigLayout(Node &data_model, Node &view_model_)
 {
 
-  this->data_model = data_model;
-  this->view_model = view_model_;
+  this->modele_donnees = data_model;
+  this->modele_vue = view_model_;
 
   //GenericView *v1 = nullptr, *v2 = nullptr, *v3 = nullptr;
 
-  string s = this->view_model.to_xml(0,true);
+  string s = this->modele_vue.to_xml(0,true);
   infos("trig layout, modele de vue = \n%s", s.c_str());
 
-  std::vector<GenericView *> vs;
+  std::vector<VueGenerique *> vs;
 
   vbox.pack_start(hpane, Gtk::PACK_EXPAND_WIDGET);
   vbox.pack_start(vsep, Gtk::PACK_SHRINK);
 
-  unsigned int n = view_model.get_children_count();
+  unsigned int n = modele_vue.get_children_count();
   for(auto i = 0u; i < n; i++)
   {
-    Node ch = view_model.get_child_at(i);
-    auto v = GenericView::fabrique(data_model, ch);
+    Node ch = modele_vue.get_child_at(i);
+    auto v = VueGenerique::fabrique(data_model, ch);
+    enfants.push_back(v);
     vs.push_back(v);
     auto orient = ch.get_attribute_as_string("orientation");
     if(orient == "left")
@@ -4144,13 +4389,46 @@ Gtk::Widget *TrigLayout::get_gtk_widget()
   return &vbox;
 }
 
+/*void set_sensitive(bool sensitive)
+{
+}*/
+
+VueCadre::VueCadre(Node &data_model, Node &view_model, Controleur *controler)
+{
+  if(view_model.get_children_count() == 0)
+  {
+    avertissement("Cadre sans enfant.");
+    return;
+  }
+
+  cadre.set_border_width(5);
+  cadre.set_label(view_model.get_localized_name());
+
+  VueGenerique *gv = VueGenerique::fabrique(data_model, view_model.get_child_at(0), controleur);
+  if(gv != nullptr)
+  {
+    enfants.push_back(gv);
+    cadre.add(*(gv->get_gtk_widget()));
+  }
+}
+
+Gtk::Widget *VueCadre::get_gtk_widget()
+{
+  return &cadre;
+}
+
+VueCadre::~VueCadre()
+{
+
+}
+
 /*******************************************************************
  *******************************************************************
  *               BOX LAYOUT                                        *
  *******************************************************************
  *******************************************************************/
 
-BoxLayout::BoxLayout(int vertical,
+VueLineaire::VueLineaire(int vertical,
                      Node &modele_donnees,
                      Node &modele_vue,
                      Controleur *controleur)
@@ -4164,15 +4442,15 @@ BoxLayout::BoxLayout(int vertical,
 
   unsigned int n = modele_vue.get_children_count();
 
-  elems.resize(n);
+  enfants.resize(n);
 
   for(unsigned int i = 0u; i < n; i++)
-    elems[i] = nullptr;
+    enfants[i] = nullptr;
 
   for(unsigned int i = 0u; i < n; i++)
   {
     auto child = modele_vue.get_child_at(i);
-    GenericView *gv = GenericView::fabrique(modele_donnees, child, controleur);
+    VueGenerique *gv = VueGenerique::fabrique(modele_donnees, child, controleur);
 
     if(gv == nullptr)
     {
@@ -4181,7 +4459,7 @@ BoxLayout::BoxLayout(int vertical,
       continue;
     }
 
-    assert(!gv->view_model.is_nullptr());
+    assert(!gv->modele_vue.is_nullptr());
 
 
     unsigned int y;
@@ -4194,7 +4472,7 @@ BoxLayout::BoxLayout(int vertical,
       erreur("y > nombre d'elements dans la boite (y = %d, n = %d).", y, n);
       return;
     }
-    elems[y] = gv;
+    enfants[y] = gv;
   }
 
   // Classement suivant y
@@ -4203,7 +4481,7 @@ BoxLayout::BoxLayout(int vertical,
   for(unsigned int i = 0u; i < n; i++)
   {
     //auto child = view_model.get_child_at(i);
-    GenericView *gv = elems[i];//GenericView::fabrique(data_model, child, controler);
+    VueGenerique *gv = enfants[i];//GenericView::fabrique(data_model, child, controler);
     //elems.push_back(gv);
 
     if(gv == nullptr)
@@ -4212,8 +4490,8 @@ BoxLayout::BoxLayout(int vertical,
       continue;
     }
     
-    std::string pack = gv->view_model.get_attribute_as_string("pack");
-    bool pos_fin = gv->view_model.get_attribute_as_boolean("pos-end");
+    std::string pack = gv->modele_vue.get_attribute_as_string("pack");
+    bool pos_fin = gv->modele_vue.get_attribute_as_boolean("pos-end");
 
     trace_verbeuse("disposition h/v : elem = %d, pack = %s, pos fin = %d",
         i, pack.c_str(), pos_fin);
@@ -4229,9 +4507,9 @@ BoxLayout::BoxLayout(int vertical,
   box->show_all_children(true);
 }
 
-BoxLayout::~BoxLayout()
+VueLineaire::~VueLineaire()
 {
-  for(GenericView *gv: elems)
+  for(VueGenerique *gv: enfants)
   {
     if(gv == nullptr)
       continue;
@@ -4240,11 +4518,11 @@ BoxLayout::~BoxLayout()
     //trace_verbeuse("supression widget...");
     delete gv;
   }
-  elems.clear();
+  enfants.clear();
   //trace_verbeuse("fin destructeur");
 }
 
-Gtk::Widget *BoxLayout::get_gtk_widget()
+Gtk::Widget *VueLineaire::get_gtk_widget()
 {
   return box;
 }
@@ -4260,18 +4538,21 @@ NoteBookLayout::NoteBookLayout(Node &data_model, Node &view_model, Controleur *c
 {
   unsigned int n = view_model.get_children_count();
 
+  notebook.set_scrollable(true);
+  notebook.popup_enable();
+
   for(unsigned int i = 0; i < n; i++)
   {
     Node child = view_model.get_child_at(i);
-    GenericView *gv = GenericView::fabrique(data_model, child.get_child("widget"), controler);
-    elems.push_back(gv);
+    VueGenerique *gv = VueGenerique::fabrique(data_model, child, controler);
+    enfants.push_back(gv);
 
-    auto name = child.get_localized_name();
+    auto nom = child.get_localized_name();
 
     // TODO: in elems to be able to delete
     Gtk::HBox *ybox = new Gtk::HBox();
     Gtk::Label *lab = new Gtk::Label();
-    lab->set_markup("<b> " + name + "</b>");
+    lab->set_markup("<b> " + nom + "</b>");
 
     ybox->pack_start(*lab);
     notebook.append_page(*(gv->get_gtk_widget()), *ybox);
@@ -4286,12 +4567,12 @@ NoteBookLayout::~NoteBookLayout()
   for (int i = 0; i < n; i++)
     notebook.remove_page(0);
 
-  for(GenericView *gv: elems)
+  for(VueGenerique *gv: enfants)
   {
     //notebook.remove(*(gv->get_gtk_widget()));
     delete gv;
   }
-  elems.clear();
+  enfants.clear();
 }
 
 Gtk::Widget *NoteBookLayout::get_gtk_widget()
@@ -4340,8 +4621,13 @@ Gtk::Widget *HButtonBox::get_gtk_widget()
 
 void HButtonBox::on_button(std::string action)
 {
-  trace_verbeuse("action detected: %s", action.c_str());
-  controler->gere_action(action, data_model);
+  trace_verbeuse("Action requise: [%s]", action.c_str());
+  if(controler == nullptr)
+  {
+    avertissement("Pas de controleur.");
+  }
+  else
+    controler->gere_action(action, data_model);
 }
 
 /*******************************************************************
@@ -4350,19 +4636,41 @@ void HButtonBox::on_button(std::string action)
  *******************************************************************
  *******************************************************************/
 
-CustomWidget::CustomWidget(Node &data_model,
-                           Node &view_model,
-                           Controleur *controler)
+CustomWidget::CustomWidget(Node &modele_donnees,
+                           Node &modele_vue,
+                           Controleur *controleur)
 {
-  this->data_model = data_model;
-  this->view_model = view_model;
-  this->controler = controler;
-  this->id = view_model.get_attribute_as_string("name");
+  this->controler = controleur;
+  this->id = modele_vue.get_attribute_as_string("name");
+  widget = nullptr;
+}
+
+void CustomWidget::maj_contenu_dynamique()
+{
+  infos("  ++++ CustomWidget::maj_contenu_dynamique ++++");
+  if(widget != nullptr)
+  {
+    evt_box.remove();
+    delete widget;
+    widget = nullptr;
+  }
+  controler->genere_contenu_dynamique(id, data_model, &widget);
+  if(widget == nullptr)
+  {
+    auto l = new Gtk::Label();
+    widget = l;
+    char bf[500];
+    sprintf(bf, "Widget à faire : %s", id.c_str());
+    l->set_label(bf);
+  }
+  evt_box.add(*widget);
 }
 
 Gtk::Widget *CustomWidget::get_gtk_widget()
 {
-  Gtk::Widget *res = nullptr;
+  maj_contenu_dynamique();
+  return &evt_box;
+  /*Gtk::Widget *res = nullptr;
   controler->genere_contenu_dynamique(id, data_model, &res);
   if(res == nullptr)
   {
@@ -4372,7 +4680,7 @@ Gtk::Widget *CustomWidget::get_gtk_widget()
     l->set_label(bf);
     return l;
   }
-  return res;
+  return res;*/
 }
 
 /*******************************************************************
@@ -4390,16 +4698,20 @@ void ListLayout::rebuild_view()
     //e.frame->remove();
 
     delete e.label;
+
+    if(e.widget != nullptr)
+      delete e.widget;
   }
+  //enfants.clear();
   elems.clear();
-  std::string tp = view_model.get_attribute_as_string("child-type");
+  std::string tp = modele_vue.get_attribute_as_string("child-type");
 
   XPath ptp(tp);
 
   XPath prefix = ptp.remove_last();
 
   std::string postfix = ptp.get_last();
-  Node rnode = data_model;
+  Node rnode = modele_donnees;
   if(prefix.length() > 0)
     rnode = rnode.get_child(prefix);
 
@@ -4413,7 +4725,7 @@ void ListLayout::rebuild_view()
   ss = data_model.to_xml();
   trace_verbeuse("data_model = %s.\n", ss.c_str());*/
 
-  unsigned int ncols = view_model.get_attribute_as_int("ncols");
+  unsigned int ncols = modele_vue.get_attribute_as_int("ncols");
   uint16_t x = 0, y = 0;
   uint16_t ny = (n + ncols - 1) / ncols;
   table.resize(ncols, ny);
@@ -4427,8 +4739,11 @@ void ListLayout::rebuild_view()
 
     elems[i].widget = nullptr;
     elems[i].model = rnode.get_child_at(postfix, i);
-    controler->genere_contenu_dynamique(view_model.get_attribute_as_string("child-type"),
+    controler->genere_contenu_dynamique(modele_vue.get_attribute_as_string("child-type"),
                                elems[i].model, &elems[i].widget);
+
+    //if(elems[i].widget != nullptr)
+      //enfants.push_back(elems[i].widget);
 
     elems[i].vbox = new Gtk::VBox();
     elems[i].frame = new Gtk::Frame();
@@ -4496,7 +4811,7 @@ bool ListLayout::on_button_press_event(GdkEventButton *evt, Elem *elt)
   return true;
 }
 
-int ListLayout::on_click(const LabelClick &click)
+void ListLayout::on_click(const LabelClick &click)
 {
   trace_verbeuse("click detected: %s, type = %s", click.path.c_str(), (click.type == LabelClick::VAL_CLICK) ? "val" : "sel");
   int id = atoi(click.path.c_str());
@@ -4512,12 +4827,10 @@ int ListLayout::on_click(const LabelClick &click)
       {
         controler->gere_action(a.name,
                              get_selection());
-        return 0;
+        return;
       }
     }
   }
-
-  return 0;
 }
 
 /*#ifdef LINUX
@@ -4558,7 +4871,7 @@ void ListLayout::update_view()
 
     Gtk::Widget *unused;
     elems[i].label->label.set_markup(controler->genere_contenu_dynamique(
-        view_model.get_attribute_as_string("child-type"),
+        modele_vue.get_attribute_as_string("child-type"),
                                      elems[i].model, &unused));
   }
 
@@ -4573,7 +4886,7 @@ void ListLayout::update_view()
 #   endif
 
     Gtk::Widget *unused;
-    auto s = controler->genere_contenu_dynamique(this->view_model.get_attribute_as_string("child-type"),
+    auto s = controler->genere_contenu_dynamique(this->modele_vue.get_attribute_as_string("child-type"),
 					elems[current_selection].model, &unused);
     //s = "<big>"+s+"</big>";
     //elems[current_selection].label->label.set_markup(s);
@@ -4620,7 +4933,7 @@ Node ListLayout::get_selection()
 {
   Node res;
   if((current_selection == -1) || (current_selection >= (int) elems.size()))
-    return data_model;
+    return modele_donnees;
   return elems[current_selection].model;
 }
 
@@ -4630,18 +4943,24 @@ void ListLayout::on_button(std::string action)
   controler->gere_action(action, get_selection());
 }
 
+void ListLayout::maj_contenu_dynamique()
+{
+  rebuild_view();
+}
+
+
 ListLayout::ListLayout(Node &data_model, Node &view_model_, Controleur *controler)
 {
   current_selection = -1;
   this->controler = controler;
-  this->data_model = data_model;
-  this->view_model = view_model_;
+  this->modele_donnees = data_model;
+  this->modele_vue = view_model_;
 
-  unsigned int n = view_model.get_children_count("bouton");
+  unsigned int n = modele_vue.get_children_count("bouton");
   actions.resize(n);
   for(unsigned int i = 0; i < n; i++)
   {
-    Node bouton = view_model.get_child_at("bouton", i);
+    Node bouton = modele_vue.get_child_at("bouton", i);
 
     actions[i].need_sel   = bouton.get_attribute_as_boolean("require-sel");
     actions[i].is_default = bouton.get_attribute_as_boolean("default");
@@ -4679,7 +4998,7 @@ ListLayout::ListLayout(Node &data_model, Node &view_model_, Controleur *controle
 
 ListLayout::~ListLayout()
 {
-  data_model.remove_listener(this);
+  modele_donnees.remove_listener(this);
 }
 
 Gtk::Widget *ListLayout::get_gtk_widget()
@@ -4694,37 +5013,52 @@ Gtk::Widget *ListLayout::get_gtk_widget()
  *******************************************************************
  *******************************************************************/
 
-FieldListView::FieldListView(Node &data_model, Node &view_model_, Controleur *controler)
+void VueListeChamps::set_sensitive(bool sensitive)
 {
-  this->view_model = view_model_;
-  this->data_model = data_model;
-  this->controler = controler;
-  Node view_model = view_model_;//.get_child("field-list");
+  VueGenerique::set_sensitive(sensitive);
+  for(auto &f: champs)
+  {
+    if(f->av != nullptr)
+    {
+      f->av->set_sensitive(sensitive);
+      f->label.set_sensitive(sensitive);
+      f->label_unit.set_sensitive(sensitive);
+    }
+  }
+}
 
-  unsigned int i, n = view_model.get_children_count("champs");
+VueListeChamps::VueListeChamps(Node &modele_donnees,
+                               Node &modele_vue,
+                               Controleur *controleur_)
+{
+  this->modele_vue = modele_donnees;
+  this->modele_donnees = modele_vue;
+  this->controleur = controleur_;
+
+  unsigned int i, n = modele_vue.get_children_count("champs");
 
   trace_verbeuse("Field list view: n rows = %d.", n);
   table.resize(n, 3);
 
   for(i = 0; i < n; i++)
   {
-    Node field = view_model.get_child_at("champs", i);
-    XPath path = XPath(field.get_attribute_as_string("modele"));
-    std::string ctrl_id = field.get_attribute_as_string("ctrl-id");
+    Node modele_vue_champs = modele_vue.get_child_at("champs", i);
+    XPath chemin = XPath(modele_vue_champs.get_attribute_as_string("modele"));
+    std::string ctrl_id = modele_vue_champs.get_attribute_as_string("ctrl-id");
     //bool editable = field.get_attribute_as_boolean("editable");
 
-    if(path.length() == 0)
+    if(chemin.length() == 0)
     {
       erreur("%s: field-view: 'model' attribute not specified.");
       continue;
     }
 
-    Node att_owner = data_model.get_child(path.remove_last());
-    string att_name = path.get_last();
+    Node att_owner = modele_donnees.get_child(chemin.remove_last());
+    string att_name = chemin.get_last();
 
     if(att_owner.is_nullptr())
     {
-      erreur("Field '%s': model not found.", path.c_str());
+      erreur("Field '%s': model not found.", chemin.c_str());
       continue;
     }
 
@@ -4732,23 +5066,28 @@ FieldListView::FieldListView(Node &data_model, Node &view_model_, Controleur *co
     {
       auto s = att_owner.to_xml();
       erreur("Field '%s': no such attribute in the model.\nModel = \n%s",
-                  path.c_str(), s.c_str());
+                  chemin.c_str(), s.c_str());
       continue;
     }
 
     auto att_schema = att_owner.schema()->get_attribute(att_name);
 
-    FieldCtx *fc = new FieldCtx();
-    fields.push_back(fc);
+    ChampsCtx *fc = new ChampsCtx();
+    champs.push_back(fc);
 
-    fc->av = AttributeView::factory(data_model, field);
+    fc->av = AttributeView::factory(modele_donnees, modele_vue_champs);
 
     if(fc->av != nullptr)
       fc->av->CProvider<KeyPosChangeEvent>::add_listener(this);
 
     fc->label.set_use_markup(true);
 
-    std::string s = NodeView::mk_label_colon(att_schema->name);
+    Localized nom = att_schema->name;
+
+    if(modele_vue_champs.get_localized_name().size() > 0)
+      nom = modele_vue_champs.get_localized();
+
+    std::string s = NodeView::mk_label_colon(nom);
 
     if(appli_view_prm.overwrite_system_label_color)
       s = "<span foreground='" + appli_view_prm.att_label_color.to_html_string() + "'>" + s + "</span>";
@@ -4789,25 +5128,25 @@ FieldListView::FieldListView(Node &data_model, Node &view_model_, Controleur *co
   }
 }
 
-FieldListView::~FieldListView()
+VueListeChamps::~VueListeChamps()
 {
-  for(unsigned int i = 0; i < fields.size(); i++)
+  for(unsigned int i = 0; i < champs.size(); i++)
   {
-    delete fields[i];
-    fields[i] = nullptr;
+    delete champs[i];
+    champs[i] = nullptr;
   }
 }
 
-Gtk::Widget *FieldListView::get_gtk_widget()
+Gtk::Widget *VueListeChamps::get_gtk_widget()
 {
   return &table;
 }
 
-void FieldListView::on_event(const ChangeEvent &ce)
+void VueListeChamps::on_event(const ChangeEvent &ce)
 {
 }
 
-void FieldListView::update_langue()
+void VueListeChamps::update_langue()
 {
 }
 

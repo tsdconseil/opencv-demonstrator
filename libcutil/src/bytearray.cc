@@ -6,7 +6,7 @@
 #include "cutil.hpp"
 #include <malloc.h>
 #include <string.h>
-
+#include <sys/stat.h>
 
 namespace utils
 {
@@ -95,6 +95,49 @@ void ByteArray::lis_fichier(FILE *fi, uint32_t n)
   for(auto i = 0u; i < n; i++)
     data.push_back(tmp[i]);
   free(tmp);
+}
+
+static int32_t fsize(std::string filename)
+{
+    struct stat st;
+
+    if (stat(filename.c_str(), &st) == 0)
+        return st.st_size;
+
+    return -1;
+}
+
+int ByteArray::lis_fichier(const std::string &fn)
+{
+  FILE *fi = fopen(fn.c_str(), "rb");
+  if(fi == nullptr)
+  {
+    erreur("Erreur lors de l'ouverture du fichier [%s] en lecture.", fn.c_str());
+    return -1;
+  }
+
+  auto lon = fsize(fn);
+
+  if(lon < 0)
+    return -1;
+
+  lis_fichier(fi, lon);
+
+  fclose(fi);
+  return 0;
+}
+
+int ByteArray::ecris_fichier(const std::string &fn)
+{
+  FILE *fo = fopen(fn.c_str(), "wb");
+  if(fo == nullptr)
+  {
+    erreur("Erreur lors de l'ouverture du fichier [%s] en écriture.", fn.c_str());
+    return -1;
+  }
+  ecris_fichier(fo);
+  fclose(fo);
+  return 0;
 }
 
 void ByteArray::ecris_fichier(FILE *fo)
@@ -214,8 +257,9 @@ float ByteArray::popf()
   return *tmp;
 }
 
-void ByteArray::put(const unsigned char *buffer, unsigned int len)
+void ByteArray::put(const void *buffer_, unsigned int len)
 {
+  auto buffer = (const unsigned char *) buffer_;
   for(unsigned int i = 0; i < len; i++)
     putc(buffer[i]);
 }
@@ -338,8 +382,9 @@ uint64_t ByteArray::popL()
   return ((b << 32) | l);
 }
 
-void ByteArray::pop_data(unsigned char *buffer, unsigned int len)
+void ByteArray::pop_data(void *buffer_, unsigned int len)
 {
+  unsigned char *buffer = (unsigned char *) buffer_;
   if(len > size())
   {
     erreur("pop_data(%d), size = %d.", len, size());

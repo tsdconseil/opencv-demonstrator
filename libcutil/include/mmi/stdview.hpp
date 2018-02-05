@@ -26,28 +26,33 @@ public:
   // Get dynamic content at the specified path in the view model
   virtual std::string genere_contenu_dynamique(const std::string &action_path,
                                       Node node,
-                                      Gtk::Widget **widget) = 0;
+                                      Gtk::Widget **widget) {*widget = nullptr; return "";}
   virtual void gere_action(const std::string &action, Node node) = 0;
 };
 
-class GenericView;
+class VueGenerique;
 
 class FabriqueWidget
 {
 public:
-  virtual GenericView *fabrique(Node modele_donnees, Node modele_vue, Controleur *controleur) = 0;
+  virtual VueGenerique *fabrique(Node modele_donnees, Node modele_vue, Controleur *controleur) = 0;
 };
 
-class GenericView
+class VueGenerique
 {
 public:
-  static GenericView *fabrique(Node data_model, Node view_model, Controleur *controler = nullptr);
+  static VueGenerique *fabrique(Node modele_donnees, Node modele_vue, Controleur *controleur = nullptr);
 
   static int enregistre_widget(std::string id, FabriqueWidget *frabrique);
 
   virtual Gtk::Widget *get_gtk_widget() = 0;
-  GenericView();
-  virtual ~GenericView(){}
+  VueGenerique();
+  virtual ~VueGenerique();
+
+  // Demande de regénération récursive du contenu dynamique (géré par l'utilisateur)
+  virtual void maj_contenu_dynamique();
+
+  virtual void set_sensitive(bool sensitive);
 
   typedef enum widget_type_enum
   {
@@ -56,14 +61,14 @@ public:
     WIDGET_NULL,
     WIDGET_FIELD,
     WIDGET_FIELD_LIST,
-    WIDGET_INDICATOR,
+    WIDGET_FIXED_STRING,
     WIDGET_BUTTON,
     WIDGET_BORDER_LAYOUT,
     WIDGET_GRID_LAYOUT,
     WIDGET_FIXED_LAYOUT,
     WIDGET_TRIG_LAYOUT,
     WIDGET_NOTEBOOK,
-    WIDGET_PANNEAU,
+    WIDGET_PANNEAU, // ?
     WIDGET_IMAGE,
     WIDGET_LABEL,
     WIDGET_COMBO,
@@ -72,7 +77,7 @@ public:
     WIDGET_FLOAT_ENTRY,
     WIDGET_RADIO,
     WIDGET_SWITCH,
-    WIDGET_PANEL,
+    WIDGET_CADRE,
     WIDGET_CHOICE,
     WIDGET_BYTES,
     WIDGET_TEXT,
@@ -89,23 +94,27 @@ public:
     WIDGET_VUE_SPECIALE,
     WIDGET_SEP_H,
     WIDGET_SEP_V,
+    WIDGET_TABLE,
+    WIDGET_LED,
     WIDGET_INVALIDE
   } WidgetType;
 
   static const unsigned int WIDGET_MAX = ((int) WIDGET_INVALIDE);
 
-  static WidgetType type_from_string(const std::string &s);
-  static std::string     type_to_string(WidgetType type);
+  static WidgetType  desc_vers_type(const std::string &s);
+  static std::string type_vers_desc(WidgetType type);
 
-  Node data_model;
-  Node view_model;
+  Node modele_donnees;
+  Node modele_vue;
 private:
 protected:
-
+  std::vector<VueGenerique *> enfants;
+  bool is_sensitive;
+  Controleur *controleur;
 };
 
 
-class SubPlot: public GenericView
+class SubPlot: public VueGenerique
 {
 public:
   SubPlot(Node &data_model, Node &view_model, Controleur *controler);
@@ -114,7 +123,7 @@ private:
   Gtk::Grid grille;
 };
 
-class TrigLayout: public GenericView
+class TrigLayout: public VueGenerique
 {
 public:
   TrigLayout(Node &data_model, Node &view_model);
@@ -126,22 +135,31 @@ private:
 };
 
 
-
-class BoxLayout: public GenericView
+class VueCadre: public VueGenerique
 {
 public:
-  BoxLayout(int vertical, Node &data_model, Node &view_model, Controleur *controler);
+  VueCadre(Node &data_model, Node &view_model, Controleur *controler);
   Gtk::Widget *get_gtk_widget();
-  ~BoxLayout();
+  ~VueCadre();
+private:
+  Gtk::Frame cadre;
+};
+
+
+class VueLineaire: public VueGenerique
+{
+public:
+  VueLineaire(int vertical, Node &data_model, Node &view_model, Controleur *controler);
+  Gtk::Widget *get_gtk_widget();
+  ~VueLineaire();
 private:
   int vertical;
   Gtk::Box *box;
   Gtk::VBox vbox;
   Gtk::HBox hbox;
-  std::vector<GenericView *> elems;
 };
 
-class NoteBookLayout: public GenericView
+class NoteBookLayout: public VueGenerique
 {
 public:
   NoteBookLayout(Node &data_model, Node &view_model, Controleur *controler);
@@ -149,11 +167,10 @@ public:
   ~NoteBookLayout();
 private:
   Gtk::Notebook notebook;
-  std::vector<GenericView *> elems;
 };
 
 
-class HButtonBox: public GenericView
+class HButtonBox: public VueGenerique
 {
 public:
   HButtonBox(Node &data_model, Node &view_model, Controleur *controler = nullptr);
@@ -174,19 +191,24 @@ private:
   void on_button(std::string action);
 };
 
-class CustomWidget: public GenericView
+class CustomWidget: public VueGenerique
 {
 public:
   CustomWidget(Node &data_model, Node &view_model, Controleur *controler = nullptr);
   Gtk::Widget *get_gtk_widget();
 private:
+  // Demande de regénération récursive du contenu dynamique (géré par l'utilisateur)
+  void maj_contenu_dynamique();
   Node data_model, view_model;
   Controleur *controler;
-  //Gtk::Widget *widget;
   std::string id;
+  Gtk::EventBox evt_box;
+  Gtk::Widget *widget;
 };
 
-class ListLayout: public GenericView, private CListener<ChangeEvent>
+class ListLayout:
+    public VueGenerique,
+    private CListener<ChangeEvent>
 {
 public:
   ListLayout(Node &data_model, Node &view_model, Controleur *controler = nullptr);
@@ -194,7 +216,7 @@ public:
   Gtk::Widget *get_gtk_widget();
 private:
 
-
+  void maj_contenu_dynamique();
 
   void on_event(const ChangeEvent &ce);
 
@@ -202,7 +224,7 @@ private:
   void rebuild_view();
   void update_view();
   void on_button(std::string action);
-  int on_click(const LabelClick &path);
+  void on_click(const LabelClick &path);
 
   int current_selection;
 
@@ -277,14 +299,29 @@ public:
   std::vector<std::string> vchars;
 };
 
-class StringListView
-  : public  JFrame,
-    private CListener<ChangeEvent>
+class VueTable
+  : private CListener<ChangeEvent>,
+    public VueGenerique
 {
 public:
-  StringListView(Node model, NodeSchema *&sub, const NodeViewConfiguration &cfg);
+
+  struct Config
+  {
+    bool affiche_boutons;
+    Config(){affiche_boutons = true;}
+  };
+
+  VueTable(Node &modele_donnees, Node &modele_vue, Controleur *controleur);
+  VueTable(Node model, NodeSchema *&sub, const NodeViewConfiguration &cfg);
+
+  void init(Node model, NodeSchema *&sub, const NodeViewConfiguration &cfg, Config &config);
+
+  Gtk::Widget *get_gtk_widget();
+
 private:
+  Config config;
   Node model;
+  int nb_lignes;
   NodeSchema *schema;
   bool lock;
   SubSchema sub_schema;
@@ -309,9 +346,7 @@ private:
   class ModelColumns : public Gtk::TreeModel::ColumnRecord
   {
   public:
-      ModelColumns(){/*add(m_col_name); add(m_col_val); add(m_col_ptr);*/}
-      /*Gtk::TreeModelColumn<Glib::ustring> m_col_name;
-      Gtk::TreeModelColumn<Glib::ustring> m_col_val;*/
+      ModelColumns(){}
       Gtk::TreeModelColumn<Glib::ustring> m_cols[30];
       Gtk::TreeModelColumn<Node>       m_col_ptr;
   };
@@ -319,10 +354,10 @@ private:
   class MyTreeView: public Gtk::TreeView
   {
   public:
-    MyTreeView(StringListView *parent);
+    MyTreeView(VueTable *parent);
     virtual bool on_button_press_event(GdkEventButton *ev);
   private:
-    StringListView *parent;
+    VueTable *parent;
   };
 
   Gtk::ScrolledWindow scroll;
@@ -337,7 +372,9 @@ private:
   std::vector<Gtk::CellRenderer *> cell_renderers;
  
   void on_event(const ChangeEvent &ce);
-  std::string class_name() const {return "StringListView";}
+
+  void maj_cellule(Gtk::TreeModel::Row &trow, unsigned int col, unsigned int row);
+  void maj_ligne(Gtk::TreeModel::Row &trow, unsigned int row);
 };
 
 
@@ -347,7 +384,7 @@ class FocusInEvent{};
 class AttributeView: private   CListener<ChangeEvent>,
                      public    CProvider<FocusInEvent>,
                      public    CProvider<KeyPosChangeEvent>,
-                     public    GenericView
+                     public    VueGenerique
 {
 public:
 
@@ -360,6 +397,7 @@ public:
   virtual unsigned int get_nb_widgets()       = 0;
   virtual Gtk::Widget *get_widget(int index)  = 0;
   virtual void set_sensitive(bool b)          = 0;
+  virtual void set_readonly(bool b) {}
   virtual void update_langue() {}
   virtual void maj_langue() {update_langue();}
   virtual bool is_valid();
@@ -373,22 +411,24 @@ protected:
   friend class AttributeListView;
 private:
   /** Choose the best appropriate view type for the given attribute schema */
-  static GenericView::WidgetType choose_view_type(refptr<AttributeSchema> as);
+  static VueGenerique::WidgetType choose_view_type(refptr<AttributeSchema> as, bool editable = true);
 
 };
 
 
-class FieldListView: public GenericView,
-                     private CListener<ChangeEvent>,
-                     private CListener<FocusInEvent>,
-                     public  CProvider<FocusInEvent>,
-                     public  CProvider<KeyPosChangeEvent>,
-                     private CListener<KeyPosChangeEvent>
+class VueListeChamps: public VueGenerique,
+                      private CListener<ChangeEvent>,
+                      private CListener<FocusInEvent>,
+                      public  CProvider<FocusInEvent>,
+                      public  CProvider<KeyPosChangeEvent>,
+                      private CListener<KeyPosChangeEvent>
 {
 public:
-  FieldListView(Node &data_model, Node &view_model, Controleur *controler = nullptr);
+  VueListeChamps(Node &data_model, Node &view_model, Controleur *controler = nullptr);
   Gtk::Widget *get_gtk_widget();
-  ~FieldListView();
+  ~VueListeChamps();
+
+  void set_sensitive(bool sensitive);
 
 private:
   void on_event(const KeyPosChangeEvent &kpce){CProvider<KeyPosChangeEvent>::dispatch(kpce);}
@@ -397,16 +437,13 @@ private:
   void update_langue();
 
   Gtk::Table table;
-  Controleur *controler;
-  struct FieldCtx
+  struct ChampsCtx
   {
     Gtk::Label label, label_unit;
     Gtk::Alignment align[3];
     AttributeView *av;
   };
-
-  std::vector<FieldCtx *> fields;
-
+  std::vector<ChampsCtx *> champs;
 };
 
 class AttributeListView: public Gtk::VBox,
@@ -531,7 +568,7 @@ class NodeView: private CListener<ChangeEvent>,
                 public  CProvider<EVSelectionChangeEvent>,
                 private CListener<KeyPosChangeEvent>,
                 public  CProvider<KeyPosChangeEvent>,
-                public GenericView
+                public VueGenerique
 {
 public:
   NodeView();
@@ -719,9 +756,8 @@ private:
   Gtk::Alignment kb_align;
 };
 
-class AppliViewPrm
+struct AppliViewPrm
 {
-public:
   AppliViewPrm();
 
   GColor background_color;
@@ -754,8 +790,6 @@ public:
 
   /** Virtual keyboard below the apply / validate buttons */
   bool vkeyboard_below;
-
-private:
 };
 
 extern AppliViewPrm appli_view_prm;

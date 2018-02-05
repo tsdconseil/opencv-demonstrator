@@ -419,6 +419,13 @@ void RawFifo::deblock()
   h_not_empty.raise();
 }
 
+void RawFifo::reblock()
+{
+  deblocked = false;
+  h_not_full.clear();
+  h_not_empty.clear();
+}
+
 void RawFifo::clear()
 {
   mutex.lock();

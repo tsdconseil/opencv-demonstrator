@@ -35,6 +35,7 @@
   
   <node name      = "conteneur" 
         inherits  = "widget">
+    <sub type = "cadre"/>
     <sub type = "bouton"/>
     <sub type = "boite-boutons"/>
     <sub type = "panneau"/>
@@ -51,9 +52,15 @@
     <sub type = "disposition-grille"/>
     <sub type = "disposition-bordure"/>
     <sub type = "disposition-trig"/>
+    <sub type = "table"/>
     
     <sub type = "list-layout"/>
     <sub type = "vue-speciale"/>
+  </node>
+  
+  <node name="table" inherits="widget">
+    <attribute name="type-sub" type="string"/>
+    <attribute name="affiche-boutons" type="boolean" default="true"/>
   </node>
   
   <node name="separateur-horizontal" inherits="widget"/>
@@ -61,6 +68,9 @@
   
   <node name="disposition-verticale" inherits="conteneur"/>
   <node name="disposition-horizontale" inherits="conteneur"/>
+  
+  <node name="cadre" inherits="conteneur">
+  </node>
   
   <node name="disposition-grille" fr="Grille" inherits="conteneur">
     <attribute name="nlignes" type="int" fr="Nombre de lignes"/>
@@ -149,14 +159,15 @@
         inherits  = "widget">
     <attribute name="ctrl-id" type="string" fr="Chemin vers le contrôleur" en="Control id"/>
     <attribute name="editable" type="boolean" fr="Editable" default="true"/>
-    <attribute name="type"  type="int" min="0" max="5" default="0">
+    <!-- <attribute name="type"  type="int" min="0" max="5" default="0">
       <match value="0" fr="Automatique"/>
       <match value="1" fr="Combo box"/>
       <match value="2" fr="Check box"/>
       <match value="3" fr="Entry"/>
       <match value="4" fr="Radio"/>
       <match value="5" fr="Texte"/>
-    </attribute>
+    </attribute> -->
+    <attribute name="type" type="string"/>
     <attribute name="ndigits" type="int" fr="Nombre de chiffres significatifs" default="5"/>
   </node>
        

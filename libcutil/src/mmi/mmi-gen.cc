@@ -28,10 +28,6 @@ MMIGen *MMIGen::get_instance()
 }
 
 
-/*void MMIGen::on_event(const ChangeEvent &ce)
-{
-}*/
-
 MMIGenSection::MMIGenSection(Node modele)
 {
   this->modele = modele;
@@ -41,10 +37,23 @@ MMIGenSection::MMIGenSection(Node modele)
   bbox.set_border_width(4);
   bbox.set_layout(Gtk::BUTTONBOX_END);
 
+  if(modele.is_nullptr())
+  {
+    erreur("MMIGenSection : sans modele ?");
+  }
+  else
+  {
+    trace_majeure("toxml...");
+    auto s = modele.to_xml(true, true);
+    trace_majeure("Creation vue noeud :\n%s\n", s.c_str());
+  }
+
   vue = new NodeView(instance, modele);
 
   vbox.pack_start(*(vue->get_widget()), Gtk::PACK_SHRINK);
   vbox.pack_start(bbox, Gtk::PACK_SHRINK);
+
+  vbox.show_all_children(true);
 
   frame.set_label(modele.schema()->get_localized());
 }
@@ -72,7 +81,8 @@ void MMIGen::gere_bouton(std::string id)
   auto act = recherche_action(id);
   if(act == nullptr)
     return;
-  act->dispatch();
+  ActionEvent ae;
+  act->dispatch(ae);
 }
 
 int MMIGen::setup(utils::CmdeLine &cmdline, utils::model::Node modele_mmi, FileSchema *root)
@@ -93,8 +103,11 @@ int MMIGen::setup(utils::CmdeLine &cmdline, utils::model::Node modele_mmi, FileS
   //configuration.add_listener(this);
 
   barre_outils.set_icon_size(Gtk::ICON_SIZE_SMALL_TOOLBAR);
+  //barre_outils.set_icon_size(Gtk::ICON_SIZE_SMALL_TOOLBAR);
+  barre_outils.set_toolbar_style(Gtk::TOOLBAR_BOTH);
   barre_outils.set_has_tooltip(false);
 
+  vbox_princ.pack_start(frame_menu, Gtk::PACK_SHRINK);
   vbox_princ.pack_start(barre_outils, Gtk::PACK_SHRINK);
   barre_outils.add(b_open);
   barre_outils.add(b_save);
@@ -152,7 +165,7 @@ int MMIGen::setup(utils::CmdeLine &cmdline, utils::model::Node modele_mmi, FileS
   for(auto i = 0u; i < ncolonnes; i++)
   {
     vboxes.push_back(new Gtk::VBox());
-    hbox.pack_start(*(vboxes[i]), Gtk::PACK_SHRINK);
+    hbox.pack_start(*(vboxes[i]), Gtk::PACK_EXPAND_WIDGET);//Gtk::PACK_SHRINK);
   }
 
   schema_vue = new utils::model::NodeSchema();
@@ -309,8 +322,6 @@ void MMIGen::put_histo_temp(std::string text)
   text_buffer->set_text(historique + text);
 }
 
-
-
 void MMIGen::maj_langue()
 {
   b_open.set_label(langue.get_item("open"));
@@ -325,36 +336,10 @@ void MMIGen::maj_langue()
 
 void MMIGen::maj_vue()
 {
-  bool connected = false;//spectro.est_connecte();
-
-  bool ope_ok = connected;// && !spectro.etat.etalonnage_en_cours;
-
-  //journal.infos("maj vue: ok = %d, connected = %d..", ope_ok, connected);
-
+  bool connected = false;
+  bool ope_ok = connected;
   b_save.set_sensitive(ope_ok);
   b_open.set_sensitive(ope_ok);
-
-/*
-  if(connected)
-  {
-    b_connect.set_label(utils::str::latin_to_utf8("D�connexion"));
-
-    //if(!spectro.video_en_cours())
-      //b_video.set_label(utils::str::latin_to_utf8("D�marrer la vid�o"));
-    //else
-      //b_video.set_label(utils::str::latin_to_utf8("Arr�ter la vid�o"));
-
-    b_connect.set_sensitive(ope_ok);
-  }
-  else
-  {
-    //b_video.set_label(utils::str::latin_to_utf8("D�marrer la vid�o"));
-    b_connect.set_label(utils::str::latin_to_utf8("Connexion..."));
-    //if(sec_serial.modele_mmi.get_attribute_as_string("port").size() > 0)
-      b_connect.set_sensitive(true);
-    //else
-      //b_connect.set_sensitive(false);
-  }*/
   maj_langue();
 }
 

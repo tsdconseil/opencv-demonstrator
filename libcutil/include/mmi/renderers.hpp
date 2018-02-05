@@ -167,7 +167,7 @@ public:
 
   void update_view();
 
-  int on_change(const RefExplorerChange &change);
+  void on_change(const RefExplorerChange &change);
 
 private:
   RefExplorer explorer;
