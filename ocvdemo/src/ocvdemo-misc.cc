@@ -179,7 +179,7 @@ void OCVDemo::thread_video()
   }
 }
 
-int OCVDemo::on_video_image(const std::vector<cv::Mat> &tmp)
+void OCVDemo::on_video_image(const std::vector<cv::Mat> &tmp)
 {
   // Récupération d'une trame vidéo (mais ici on est dans le thread GTK)
   // (Recovery of a video frame (but here we are in the GTK thread))
@@ -197,8 +197,8 @@ int OCVDemo::on_video_image(const std::vector<cv::Mat> &tmp)
     }
     update();
   }
+
   signal_image_video_traitee.raise();
-  return 0;
 }
 
 

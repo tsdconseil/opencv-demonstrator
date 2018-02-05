@@ -153,12 +153,12 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   int sel2 = model.get_attribute_as_int("sel2");
   int sel3 = model.get_attribute_as_int("sel3");
   int tnoyau = model.get_attribute_as_int("taille-noyau");
-  bool mode_hsv = model.get_attribute_as_boolean("mode-hsv");
+  //bool mode_hsv = model.get_attribute_as_boolean("mode-hsv");
 
   cv::Mat masque_saturation_luminance;
 
 
-  if(mode_hsv)
+  /*if(mode_hsv)
   {
     cv::Mat hsv;
     cv::Mat hsv_composantes[3];
@@ -168,7 +168,7 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     masque_saturation_luminance =
           (hsv_composantes[1] > 50)
         & (hsv_composantes[2] > 50);
-  }
+  }*/
 
 
   if((tnoyau & 1) == 0)
@@ -224,15 +224,28 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     cv::cartToPolar(gx, gy, mag, angle);
 
 
-    if(mode_hsv)
+    /*if(mode_hsv)
     {
       infos("mag : %d, %d, masque : %d, %d", mag.cols, mag.rows, masque_saturation_luminance.cols, masque_saturation_luminance.rows);
       mag.setTo(0.0f, 255 - masque_saturation_luminance);
-    }
+    }*/
 
     //addWeighted(agx, .5, agy, .5, 0, output.images[0]);
     cv::normalize(mag, output.images[0], 0, 255, cv::NORM_MINMAX);
     output.names[0] = utils::langue.get_item("gabs");
+  }
+  else if(sel == 2)
+  {
+    cv::Mat mag, angle;
+    cv::cartToPolar(gx, gy, mag, angle, true);
+    cv::normalize(mag, mag, 0, 255, cv::NORM_MINMAX);
+    cv::Mat hsv[3], hsv2;
+    hsv[0] = angle;
+    hsv[1] = cv::Mat::ones(angle.size(), CV_32F);
+    hsv[2] = mag;
+    cv::merge(hsv, 3, hsv2);
+    cv::cvtColor(hsv2, output.images[0], CV_HSV2BGR);
+    output.names[0] = "Gradient";
   }
   else
   {

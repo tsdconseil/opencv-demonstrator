@@ -205,9 +205,10 @@ This demonstration enables you to compute the gradient, with different possible 
     
     <attribute name="taille-noyau" fr="Taille du noyau" en="Kernel size" default="3" min="3" max="11"/>
     
-    <attribute name="sel" min="0" max="1" fr="Calcul du gradient" en="Gradient computing">
+    <attribute name="sel" min="0" max="2" fr="Calcul du gradient" en="Gradient computing">
       <match value="0" name="0" fr="En valeur absolue" en="In absolute value"/>
       <match value="1" name="1" fr="Suivant les 2 directions" en="Along the 2 directions"/>
+      <match value="2" name="2" fr="Valeur absolue et direction" en="Absolute value and direction"/>
     </attribute>
     <attribute name="sel2" min="0" max="1" fr="Type d'opérateur" en="Operator type">
       <match value="0" name="0" fr="Opérateur de Sobel" en="Sobel operator"/>
@@ -221,9 +222,9 @@ This demonstration enables you to compute the gradient, with different possible 
       <description lang="en">The prefiltering enables to reduce the computing noise (the derivation operation amplify somehow the high frequencies, hence the noise).</description>
     </attribute>
     
-    <attribute  name  = "mode-hsv"
+    <!-- <attribute  name  = "mode-hsv"
                 fr    = "Mode HSV actif"
-                type  = "boolean"/>
+                type  = "boolean"/> -->
                 
     
     <sub type="gaussian-sigma" min="1" max="1"/>

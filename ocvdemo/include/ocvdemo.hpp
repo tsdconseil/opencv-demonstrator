@@ -133,7 +133,7 @@ private:
   void update();
 
   /** Réceptacle GTK pour une trame à partir du flux vidéo */
-  int  on_video_image(const std::vector<cv::Mat> &tmp);
+  void on_video_image(const std::vector<cv::Mat> &tmp);
   
 
   void release_all_videos();
