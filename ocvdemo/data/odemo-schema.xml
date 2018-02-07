@@ -660,6 +660,13 @@ The principle is to localize the initial seeds positions for the watershed algor
     </description>
       <description lang="en">This demonstration of the DFT (Discret Fourier Transform) is based on the sample discrete_fourier_transform.cpp included in OpenCV.
     </description>
+    
+    
+    <attribute fr="Source" name="source" type="int" min="0" max="1" default="0">
+      <match name="0" value="0" fr="Image d'entrée"/>
+      <match name="1" value="1" fr="Sinusoide horizontale" schema="dft-sin"/>
+<!--       <match name="2" value="2" fr="Dirac"/> -->
+    </attribute>
 
     <attribute name="fenetrage" type="boolean" fr="Fenêtre de Hann" en="Hann window" default="true"/>
     
@@ -667,9 +674,14 @@ The principle is to localize the initial seeds positions for the watershed algor
     
     <attribute name="decalage-dc" type="boolean" fr="Décalage du DC au centre" en="Shift DC at center" default="true"/>
     
-    <attribute name="angle" type="float" fr="Rotation" en="Rotation" unit="degres" digits="1"/>
+    <attribute name="angle" type="int" fr="Rotation" en="Rotation" unit="degres" digits="0" min="0" max="360"/>
 
+    <sub type="dft-sin" min="1" max="1"/>
     
+  </node>
+  
+  <node name="dft-sin">
+    <attribute name="periode" fr="Période" type="int" size="2" default="10" unit="pixels" min="1" max="512"/>    
   </node>
   
   <node name="disp-map">  

@@ -140,6 +140,30 @@ void dft_shift(cv::Mat &mag)
   tmp.copyTo(q2);
 }
 
+void ift_shift(cv::Mat &mag)
+{
+  // crop the spectrum, if it has an odd number of rows or columns
+  mag = mag(cv::Rect(0, 0, mag.cols & -2, mag.rows & -2));
+
+  // rearrange the quadrants of Fourier image  so that the origin is at the image center
+  int cx = mag.cols/2;
+  int cy = mag.rows/2;
+
+  cv::Mat q0(mag, cv::Rect(0, 0, cx, cy));   // Top-Left - Create a ROI per quadrant
+  cv::Mat q1(mag, cv::Rect(cx, 0, cx, cy));  // Top-Right
+  cv::Mat q2(mag, cv::Rect(0, cy, cx, cy));  // Bottom-Left
+  cv::Mat q3(mag, cv::Rect(cx, cy, cx, cy)); // Bottom-Right
+
+  cv::Mat tmp;                           // swap quadrants (Top-Left with Bottom-Right)
+  q0.copyTo(tmp);
+  q3.copyTo(q0);
+  tmp.copyTo(q3);
+
+  q1.copyTo(tmp);                    // swap quadrant (Top-Right with Bottom-Left)
+  q2.copyTo(q1);
+  tmp.copyTo(q2);
+}
+
 
 cv::Point detection_translation2(const cv::Mat &I0_, const cv::Mat &I1_)
 {

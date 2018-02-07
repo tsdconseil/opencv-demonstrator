@@ -26,17 +26,25 @@ int IFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   cv::magnitude(plans[0], plans[1], mag);
   ocvext::dft_shift(mag);
 
+
+
   cv::normalize(mag, mag, 0, 255, cv::NORM_MINMAX);
+  //cv::normalize(plans[0], mag, 0, 255, cv::NORM_MINMAX);
+  ocvext::dft_shift(mag);
   output.images[0] = I.clone();
   output.images[1] = mag;
   output.nout = 2;
+  output.names[0] = "Espace de Fourier";
+  output.names[1] = "Trf. inverse";
   return 0;
 }
 
 DFTDemo::DFTDemo()
 {
   props.id = "dft";
-  output.names[0] = "DFT";
+  output.nout = 2;
+  output.names[0] = "Entree";
+  output.names[1] = "DFT";
 }
 
 int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
@@ -48,7 +56,28 @@ int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   bool vue_log = input.model.get_attribute_as_boolean("log");
   bool decalage_dc = input.model.get_attribute_as_boolean("decalage-dc");
 
+  int source = input.model.get_attribute_as_int("source");
+  int periode = input.model.get_attribute_as_int("dft-sin/periode");
+
   cvtColor(input.images[0], Ig, CV_BGR2GRAY);
+
+  if(source == 1)
+  {
+    Ig = cv::Mat::zeros(512, 512, CV_32F);
+    for(auto y = 0u; y < 512; y++)
+    {
+      float *ptr = Ig.ptr<float>(y);
+      for(auto x = 0u; x < 512; x++)
+      {
+        float xf = x;
+        //*ptr++ = 128.0 + 128 * std::sin(2 * CV_PI * xf / (512 * (periode / 512.0)));
+        *ptr++ = 128 * std::sin(2 * CV_PI * xf / (512 * (periode / 512.0)));
+      }
+    }
+  }
+
+
+
   Ig.convertTo(Ig, CV_32F);
 
   if(fenetrage)
@@ -64,7 +93,7 @@ int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
 
 
 
-  uint16_t idx = 0;
+  //uint16_t idx = 1;
 
   if(angle != 0)
   {
@@ -76,8 +105,10 @@ int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     cv::Mat R = cv::getRotationMatrix2D(centre, angle, 1.0);
     cv::warpAffine(Ig, Ig, R, Ig.size());
     Ig = Ig(Rect(sx/4,sy/4,sx/2,sy/2));
-    output.images[idx++] = Ig;
+    //output.images[idx++] = Ig;
   }
+
+  output.images[0] = Ig;
 
   /*int m = getOptimalDFTSize( Ig.rows );
   int n = getOptimalDFTSize( Ig.cols ); // on the border add zero values
@@ -101,8 +132,8 @@ int DFTDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     ocvext::dft_shift(mag);
 
   cv::normalize(mag, mag, 0, 255, NORM_MINMAX);
-  output.images[idx++] = mag;
-  output.nout = idx;
+  output.images[1] = mag;
+  //output.nout = idx;
 
   return 0;
 }

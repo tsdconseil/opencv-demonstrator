@@ -11,6 +11,10 @@ namespace ocvext
  *  le DC soit au centre de l'image */
 extern void dft_shift(cv::Mat &mag);
 
+/** Recentrage d'une DFT 2D de manière à ce que
+ *  le DC soit au centre de l'image */
+extern void ift_shift(cv::Mat &mag);
+
 
 /** Détection du vecteur translation la plus probable entre deux images */
 extern cv::Point detection_translation(const cv::Mat &I0, const cv::Mat &I1, bool normaliser_spectre = false, cv::Mat *spectre = nullptr);

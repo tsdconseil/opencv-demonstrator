@@ -205,7 +205,7 @@ int GradientDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
     Scharr(tmp,gy,CV_32F,0,1);
   }
 
-  if(!preconv && !gradient_couleur)
+  if(!preconv && (!gradient_couleur || (sel == 2)))
   {
     infos("Gradient couleur -> abs...");
     gx = cv::abs(gx);
@@ -347,6 +347,7 @@ int LaplaceDemo::proceed(OCVDemoItemInput &input, OCVDemoItemOutput &output)
   cv::resize(tmp, tmp, cv::Size(0,0), echelle, echelle);
 
   cv::Laplacian(tmp, lap, CV_32F, taille_noyau, 1, 0);
+
 
   cv::resize(lap, lap, cv::Size(0,0), 1.0 / echelle, 1.0 / echelle);
 
